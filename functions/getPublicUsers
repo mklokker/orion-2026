@@ -1,0 +1,35 @@
+import { createClientFromRequest } from 'npm:@base44/sdk@0.7.1';
+
+Deno.serve(async (req) => {
+    try {
+        const base44 = createClientFromRequest(req);
+        
+        // Verifica autenticação (qualquer usuário logado pode acessar)
+        const user = await base44.auth.me();
+        if (!user) {
+            return Response.json({ error: 'Unauthorized' }, { status: 401 });
+        }
+        
+        // Usa service role para ler TODOS os usuários (bypass das permissões)
+        const users = await base44.asServiceRole.entities.User.list();
+        
+        // Retorna apenas campos públicos (remove dados sensíveis se houver)
+        const publicUsers = users.map(u => ({
+            id: u.id,
+            email: u.email,
+            display_name: u.display_name || u.full_name,
+            full_name: u.full_name,
+            profile_picture: u.profile_picture || null,
+            department_id: u.department_id || null,
+            role: u.role,
+            created_date: u.created_date
+        }));
+        
+        console.log(`[getPublicUsers] Retornando ${publicUsers.length} usuários para ${user.email}`);
+        
+        return Response.json({ users: publicUsers });
+    } catch (error) {
+        console.error('[getPublicUsers] Erro:', error);
+        return Response.json({ error: error.message }, { status: 500 });
+    }
+});
