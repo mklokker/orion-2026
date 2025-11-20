@@ -188,12 +188,12 @@ export default function Admin() {
   return (
     <div className="p-4 md:p-8 min-h-screen">
       <div className="max-w-7xl mx-auto space-y-8">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div>
             <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-700 to-indigo-700 bg-clip-text text-transparent">
               Administração
             </h1>
-            <p className="text-gray-600 mt-2">Gerencie departamentos e usuários do sistema</p>
+            <p className="text-gray-600 mt-2">Gerencie departamentos, usuários e base de cálculo</p>
           </div>
           <Button
             onClick={() => setShowImportModal(true)}

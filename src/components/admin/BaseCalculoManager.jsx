@@ -25,6 +25,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export default function BaseCalculoManager() {
   const { toast } = useToast();
@@ -66,18 +72,26 @@ export default function BaseCalculoManager() {
   };
 
   const handleSaveNew = async () => {
+    if (!newItem.valor && !newItem.percentual) {
+      toast({
+        title: "Erro",
+        description: "Preencha todos os campos obrigatórios.",
+        variant: "destructive"
+      });
+      return;
+    }
     try {
       await TabelaReferencia.create(newItem);
       toast({
-        title: "Sucesso!",
-        description: "Item criado com sucesso.",
+        title: "✅ Sucesso!",
+        description: "Item criado e salvo com sucesso.",
       });
       setNewItem(null);
       loadData();
     } catch (error) {
       toast({
-        title: "Erro",
-        description: "Erro ao criar item.",
+        title: "❌ Erro",
+        description: "Erro ao criar item. Verifique os dados.",
         variant: "destructive"
       });
     }
@@ -88,18 +102,26 @@ export default function BaseCalculoManager() {
   };
 
   const handleSaveEdit = async () => {
+    if (!editingItem.valor && !editingItem.percentual) {
+      toast({
+        title: "Erro",
+        description: "Preencha todos os campos obrigatórios.",
+        variant: "destructive"
+      });
+      return;
+    }
     try {
       await TabelaReferencia.update(editingItem.id, editingItem);
       toast({
-        title: "Sucesso!",
+        title: "✅ Sucesso!",
         description: "Item atualizado com sucesso.",
       });
       setEditingItem(null);
       loadData();
     } catch (error) {
       toast({
-        title: "Erro",
-        description: "Erro ao atualizar item.",
+        title: "❌ Erro",
+        description: "Erro ao atualizar item. Verifique os dados.",
         variant: "destructive"
       });
     }
@@ -109,16 +131,16 @@ export default function BaseCalculoManager() {
     try {
       await TabelaReferencia.delete(itemToDelete.id);
       toast({
-        title: "Sucesso!",
-        description: "Item removido com sucesso.",
+        title: "✅ Item Excluído!",
+        description: "O item foi removido permanentemente da base de cálculo.",
       });
       setDeleteDialogOpen(false);
       setItemToDelete(null);
       loadData();
     } catch (error) {
       toast({
-        title: "Erro",
-        description: "Erro ao remover item.",
+        title: "❌ Erro ao Excluir",
+        description: "Não foi possível remover o item. Tente novamente.",
         variant: "destructive"
       });
     }
@@ -424,14 +446,22 @@ export default function BaseCalculoManager() {
   };
 
   return (
-    <div className="space-y-6">
-      <Tabs defaultValue="valor_m2" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="valor_m2">Valor/m²</TabsTrigger>
-          <TabsTrigger value="fator_mercado">Fator Mercado</TabsTrigger>
-          <TabsTrigger value="depreciacao">Depreciação</TabsTrigger>
-          <TabsTrigger value="cub">CUB</TabsTrigger>
-        </TabsList>
+    <TooltipProvider>
+      <div className="space-y-4">
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <p className="text-sm text-blue-900">
+            <strong>ℹ️ Base de Cálculo:</strong> Gerencie aqui todos os valores e tabelas utilizados pela Calculadora de Avaliação de Imóveis. 
+            Alterações aqui afetam os cálculos futuros.
+          </p>
+        </div>
+        
+        <Tabs defaultValue="valor_m2" className="w-full">
+          <TabsList className="grid w-full grid-cols-4 h-auto">
+            <TabsTrigger value="valor_m2" className="text-xs md:text-sm">Valor/m²</TabsTrigger>
+            <TabsTrigger value="fator_mercado" className="text-xs md:text-sm">Fator Mercado</TabsTrigger>
+            <TabsTrigger value="depreciacao" className="text-xs md:text-sm">Depreciação</TabsTrigger>
+            <TabsTrigger value="cub" className="text-xs md:text-sm">CUB</TabsTrigger>
+          </TabsList>
 
         <TabsContent value="valor_m2" className="space-y-4">
           {renderTable("Valor_Metro_Quadrado", "Valor do Metro Quadrado por Região/Bairro")}
@@ -448,20 +478,31 @@ export default function BaseCalculoManager() {
         <TabsContent value="cub" className="space-y-4">
           {renderTable("CUB", "Custos Unitários Básicos (CUB)")}
         </TabsContent>
-      </Tabs>
+        </Tabs>
+      </div>
+    </TooltipProvider>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tem certeza que deseja excluir este item? Esta ação não pode ser desfeita.
+            <AlertDialogTitle className="text-xl font-bold text-red-600">⚠️ Confirmar Exclusão Permanente</AlertDialogTitle>
+            <AlertDialogDescription className="text-base space-y-2">
+              <p className="font-semibold">Você está prestes a excluir este item da base de cálculo:</p>
+              {itemToDelete && (
+                <div className="bg-gray-50 p-3 rounded-lg border text-gray-900">
+                  <p><strong>Tipo:</strong> {itemToDelete.tipo_tabela}</p>
+                  {itemToDelete.categoria && <p><strong>Categoria:</strong> {itemToDelete.categoria}</p>}
+                  {itemToDelete.regiao && <p><strong>Região:</strong> {itemToDelete.regiao}</p>}
+                  {itemToDelete.bairro && <p><strong>Bairro:</strong> {itemToDelete.bairro}</p>}
+                </div>
+              )}
+              <p className="text-red-600 font-semibold">⚠️ Esta ação é IRREVERSÍVEL e pode afetar cálculos futuros!</p>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
-              Excluir
+            <AlertDialogCancel className="font-semibold">Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700 font-bold">
+              Sim, Excluir Permanentemente
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
