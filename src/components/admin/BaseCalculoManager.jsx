@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { TabelaReferencia } from "@/entities/TabelaReferencia";
 import { AvaliacaoImovel } from "@/entities/AvaliacaoImovel";
+import RossHeideckeManager from "./RossHeideckeManager";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -1048,7 +1049,7 @@ export default function BaseCalculoManager() {
         </TabsContent>
 
         <TabsContent value="depreciacao" className="space-y-4">
-          {renderTable("Depreciacao", "Tabela de Depreciação Ross Heidecke")}
+          <RossHeideckeManager />
         </TabsContent>
 
         <TabsContent value="cub" className="space-y-4">
