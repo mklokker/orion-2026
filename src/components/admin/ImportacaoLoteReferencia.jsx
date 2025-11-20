@@ -147,20 +147,22 @@ export default function ImportacaoLoteReferencia({ open, onClose, onImportComple
       const rowErrors = [];
 
       if (tipoImportacao === "avaliacoes") {
-        // Validação para avaliações históricas - apenas campos realmente obrigatórios
-        if (!row.regiao || !row.bairro) {
-          rowErrors.push("Região e bairro são obrigatórios");
+        // Validação mínima - apenas campos essenciais
+        if (!row.regiao?.trim()) {
+          rowErrors.push("Região é obrigatória");
+        }
+        if (!row.bairro?.trim()) {
+          rowErrors.push("Bairro é obrigatório");
         }
         if (!row.area_lote || isNaN(row.area_lote) || row.area_lote <= 0) {
-          rowErrors.push("Área do lote deve ser um número positivo");
+          rowErrors.push("Área do lote é obrigatória e deve ser maior que zero");
         }
-        // Vida útil e fator de comercialização: validar apenas se preenchidos
-        if (row.vida_util && !["Lote", "Casa", "Apartamento", "Comercial"].includes(row.vida_util)) {
-          rowErrors.push("Vida útil deve ser: Lote, Casa, Apartamento ou Comercial");
-        }
-        if (row.fator_comercializacao && !["Desaquecido", "Normal", "Aquecido"].includes(row.fator_comercializacao)) {
-          rowErrors.push("Fator de comercialização deve ser: Desaquecido, Normal ou Aquecido");
-        }
+        
+        // Aplicar valores padrão para campos opcionais se vazios
+        if (!row.vida_util) row.vida_util = "Lote";
+        if (!row.fator_comercializacao) row.fator_comercializacao = "Normal";
+        if (!row.padrao_semelhante) row.padrao_semelhante = "Lote";
+        if (!row.estado_conservacao) row.estado_conservacao = null;
       } else if (tipoTabela === "Valor_Metro_Quadrado") {
         if (!row.regiao || !row.bairro) {
           rowErrors.push("Região e bairro são obrigatórios");
