@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { TabelaReferencia } from "@/entities/TabelaReferencia";
+import { AvaliacaoImovel } from "@/entities/AvaliacaoImovel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,8 +37,11 @@ import {
 export default function BaseCalculoManager() {
   const { toast } = useToast();
   const [tabelas, setTabelas] = useState([]);
+  const [avaliacoes, setAvaliacoes] = useState([]);
   const [editingItem, setEditingItem] = useState(null);
   const [newItem, setNewItem] = useState(null);
+  const [editingAvaliacao, setEditingAvaliacao] = useState(null);
+  const [newAvaliacao, setNewAvaliacao] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
   const [showImportDialog, setShowImportDialog] = useState(false);
@@ -50,8 +54,10 @@ export default function BaseCalculoManager() {
     try {
       const data = await TabelaReferencia.list();
       setTabelas(data);
+      const avaliacoesData = await AvaliacaoImovel.list("-created_date");
+      setAvaliacoes(avaliacoesData);
     } catch (error) {
-      console.error("Erro ao carregar tabelas:", error);
+      console.error("Erro ao carregar dados:", error);
     }
   };
 
@@ -71,6 +77,32 @@ export default function BaseCalculoManager() {
       ativo: true
     };
     setNewItem(template);
+  };
+
+  const handleCreateAvaliacao = () => {
+    const template = {
+      regiao: "",
+      bairro: "",
+      sub_bairro: "",
+      area_lote: null,
+      area_construida: null,
+      vida_util: "Lote",
+      idade_aparente: null,
+      padrao_semelhante: "Lote",
+      estado_conservacao: "Bom",
+      fator_comercializacao: "Normal",
+      valor_benfeitoria: null,
+      valor_medio_lote: null,
+      valor_medio_venda: null,
+      limite_inferior: null,
+      limite_superior: null,
+      valor_considerado: null,
+      nome_cliente: "",
+      cpf_cliente: "",
+      endereco_cliente: "",
+      telefone_cliente: ""
+    };
+    setNewAvaliacao(template);
   };
 
   const handleSaveNew = async () => {
@@ -131,7 +163,11 @@ export default function BaseCalculoManager() {
 
   const handleDelete = async () => {
     try {
-      await TabelaReferencia.delete(itemToDelete.id);
+      if (itemToDelete.tipo === "avaliacao") {
+        await AvaliacaoImovel.delete(itemToDelete.id);
+      } else {
+        await TabelaReferencia.delete(itemToDelete.id);
+      }
       toast({
         title: "✅ Item Excluído!",
         description: "O item foi removido permanentemente da base de cálculo.",
@@ -146,6 +182,296 @@ export default function BaseCalculoManager() {
         variant: "destructive"
       });
     }
+  };
+
+  const handleSaveNewAvaliacao = async () => {
+    if (!newAvaliacao.regiao || !newAvaliacao.bairro || !newAvaliacao.area_lote) {
+      toast({
+        title: "Erro",
+        description: "Preencha os campos obrigatórios (região, bairro e área do lote).",
+        variant: "destructive"
+      });
+      return;
+    }
+    try {
+      await AvaliacaoImovel.create(newAvaliacao);
+      toast({
+        title: "✅ Sucesso!",
+        description: "Avaliação histórica criada com sucesso.",
+      });
+      setNewAvaliacao(null);
+      loadData();
+    } catch (error) {
+      toast({
+        title: "❌ Erro",
+        description: "Erro ao criar avaliação. Verifique os dados.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleSaveEditAvaliacao = async () => {
+    if (!editingAvaliacao.regiao || !editingAvaliacao.bairro || !editingAvaliacao.area_lote) {
+      toast({
+        title: "Erro",
+        description: "Preencha os campos obrigatórios (região, bairro e área do lote).",
+        variant: "destructive"
+      });
+      return;
+    }
+    try {
+      await AvaliacaoImovel.update(editingAvaliacao.id, editingAvaliacao);
+      toast({
+        title: "✅ Sucesso!",
+        description: "Avaliação histórica atualizada com sucesso.",
+      });
+      setEditingAvaliacao(null);
+      loadData();
+    } catch (error) {
+      toast({
+        title: "❌ Erro",
+        description: "Erro ao atualizar avaliação. Verifique os dados.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const renderAvaliacaoForm = (item, isNew) => {
+    const updateItem = isNew 
+      ? (updates) => setNewAvaliacao({ ...item, ...updates })
+      : (updates) => setEditingAvaliacao({ ...item, ...updates });
+
+    return (
+      <Card className="mb-4 border-2 border-blue-200">
+        <CardContent className="pt-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label>Região *</Label>
+              <Input
+                value={item.regiao || ""}
+                onChange={(e) => updateItem({ regiao: e.target.value })}
+                placeholder="Ex: São_João_Del_Rei"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Bairro *</Label>
+              <Input
+                value={item.bairro || ""}
+                onChange={(e) => updateItem({ bairro: e.target.value })}
+                placeholder="Ex: Centro"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Sub-Bairro / Localização</Label>
+              <Input
+                value={item.sub_bairro || ""}
+                onChange={(e) => updateItem({ sub_bairro: e.target.value })}
+                placeholder="Ex: Centro Histórico"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Área do Lote (m²) *</Label>
+              <Input
+                type="number"
+                value={item.area_lote || ""}
+                onChange={(e) => updateItem({ area_lote: parseFloat(e.target.value) })}
+                placeholder="300"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Área Construída Equivalente (m²)</Label>
+              <Input
+                type="number"
+                value={item.area_construida || ""}
+                onChange={(e) => updateItem({ area_construida: parseFloat(e.target.value) })}
+                placeholder="150"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Vida Útil</Label>
+              <Select 
+                value={item.vida_util || "Lote"} 
+                onValueChange={(value) => updateItem({ vida_util: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Lote">Lote</SelectItem>
+                  <SelectItem value="Casa">Casa</SelectItem>
+                  <SelectItem value="Apartamento">Apartamento</SelectItem>
+                  <SelectItem value="Comercial">Comercial</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Idade Aparente (Anos)</Label>
+              <Input
+                type="number"
+                value={item.idade_aparente || ""}
+                onChange={(e) => updateItem({ idade_aparente: parseInt(e.target.value) })}
+                placeholder="20"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Padrão Semelhante</Label>
+              <Select 
+                value={item.padrao_semelhante || "Lote"} 
+                onValueChange={(value) => updateItem({ padrao_semelhante: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Lote">Lote</SelectItem>
+                  <SelectItem value="Baixo">Baixo</SelectItem>
+                  <SelectItem value="Normal">Normal</SelectItem>
+                  <SelectItem value="Alto">Alto</SelectItem>
+                  <SelectItem value="Luxo">Luxo</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Estado de Conservação</Label>
+              <Select 
+                value={item.estado_conservacao || "Bom"} 
+                onValueChange={(value) => updateItem({ estado_conservacao: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Novo">Novo</SelectItem>
+                  <SelectItem value="Bom">Bom</SelectItem>
+                  <SelectItem value="Regular">Regular</SelectItem>
+                  <SelectItem value="Ruim">Ruim</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Fator de Comercialização</Label>
+              <Select 
+                value={item.fator_comercializacao || "Normal"} 
+                onValueChange={(value) => updateItem({ fator_comercializacao: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Desaquecido">Desaquecido</SelectItem>
+                  <SelectItem value="Normal">Normal</SelectItem>
+                  <SelectItem value="Aquecido">Aquecido</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Valor Benfeitoria Depreciada (R$)</Label>
+              <Input
+                type="number"
+                value={item.valor_benfeitoria || ""}
+                onChange={(e) => updateItem({ valor_benfeitoria: parseFloat(e.target.value) })}
+                placeholder="250000"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Valor Médio Sugerido do Lote (R$)</Label>
+              <Input
+                type="number"
+                value={item.valor_medio_lote || ""}
+                onChange={(e) => updateItem({ valor_medio_lote: parseFloat(e.target.value) })}
+                placeholder="150000"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Valor Médio de Venda Sugerido (R$)</Label>
+              <Input
+                type="number"
+                value={item.valor_medio_venda || ""}
+                onChange={(e) => updateItem({ valor_medio_venda: parseFloat(e.target.value) })}
+                placeholder="400000"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Limite Inferior (R$)</Label>
+              <Input
+                type="number"
+                value={item.limite_inferior || ""}
+                onChange={(e) => updateItem({ limite_inferior: parseFloat(e.target.value) })}
+                placeholder="300000"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Limite Superior (R$)</Label>
+              <Input
+                type="number"
+                value={item.limite_superior || ""}
+                onChange={(e) => updateItem({ limite_superior: parseFloat(e.target.value) })}
+                placeholder="500000"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Valor Considerado (R$)</Label>
+              <Input
+                type="number"
+                value={item.valor_considerado || ""}
+                onChange={(e) => updateItem({ valor_considerado: parseFloat(e.target.value) })}
+                placeholder="400000"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Nome</Label>
+              <Input
+                value={item.nome_cliente || ""}
+                onChange={(e) => updateItem({ nome_cliente: e.target.value })}
+                placeholder="João Silva"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>CPF</Label>
+              <Input
+                value={item.cpf_cliente || ""}
+                onChange={(e) => updateItem({ cpf_cliente: e.target.value })}
+                placeholder="123.456.789-00"
+              />
+            </div>
+            <div className="space-y-2 md:col-span-2">
+              <Label>Endereço</Label>
+              <Input
+                value={item.endereco_cliente || ""}
+                onChange={(e) => updateItem({ endereco_cliente: e.target.value })}
+                placeholder="Rua das Flores, 123"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Telefone</Label>
+              <Input
+                value={item.telefone_cliente || ""}
+                onChange={(e) => updateItem({ telefone_cliente: e.target.value })}
+                placeholder="(32) 99999-9999"
+              />
+            </div>
+          </div>
+
+          <div className="flex gap-2 mt-4">
+            <Button 
+              onClick={isNew ? handleSaveNewAvaliacao : handleSaveEditAvaliacao}
+              className="gap-2"
+            >
+              <Save className="w-4 h-4" />
+              Salvar
+            </Button>
+            <Button 
+              variant="outline"
+              onClick={() => isNew ? setNewAvaliacao(null) : setEditingAvaliacao(null)}
+              className="gap-2"
+            >
+              <X className="w-4 h-4" />
+              Cancelar
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
   };
 
   const renderForm = (item, isNew) => {
@@ -467,11 +793,12 @@ export default function BaseCalculoManager() {
         </div>
         
         <Tabs defaultValue="valor_m2" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 h-auto">
+          <TabsList className="grid w-full grid-cols-5 h-auto">
             <TabsTrigger value="valor_m2" className="text-xs md:text-sm">Valor/m²</TabsTrigger>
             <TabsTrigger value="fator_mercado" className="text-xs md:text-sm">Fator Mercado</TabsTrigger>
             <TabsTrigger value="depreciacao" className="text-xs md:text-sm">Depreciação</TabsTrigger>
             <TabsTrigger value="cub" className="text-xs md:text-sm">CUB</TabsTrigger>
+            <TabsTrigger value="avaliacoes" className="text-xs md:text-sm">Avaliações Históricas</TabsTrigger>
           </TabsList>
 
         <TabsContent value="valor_m2" className="space-y-4">
@@ -488,6 +815,100 @@ export default function BaseCalculoManager() {
 
         <TabsContent value="cub" className="space-y-4">
           {renderTable("CUB", "Custos Unitários Básicos (CUB)")}
+        </TabsContent>
+
+        <TabsContent value="avaliacoes" className="space-y-4">
+          <Card>
+            <CardHeader className="bg-gradient-to-r from-gray-50 to-blue-50">
+              <div className="flex justify-between items-center">
+                <CardTitle>Avaliações Históricas</CardTitle>
+                <Button 
+                  onClick={handleCreateAvaliacao}
+                  size="sm"
+                  className="gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  Adicionar
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="pt-6">
+              {newAvaliacao && renderAvaliacaoForm(newAvaliacao, true)}
+
+              {avaliacoes.length === 0 ? (
+                <p className="text-center text-gray-500 py-8">
+                  Nenhuma avaliação histórica cadastrada
+                </p>
+              ) : (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Região</TableHead>
+                        <TableHead>Bairro</TableHead>
+                        <TableHead>Sub-Bairro</TableHead>
+                        <TableHead>Área Lote</TableHead>
+                        <TableHead>Área Const.</TableHead>
+                        <TableHead>Valor Venda</TableHead>
+                        <TableHead className="w-24">Ações</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {avaliacoes.map((av) => {
+                        if (editingAvaliacao && editingAvaliacao.id === av.id) {
+                          return (
+                            <TableRow key={av.id}>
+                              <TableCell colSpan={7}>
+                                {renderAvaliacaoForm(editingAvaliacao, false)}
+                              </TableCell>
+                            </TableRow>
+                          );
+                        }
+
+                        return (
+                          <TableRow key={av.id}>
+                            <TableCell className="font-medium">{av.regiao}</TableCell>
+                            <TableCell>{av.bairro}</TableCell>
+                            <TableCell>{av.sub_bairro || "-"}</TableCell>
+                            <TableCell>{av.area_lote} m²</TableCell>
+                            <TableCell>{av.area_construida ? `${av.area_construida} m²` : "-"}</TableCell>
+                            <TableCell>
+                              {av.valor_medio_venda ? 
+                                `R$ ${av.valor_medio_venda.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}` 
+                                : "-"}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex gap-1">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => setEditingAvaliacao({ ...av })}
+                                  className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                >
+                                  <Pencil className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => {
+                                    setItemToDelete({ ...av, tipo: "avaliacao" });
+                                    setDeleteDialogOpen(true);
+                                  }}
+                                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
         </Tabs>
       </div>
