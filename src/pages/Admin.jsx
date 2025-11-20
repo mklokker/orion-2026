@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Department } from "@/entities/Department";
 import { User } from "@/entities/User";
@@ -15,6 +14,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import DepartmentViewEditModal from "../components/admin/DepartmentViewEditModal";
 import ImportTasksModal from "../components/admin/ImportTasksModal";
 import AppearanceSettings from "../components/admin/AppearanceSettings";
+import BaseCalculoManager from "../components/admin/BaseCalculoManager";
 import {
   Dialog,
   DialogContent,
@@ -391,8 +391,21 @@ export default function Admin() {
           </CardContent>
         </Card>
 
-        {/* New Appearance Settings Card */}
+        {/* Appearance Settings Card */}
         <AppearanceSettings />
+
+        {/* Base de Cálculo Card */}
+        <Card className="shadow-lg border-0">
+          <CardHeader className="border-b bg-gradient-to-r from-gray-50 to-blue-50">
+            <CardTitle className="flex items-center gap-2">
+              <Building2 className="w-5 h-5" />
+              Base de Cálculo - Tabelas de Referência
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <BaseCalculoManager />
+          </CardContent>
+        </Card>
 
       </div>
 
