@@ -147,23 +147,18 @@ export default function ImportacaoLoteReferencia({ open, onClose, onImportComple
       const rowErrors = [];
 
       if (tipoImportacao === "avaliacoes") {
-        // Validação para avaliações históricas
+        // Validação para avaliações históricas - apenas campos realmente obrigatórios
         if (!row.regiao || !row.bairro) {
           rowErrors.push("Região e bairro são obrigatórios");
         }
         if (!row.area_lote || isNaN(row.area_lote) || row.area_lote <= 0) {
           rowErrors.push("Área do lote deve ser um número positivo");
         }
-        if (!row.vida_util) {
-          rowErrors.push("Vida útil é obrigatória");
-        }
-        if (!["Lote", "Casa", "Apartamento", "Comercial"].includes(row.vida_util)) {
+        // Vida útil e fator de comercialização: validar apenas se preenchidos
+        if (row.vida_util && !["Lote", "Casa", "Apartamento", "Comercial"].includes(row.vida_util)) {
           rowErrors.push("Vida útil deve ser: Lote, Casa, Apartamento ou Comercial");
         }
-        if (!row.fator_comercializacao) {
-          rowErrors.push("Fator de comercialização é obrigatório");
-        }
-        if (!["Desaquecido", "Normal", "Aquecido"].includes(row.fator_comercializacao)) {
+        if (row.fator_comercializacao && !["Desaquecido", "Normal", "Aquecido"].includes(row.fator_comercializacao)) {
           rowErrors.push("Fator de comercialização deve ser: Desaquecido, Normal ou Aquecido");
         }
       } else if (tipoTabela === "Valor_Metro_Quadrado") {
@@ -492,7 +487,8 @@ export default function ImportacaoLoteReferencia({ open, onClose, onImportComple
               {tipoImportacao === "avaliacoes" && (
                 <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded">
                   <p className="text-xs text-blue-900">
-                    <strong>Campos obrigatórios:</strong> regiao, bairro, area_lote, vida_util, fator_comercializacao
+                    <strong>Campos obrigatórios:</strong> regiao, bairro, area_lote<br />
+                    <strong>Outros campos:</strong> opcionais, podem ser NULL ou vazios
                   </p>
                 </div>
               )}
