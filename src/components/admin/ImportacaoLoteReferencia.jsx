@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { TabelaReferencia } from "@/entities/TabelaReferencia";
+import { AvaliacaoImovel } from "@/entities/AvaliacaoImovel";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
@@ -22,6 +23,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function ImportacaoLoteReferencia({ open, onClose, onImportComplete }) {
   const { toast } = useToast();
+  const [tipoImportacao, setTipoImportacao] = useState("tabelas");
   const [tipoTabela, setTipoTabela] = useState("Valor_Metro_Quadrado");
   const [importing, setImporting] = useState(false);
   const [validationResults, setValidationResults] = useState(null);
@@ -56,15 +58,23 @@ export default function ImportacaoLoteReferencia({ open, onClose, onImportComple
         ["R1B - Residência unifamiliar padrão baixo", "1850.50", "CUB padrão baixo"],
         ["R1N - Residência unifamiliar padrão normal", "2150.00", "CUB padrão normal"]
       ]
+    },
+    "Avaliacoes": {
+      headers: ["regiao", "bairro", "sub_bairro", "area_lote", "area_construida", "vida_util", "idade_aparente", "padrao_semelhante", "estado_conservacao", "fator_comercializacao", "valor_benfeitoria", "valor_medio_lote", "valor_medio_venda", "limite_inferior", "limite_superior", "valor_considerado", "nome_cliente", "cpf_cliente", "endereco_cliente", "telefone_cliente"],
+      exemplo: [
+        ["São_João_Del_Rei", "Centro", "Centro Histórico", "300", "150", "Casa", "20", "Normal", "Bom", "Normal", "250000", "150000", "400000", "300000", "500000", "400000", "João Silva", "123.456.789-00", "Rua das Flores, 123", "(32) 99999-9999"],
+        ["Tiradentes", "Águas Santas", "", "450", "174.31", "Casa", "1", "Normal", "Novo", "Aquecido", "550878.47", "112221.45", "663000", "497000", "829000", "325000", "Maria Santos", "987.654.321-00", "Rua São Vicente, 210", "(32) 98888-8888"]
+      ]
     }
   };
 
   const downloadModelo = () => {
-    const modelo = modelos[tipoTabela];
+    const modeloKey = tipoImportacao === "avaliacoes" ? "Avaliacoes" : tipoTabela;
+    const modelo = modelos[modeloKey];
     const csvContent = [
       modelo.headers.join(','),
       ...modelo.exemplo.map(row => row.map(cell => {
-        if (cell.includes(',') || cell.includes('"') || cell.includes('\n')) {
+        if (typeof cell === 'string' && (cell.includes(',') || cell.includes('"') || cell.includes('\n'))) {
           return `"${cell.replace(/"/g, '""')}"`;
         }
         return cell;
@@ -74,7 +84,8 @@ export default function ImportacaoLoteReferencia({ open, onClose, onImportComple
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
-    link.download = `modelo_${tipoTabela}.csv`;
+    const fileName = tipoImportacao === "avaliacoes" ? "modelo_avaliacoes_historicas.csv" : `modelo_${tipoTabela}.csv`;
+    link.download = fileName;
     link.click();
 
     toast({
@@ -108,12 +119,13 @@ export default function ImportacaoLoteReferencia({ open, onClose, onImportComple
       values.push(currentValue.trim().replace(/"/g, ''));
       
       if (values.length === headers.length) {
-        const row = { tipo_tabela: tipoTabela, ativo: true };
+        const row = tipoImportacao === "avaliacoes" ? {} : { tipo_tabela: tipoTabela, ativo: true };
+        
         headers.forEach((header, index) => {
           const value = values[index];
           if (value === '' || value === 'NULL' || value === 'null') {
             row[header] = null;
-          } else if (header === 'valor' || header === 'percentual') {
+          } else if (['valor', 'percentual', 'area_lote', 'area_construida', 'idade_aparente', 'valor_benfeitoria', 'valor_medio_lote', 'valor_medio_venda', 'limite_inferior', 'limite_superior', 'valor_considerado'].includes(header)) {
             row[header] = parseFloat(value.replace(',', '.'));
           } else {
             row[header] = value;
@@ -134,7 +146,27 @@ export default function ImportacaoLoteReferencia({ open, onClose, onImportComple
       const lineNum = index + 2;
       const rowErrors = [];
 
-      if (tipoTabela === "Valor_Metro_Quadrado") {
+      if (tipoImportacao === "avaliacoes") {
+        // Validação para avaliações históricas
+        if (!row.regiao || !row.bairro) {
+          rowErrors.push("Região e bairro são obrigatórios");
+        }
+        if (!row.area_lote || isNaN(row.area_lote) || row.area_lote <= 0) {
+          rowErrors.push("Área do lote deve ser um número positivo");
+        }
+        if (!row.vida_util) {
+          rowErrors.push("Vida útil é obrigatória");
+        }
+        if (!["Lote", "Casa", "Apartamento", "Comercial"].includes(row.vida_util)) {
+          rowErrors.push("Vida útil deve ser: Lote, Casa, Apartamento ou Comercial");
+        }
+        if (!row.fator_comercializacao) {
+          rowErrors.push("Fator de comercialização é obrigatório");
+        }
+        if (!["Desaquecido", "Normal", "Aquecido"].includes(row.fator_comercializacao)) {
+          rowErrors.push("Fator de comercialização deve ser: Desaquecido, Normal ou Aquecido");
+        }
+      } else if (tipoTabela === "Valor_Metro_Quadrado") {
         if (!row.regiao || !row.bairro) {
           rowErrors.push("Região e bairro são obrigatórios");
         }
@@ -239,9 +271,11 @@ export default function ImportacaoLoteReferencia({ open, onClose, onImportComple
       const total = validationResults.valid.length;
       let imported = 0;
 
+      const Entity = tipoImportacao === "avaliacoes" ? AvaliacaoImovel : TabelaReferencia;
+
       for (let i = 0; i < validationResults.valid.length; i += BATCH_SIZE) {
         const batch = validationResults.valid.slice(i, i + BATCH_SIZE);
-        await TabelaReferencia.bulkCreate(batch);
+        await Entity.bulkCreate(batch);
         imported += batch.length;
         setProgress((imported / total) * 100);
       }
@@ -278,21 +312,43 @@ export default function ImportacaoLoteReferencia({ open, onClose, onImportComple
         </DialogHeader>
 
         <div className="space-y-6 py-4">
-          {/* Seleção de Tipo */}
+          {/* Seleção de Tipo de Importação */}
           <div className="space-y-2">
-            <Label>Tipo de Tabela *</Label>
-            <Select value={tipoTabela} onValueChange={setTipoTabela}>
+            <Label>O que deseja importar? *</Label>
+            <Select value={tipoImportacao} onValueChange={(value) => {
+              setTipoImportacao(value);
+              setValidationResults(null);
+            }}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Valor_Metro_Quadrado">Valor do Metro Quadrado</SelectItem>
-                <SelectItem value="Fator_Mercado">Fator de Mercado</SelectItem>
-                <SelectItem value="Depreciacao">Depreciação</SelectItem>
-                <SelectItem value="CUB">CUB</SelectItem>
+                <SelectItem value="tabelas">Tabelas de Referência</SelectItem>
+                <SelectItem value="avaliacoes">Avaliações Históricas</SelectItem>
               </SelectContent>
             </Select>
           </div>
+
+          {/* Seleção de Tipo de Tabela (apenas se for tabelas) */}
+          {tipoImportacao === "tabelas" && (
+            <div className="space-y-2">
+              <Label>Tipo de Tabela *</Label>
+              <Select value={tipoTabela} onValueChange={(value) => {
+                setTipoTabela(value);
+                setValidationResults(null);
+              }}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Valor_Metro_Quadrado">Valor do Metro Quadrado</SelectItem>
+                  <SelectItem value="Fator_Mercado">Fator de Mercado</SelectItem>
+                  <SelectItem value="Depreciacao">Depreciação</SelectItem>
+                  <SelectItem value="CUB">CUB</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {/* Info sobre formato */}
           <Alert>
@@ -302,8 +358,16 @@ export default function ImportacaoLoteReferencia({ open, onClose, onImportComple
                 <li>• Primeira linha deve conter os cabeçalhos</li>
                 <li>• Use vírgula (,) como separador</li>
                 <li>• Números decimais com ponto (.)</li>
+                <li>• Campos vazios podem ser deixados em branco</li>
                 <li>• Baixe o modelo para ver o formato correto</li>
               </ul>
+              {tipoImportacao === "avaliacoes" && (
+                <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded">
+                  <p className="text-xs text-blue-900">
+                    <strong>Campos obrigatórios:</strong> regiao, bairro, area_lote, vida_util, fator_comercializacao
+                  </p>
+                </div>
+              )}
             </AlertDescription>
           </Alert>
 
