@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AvaliacaoExport from "../components/calculadora/AvaliacaoExport";
+import ImportHistoricoButton from "../components/calculadora/ImportHistoricoButton";
 
 export default function CalculadoraImoveis() {
   const { toast } = useToast();
@@ -890,7 +891,10 @@ export default function CalculadoraImoveis() {
             {/* Histórico */}
             <Card>
               <CardHeader className="bg-gradient-to-r from-gray-50 to-slate-50">
-                <CardTitle className="text-sm">Avaliações Recentes</CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm">Avaliações Recentes</CardTitle>
+                  {isAdmin && <ImportHistoricoButton onImportComplete={loadData} />}
+                </div>
               </CardHeader>
               <CardContent className="pt-6">
                 {avaliacoes.length === 0 ? (
