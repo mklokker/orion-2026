@@ -1,7 +1,7 @@
-
 import React, { useState, useEffect } from "react";
 import { Document } from "@/entities/Document";
 import { DocumentCategory } from "@/entities/DocumentCategory";
+import { DocumentFavorite } from "@/entities/DocumentFavorite";
 import { User } from "@/entities/User";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,7 +16,8 @@ import {
   FolderOpen,
   Filter,
   X,
-  Files
+  Files,
+  Star
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { format } from "date-fns";
@@ -61,9 +62,11 @@ export default function Acervo() {
   const { toast } = useToast();
   const [documents, setDocuments] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [favorites, setFavorites] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
+  const [showOnlyFavorites, setShowOnlyFavorites] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showCategoryManager, setShowCategoryManager] = useState(false);
   const [viewingDocument, setViewingDocument] = useState(null);
@@ -81,13 +84,15 @@ export default function Acervo() {
       const userData = await User.me();
       setCurrentUser(userData);
 
-      const [documentsData, categoriesData] = await Promise.all([
+      const [documentsData, categoriesData, favoritesData] = await Promise.all([
         Document.list("-created_date"),
-        DocumentCategory.list("name")
+        DocumentCategory.list("name"),
+        DocumentFavorite.filter({ user_email: userData.email })
       ]);
 
       setDocuments(documentsData);
       setCategories(categoriesData);
+      setFavorites(favoritesData);
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
       toast({
@@ -211,12 +216,52 @@ export default function Acervo() {
     }
   };
 
+  const toggleFavorite = async (doc, e) => {
+    if (e) e.stopPropagation();
+    
+    try {
+      const isFavorite = favorites.some(fav => fav.document_id === doc.id);
+      
+      if (isFavorite) {
+        const favoriteToRemove = favorites.find(fav => fav.document_id === doc.id);
+        await DocumentFavorite.delete(favoriteToRemove.id);
+        setFavorites(favorites.filter(fav => fav.id !== favoriteToRemove.id));
+        toast({
+          title: "Removido dos favoritos",
+          description: "Documento removido dos seus favoritos.",
+        });
+      } else {
+        const newFavorite = await DocumentFavorite.create({
+          document_id: doc.id,
+          user_email: currentUser.email
+        });
+        setFavorites([...favorites, newFavorite]);
+        toast({
+          title: "Adicionado aos favoritos",
+          description: "Documento marcado como favorito.",
+        });
+      }
+    } catch (error) {
+      console.error("Erro ao favoritar documento:", error);
+      toast({
+        title: "Erro",
+        description: "Erro ao atualizar favoritos.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const isFavorite = (docId) => {
+    return favorites.some(fav => fav.document_id === docId);
+  };
+
   const filteredDocuments = documents.filter(doc => {
     const matchesSearch = doc.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          doc.description?.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = selectedCategory === "all" || doc.category_id === selectedCategory;
+    const matchesFavorites = !showOnlyFavorites || isFavorite(doc.id);
     
-    return matchesSearch && matchesCategory;
+    return matchesSearch && matchesCategory && matchesFavorites;
   });
 
   const groupedByCategory = categories.map(cat => ({
@@ -309,7 +354,7 @@ export default function Acervo() {
         {/* Filtros */}
         <Card>
           <CardContent className="pt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <Input
@@ -345,6 +390,15 @@ export default function Acervo() {
                   </Button>
                 )}
               </div>
+
+              <Button
+                variant={showOnlyFavorites ? "default" : "outline"}
+                onClick={() => setShowOnlyFavorites(!showOnlyFavorites)}
+                className="gap-2"
+              >
+                <Star className={`w-4 h-4 ${showOnlyFavorites ? 'fill-current' : ''}`} />
+                {showOnlyFavorites ? 'Mostrando Favoritos' : 'Meus Favoritos'}
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -379,11 +433,23 @@ export default function Acervo() {
                   {catDocs.map(doc => (
                     <Card 
                       key={doc.id} 
-                      className="hover:shadow-lg transition-all cursor-pointer border-2 hover:border-blue-300"
+                      className="hover:shadow-lg transition-all cursor-pointer border-2 hover:border-blue-300 relative"
                       onClick={() => handleViewDocument(doc)}
                     >
+                      <button
+                        onClick={(e) => toggleFavorite(doc, e)}
+                        className="absolute top-3 right-3 z-10 p-2 rounded-full hover:bg-gray-100 transition-colors"
+                      >
+                        <Star 
+                          className={`w-5 h-5 ${
+                            isFavorite(doc.id) 
+                              ? 'fill-yellow-400 text-yellow-400' 
+                              : 'text-gray-400'
+                          }`} 
+                        />
+                      </button>
                       <CardHeader className="pb-3">
-                        <div className="flex items-start gap-3">
+                        <div className="flex items-start gap-3 pr-8">
                           <div className="mt-1">
                             {doc.document_type === 'text' ? (
                               <FileText className="w-8 h-8 text-blue-600" />
@@ -465,11 +531,23 @@ export default function Acervo() {
                   {uncategorizedDocs.map(doc => (
                     <Card 
                       key={doc.id} 
-                      className="hover:shadow-lg transition-all cursor-pointer border-2 hover:border-blue-300"
+                      className="hover:shadow-lg transition-all cursor-pointer border-2 hover:border-blue-300 relative"
                       onClick={() => handleViewDocument(doc)}
                     >
+                      <button
+                        onClick={(e) => toggleFavorite(doc, e)}
+                        className="absolute top-3 right-3 z-10 p-2 rounded-full hover:bg-gray-100 transition-colors"
+                      >
+                        <Star 
+                          className={`w-5 h-5 ${
+                            isFavorite(doc.id) 
+                              ? 'fill-yellow-400 text-yellow-400' 
+                              : 'text-gray-400'
+                          }`} 
+                        />
+                      </button>
                       <CardHeader className="pb-3">
-                        <div className="flex items-start gap-3">
+                        <div className="flex items-start gap-3 pr-8">
                           <div className="mt-1">
                             {doc.document_type === 'text' ? (
                               <FileText className="w-8 h-8 text-blue-600" />
@@ -570,9 +648,11 @@ export default function Acervo() {
             setViewingDocument(null);
           }}
           document={viewingDocument}
-          isAdmin={isAdmin} // Pass isAdmin prop
-          onEdit={handleEdit} // Pass edit handler
-          onDelete={handleDelete} // Pass delete handler
+          currentUser={currentUser}
+          isAdmin={isAdmin}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          onUpdate={loadData}
         />
       )}
     </div>
