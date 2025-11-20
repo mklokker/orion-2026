@@ -7,7 +7,8 @@ import ProdutividadeGeral from './pages/ProdutividadeGeral';
 import Ranking from './pages/Ranking';
 import Chat from './pages/Chat';
 import Acervo from './pages/Acervo';
-import Layout from './Layout.jsx';
+import Cursos from './pages/Cursos';
+import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
@@ -20,10 +21,11 @@ export const PAGES = {
     "Ranking": Ranking,
     "Chat": Chat,
     "Acervo": Acervo,
+    "Cursos": Cursos,
 }
 
 export const pagesConfig = {
     mainPage: "Dashboard",
     Pages: PAGES,
-    Layout: Layout,
+    Layout: __Layout,
 };

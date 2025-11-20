@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -14,7 +13,8 @@ import {
   Star,
   Bell,
   MessageSquare,
-  Files, // NEW
+  Files,
+  GraduationCap,
 } from "lucide-react";
 import {
   Sidebar,
@@ -109,7 +109,8 @@ export default function Layout({ children }) {
     { title: "Gestão de Tarefas", url: createPageUrl("GestaoTarefas"), icon: ClipboardList },
     { title: "Carga Diária", url: createPageUrl("CargaDiaria"), icon: FileText },
     { title: "Chat", url: createPageUrl("Chat"), icon: MessageSquare },
-    { title: "Acervo", url: createPageUrl("Acervo"), icon: Files }, // NEW
+    { title: "Acervo", url: createPageUrl("Acervo"), icon: Files },
+    { title: "Cursos", url: createPageUrl("Cursos"), icon: GraduationCap },
     { title: "Produtividade Geral", url: createPageUrl("ProdutividadeGeral"), icon: TrendingUp },
     { title: "Ranking", url: createPageUrl("Ranking"), icon: Star },
     { title: "Relatórios", url: createPageUrl("Relatorios"), icon: BarChart3 },
