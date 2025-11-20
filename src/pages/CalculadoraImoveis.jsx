@@ -570,9 +570,11 @@ export default function CalculadoraImoveis() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="Lote">Lote</SelectItem>
-                        <SelectItem value="Casa">Casa</SelectItem>
-                        <SelectItem value="Apartamento">Apartamento</SelectItem>
-                        <SelectItem value="Comercial">Comercial</SelectItem>
+                        <SelectItem value="Apartamentos, Kitnets, Garagens, Const. Rurais - 60 anos">Apartamentos, Kitnets, Garagens, Const. Rurais - 60 anos</SelectItem>
+                        <SelectItem value="Casa de Alvenaria - 65 anos">Casa de Alvenaria - 65 anos</SelectItem>
+                        <SelectItem value="Casa de Madeira - 45 anos">Casa de Madeira - 45 anos</SelectItem>
+                        <SelectItem value="Hotéis, Teatros, Fábricas - 50 anos">Hotéis, Teatros, Fábricas - 50 anos</SelectItem>
+                        <SelectItem value="Lojas, Escritórios, Galpões, Bancos - 70 anos">Lojas, Escritórios, Galpões, Bancos - 70 anos</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -590,17 +592,33 @@ export default function CalculadoraImoveis() {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="padrao">Padrão Semelhante</Label>
+                    <Label htmlFor="padrao">Padrão Semelhante ²</Label>
                     <Select value={padraoSemelhante} onValueChange={setPadraoSemelhante}>
                       <SelectTrigger id="padrao">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="max-h-80">
                         <SelectItem value="Lote">Lote</SelectItem>
-                        <SelectItem value="Baixo">Baixo</SelectItem>
-                        <SelectItem value="Normal">Normal</SelectItem>
-                        <SelectItem value="Alto">Alto</SelectItem>
-                        <SelectItem value="Luxo">Luxo</SelectItem>
+                        <SelectItem value="Kitnet">Kitnet</SelectItem>
+                        <SelectItem value="R1B - Residência unifamiliar padrão baixo">R1B - Residência unifamiliar padrão baixo</SelectItem>
+                        <SelectItem value="R1N - Residência unifamiliar padrão normal">R1N - Residência unifamiliar padrão normal</SelectItem>
+                        <SelectItem value="R1A - Residência unifamiliar padrão alto">R1A - Residência unifamiliar padrão alto</SelectItem>
+                        <SelectItem value="RPIQ - Residência unifamiliar popular">RPIQ - Residência unifamiliar popular</SelectItem>
+                        <SelectItem value="PIS - Residência multifamiliar - Projeto de interesse social">PIS - Residência multifamiliar - Projeto de interesse social</SelectItem>
+                        <SelectItem value="PP4B - Residência multifamiliar - Prédio popular - padrão baixo">PP4B - Residência multifamiliar - Prédio popular - padrão baixo</SelectItem>
+                        <SelectItem value="PP4N - Residência multifamiliar - Prédio popular - padrão normal">PP4N - Residência multifamiliar - Prédio popular - padrão normal</SelectItem>
+                        <SelectItem value="R8B - Residência multifamiliar padrão baixo">R8B - Residência multifamiliar padrão baixo</SelectItem>
+                        <SelectItem value="R8N - Residência multifamiliar, padrão normal">R8N - Residência multifamiliar, padrão normal</SelectItem>
+                        <SelectItem value="R8A - Residência multifamiliar, padrão alto">R8A - Residência multifamiliar, padrão alto</SelectItem>
+                        <SelectItem value="R16N - Residência multifamiliar, padrão normal">R16N - Residência multifamiliar, padrão normal</SelectItem>
+                        <SelectItem value="R16A - Residência multifamiliar, padrão alto">R16A - Residência multifamiliar, padrão alto</SelectItem>
+                        <SelectItem value="CSL8N - Edifício comercial, com lojas e salas">CSL8N - Edifício comercial, com lojas e salas</SelectItem>
+                        <SelectItem value="CSL16N - Edifício comercial, com lojas e salas, padrão normal">CSL16N - Edifício comercial, com lojas e salas, padrão normal</SelectItem>
+                        <SelectItem value="CAL8N - Edifício Comercial Andares Livres, padrão normal">CAL8N - Edifício Comercial Andares Livres, padrão normal</SelectItem>
+                        <SelectItem value="CSL8A - Edifício comercial, com lojas e salas, padrão alto">CSL8A - Edifício comercial, com lojas e salas, padrão alto</SelectItem>
+                        <SelectItem value="CSL16A - Edifício comercial, com lojas e salas, padrão alto">CSL16A - Edifício comercial, com lojas e salas, padrão alto</SelectItem>
+                        <SelectItem value="CAL8A - Edifício Comercial Andares Livres, padrão alto">CAL8A - Edifício Comercial Andares Livres, padrão alto</SelectItem>
+                        <SelectItem value="G1 - Galpão industrial">G1 - Galpão industrial</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -611,10 +629,14 @@ export default function CalculadoraImoveis() {
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Novo">Novo</SelectItem>
-                        <SelectItem value="Bom">Bom</SelectItem>
-                        <SelectItem value="Regular">Regular</SelectItem>
-                        <SelectItem value="Ruim">Ruim</SelectItem>
+                        <SelectItem value="A - Novo">A - Novo</SelectItem>
+                        <SelectItem value="B - Entre novo e regular">B - Entre novo e regular</SelectItem>
+                        <SelectItem value="C - Regular">C - Regular</SelectItem>
+                        <SelectItem value="D - Entre regular e reparos simples">D - Entre regular e reparos simples</SelectItem>
+                        <SelectItem value="E - Reparos simples">E - Reparos simples</SelectItem>
+                        <SelectItem value="F - Entre reparos simples e importantes">F - Entre reparos simples e importantes</SelectItem>
+                        <SelectItem value="G - Reparos importantes">G - Reparos importantes</SelectItem>
+                        <SelectItem value="H - Entre reparos importantes e 5,valor">H - Entre reparos importantes e 5,valor</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

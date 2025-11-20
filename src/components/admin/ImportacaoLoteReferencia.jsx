@@ -260,42 +260,89 @@ export default function ImportacaoLoteReferencia({ open, onClose, onImportComple
           row[fieldName] = parseFloat(numValue);
         } else if (fieldName === 'vida_util') {
           // Mapear vida útil
-          if (value.toLowerCase().includes('lote')) {
+          const val = value.toLowerCase();
+          if (val.includes('lote')) {
             row[fieldName] = 'Lote';
-          } else if (value.toLowerCase().includes('casa') || value.toLowerCase().includes('alvenaria')) {
-            row[fieldName] = 'Casa';
-          } else if (value.toLowerCase().includes('apartamento')) {
-            row[fieldName] = 'Apartamento';
-          } else if (value.toLowerCase().includes('comercial')) {
-            row[fieldName] = 'Comercial';
+          } else if (val.includes('apartamento') || val.includes('kitnet') || val.includes('garagem') || val.includes('rural') || val.includes('60')) {
+            row[fieldName] = 'Apartamentos, Kitnets, Garagens, Const. Rurais - 60 anos';
+          } else if (val.includes('alvenaria') || val.includes('65')) {
+            row[fieldName] = 'Casa de Alvenaria - 65 anos';
+          } else if (val.includes('madeira') || val.includes('45')) {
+            row[fieldName] = 'Casa de Madeira - 45 anos';
+          } else if (val.includes('hotel') || val.includes('teatro') || val.includes('fábrica') || val.includes('50')) {
+            row[fieldName] = 'Hotéis, Teatros, Fábricas - 50 anos';
+          } else if (val.includes('loja') || val.includes('escritório') || val.includes('galpão') || val.includes('banco') || val.includes('70')) {
+            row[fieldName] = 'Lojas, Escritórios, Galpões, Bancos - 70 anos';
           } else {
             row[fieldName] = 'Lote';
           }
         } else if (fieldName === 'padrao_semelhante') {
-          // Mapear padrão semelhante
-          if (value.toLowerCase().includes('lote')) {
+          // Mapear padrão semelhante com todos os novos valores
+          const val = value.toLowerCase();
+          if (val.includes('lote')) {
             row[fieldName] = 'Lote';
-          } else if (value.toLowerCase().includes('r1b') || value.toLowerCase().includes('baixo')) {
-            row[fieldName] = 'Baixo';
-          } else if (value.toLowerCase().includes('r1n') || value.toLowerCase().includes('normal')) {
-            row[fieldName] = 'Normal';
-          } else if (value.toLowerCase().includes('r1a') || value.toLowerCase().includes('alto')) {
-            row[fieldName] = 'Alto';
-          } else if (value.toLowerCase().includes('luxo')) {
-            row[fieldName] = 'Luxo';
+          } else if (val.includes('kitnet')) {
+            row[fieldName] = 'Kitnet';
+          } else if (val.includes('r1b')) {
+            row[fieldName] = 'R1B - Residência unifamiliar padrão baixo';
+          } else if (val.includes('r1n')) {
+            row[fieldName] = 'R1N - Residência unifamiliar padrão normal';
+          } else if (val.includes('r1a')) {
+            row[fieldName] = 'R1A - Residência unifamiliar padrão alto';
+          } else if (val.includes('rpiq')) {
+            row[fieldName] = 'RPIQ - Residência unifamiliar popular';
+          } else if (val.includes('pis')) {
+            row[fieldName] = 'PIS - Residência multifamiliar - Projeto de interesse social';
+          } else if (val.includes('pp4b')) {
+            row[fieldName] = 'PP4B - Residência multifamiliar - Prédio popular - padrão baixo';
+          } else if (val.includes('pp4n')) {
+            row[fieldName] = 'PP4N - Residência multifamiliar - Prédio popular - padrão normal';
+          } else if (val.includes('r8b')) {
+            row[fieldName] = 'R8B - Residência multifamiliar padrão baixo';
+          } else if (val.includes('r8n')) {
+            row[fieldName] = 'R8N - Residência multifamiliar, padrão normal';
+          } else if (val.includes('r8a')) {
+            row[fieldName] = 'R8A - Residência multifamiliar, padrão alto';
+          } else if (val.includes('r16n')) {
+            row[fieldName] = 'R16N - Residência multifamiliar, padrão normal';
+          } else if (val.includes('r16a')) {
+            row[fieldName] = 'R16A - Residência multifamiliar, padrão alto';
+          } else if (val.includes('csl8n')) {
+            row[fieldName] = 'CSL8N - Edifício comercial, com lojas e salas';
+          } else if (val.includes('csl16n')) {
+            row[fieldName] = 'CSL16N - Edifício comercial, com lojas e salas, padrão normal';
+          } else if (val.includes('cal8n')) {
+            row[fieldName] = 'CAL8N - Edifício Comercial Andares Livres, padrão normal';
+          } else if (val.includes('csl8a')) {
+            row[fieldName] = 'CSL8A - Edifício comercial, com lojas e salas, padrão alto';
+          } else if (val.includes('csl16a')) {
+            row[fieldName] = 'CSL16A - Edifício comercial, com lojas e salas, padrão alto';
+          } else if (val.includes('cal8a')) {
+            row[fieldName] = 'CAL8A - Edifício Comercial Andares Livres, padrão alto';
+          } else if (val.includes('g1') || val.includes('galpão')) {
+            row[fieldName] = 'G1 - Galpão industrial';
           } else {
-            row[fieldName] = 'Normal';
+            row[fieldName] = 'Lote';
           }
         } else if (fieldName === 'estado_conservacao') {
-          // Mapear estado de conservação
-          if (value.toLowerCase().includes('novo')) {
-            row[fieldName] = 'Novo';
-          } else if (value.toLowerCase().includes('bom') || value.toLowerCase().includes('b -')) {
-            row[fieldName] = 'Bom';
-          } else if (value.toLowerCase().includes('regular') || value.toLowerCase().includes('c -')) {
-            row[fieldName] = 'Regular';
-          } else if (value.toLowerCase().includes('ruim') || value.toLowerCase().includes('g -')) {
-            row[fieldName] = 'Ruim';
+          // Mapear estado de conservação com todos os novos valores
+          const val = value.toLowerCase();
+          if (val.includes('a -') || val === 'a' || val.includes('novo')) {
+            row[fieldName] = 'A - Novo';
+          } else if (val.includes('b -') || val === 'b') {
+            row[fieldName] = 'B - Entre novo e regular';
+          } else if (val.includes('c -') || val === 'c' || val.includes('regular')) {
+            row[fieldName] = 'C - Regular';
+          } else if (val.includes('d -') || val === 'd') {
+            row[fieldName] = 'D - Entre regular e reparos simples';
+          } else if (val.includes('e -') || val === 'e') {
+            row[fieldName] = 'E - Reparos simples';
+          } else if (val.includes('f -') || val === 'f') {
+            row[fieldName] = 'F - Entre reparos simples e importantes';
+          } else if (val.includes('g -') || val === 'g') {
+            row[fieldName] = 'G - Reparos importantes';
+          } else if (val.includes('h -') || val === 'h') {
+            row[fieldName] = 'H - Entre reparos importantes e 5,valor';
           } else {
             row[fieldName] = null;
           }
