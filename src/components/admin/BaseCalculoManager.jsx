@@ -480,7 +480,6 @@ export default function BaseCalculoManager() {
         </TabsContent>
         </Tabs>
       </div>
-    </TooltipProvider>
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
@@ -507,6 +506,6 @@ export default function BaseCalculoManager() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </TooltipProvider>
   );
 }
