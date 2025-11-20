@@ -209,18 +209,135 @@ export default function ImportacaoLoteReferencia({ open, onClose, onImportComple
     return { valid, errors };
   };
 
+  const parseTXT = (text) => {
+    const lines = text.split('\n').filter(line => line.trim());
+    const data = [];
+    
+    for (const line of lines) {
+      // Remover o número da linha (ex: "1) ")
+      const cleanLine = line.replace(/^\d+\)\s*/, '');
+      
+      // Dividir por " | "
+      const parts = cleanLine.split(' | ');
+      const row = tipoImportacao === "avaliacoes" ? {} : { tipo_tabela: tipoTabela, ativo: true };
+      
+      for (const part of parts) {
+        const [key, ...valueParts] = part.split(':');
+        const value = valueParts.join(':').trim();
+        
+        if (!key || !value) continue;
+        
+        // Mapear nomes dos campos do TXT para campos da entidade
+        const fieldMap = {
+          'Região': 'regiao',
+          'Bairro': 'bairro',
+          'Sub-Bairro / Localização': 'sub_bairro',
+          'Área': 'area_lote',
+          'Área Construida Equivalente(M2)': 'area_construida',
+          'Vida Útil': 'vida_util',
+          'Idade Aparente Do Imóvel (Anos)': 'idade_aparente',
+          'Padrão Semelhante ²': 'padrao_semelhante',
+          'Estado De Conservação': 'estado_conservacao',
+          'Valor Da Benfeitoria Depreciada': 'valor_benfeitoria',
+          'Valor Médio Sugerido Do Lote': 'valor_medio_lote',
+          'Valor Médio De Venda Sugerido (R$)': 'valor_medio_venda',
+          'Limite Inferior': 'limite_inferior',
+          'Limite Superior': 'limite_superior',
+          'Valor Considerado': 'valor_considerado',
+          'Nome': 'nome_cliente',
+          'Cpf': 'cpf_cliente',
+          'Endereço': 'endereco_cliente',
+          'Telefone': 'telefone_cliente',
+          'FC': 'fator_comercializacao'
+        };
+        
+        const fieldName = fieldMap[key.trim()];
+        if (!fieldName) continue;
+        
+        // Tratar valores
+        if (value === 'NULL' || value === 'null' || !value) {
+          row[fieldName] = null;
+        } else if (['area_lote', 'area_construida', 'idade_aparente', 'valor_benfeitoria', 'valor_medio_lote', 'valor_medio_venda', 'limite_inferior', 'limite_superior', 'valor_considerado'].includes(fieldName)) {
+          // Números: trocar vírgula por ponto
+          const numValue = value.replace(/\./g, '').replace(',', '.');
+          row[fieldName] = parseFloat(numValue);
+        } else if (fieldName === 'vida_util') {
+          // Mapear vida útil
+          if (value.toLowerCase().includes('lote')) {
+            row[fieldName] = 'Lote';
+          } else if (value.toLowerCase().includes('casa') || value.toLowerCase().includes('alvenaria')) {
+            row[fieldName] = 'Casa';
+          } else if (value.toLowerCase().includes('apartamento')) {
+            row[fieldName] = 'Apartamento';
+          } else if (value.toLowerCase().includes('comercial')) {
+            row[fieldName] = 'Comercial';
+          } else {
+            row[fieldName] = 'Lote';
+          }
+        } else if (fieldName === 'padrao_semelhante') {
+          // Mapear padrão semelhante
+          if (value.toLowerCase().includes('lote')) {
+            row[fieldName] = 'Lote';
+          } else if (value.toLowerCase().includes('r1b') || value.toLowerCase().includes('baixo')) {
+            row[fieldName] = 'Baixo';
+          } else if (value.toLowerCase().includes('r1n') || value.toLowerCase().includes('normal')) {
+            row[fieldName] = 'Normal';
+          } else if (value.toLowerCase().includes('r1a') || value.toLowerCase().includes('alto')) {
+            row[fieldName] = 'Alto';
+          } else if (value.toLowerCase().includes('luxo')) {
+            row[fieldName] = 'Luxo';
+          } else {
+            row[fieldName] = 'Normal';
+          }
+        } else if (fieldName === 'estado_conservacao') {
+          // Mapear estado de conservação
+          if (value.toLowerCase().includes('novo')) {
+            row[fieldName] = 'Novo';
+          } else if (value.toLowerCase().includes('bom') || value.toLowerCase().includes('b -')) {
+            row[fieldName] = 'Bom';
+          } else if (value.toLowerCase().includes('regular') || value.toLowerCase().includes('c -')) {
+            row[fieldName] = 'Regular';
+          } else if (value.toLowerCase().includes('ruim') || value.toLowerCase().includes('g -')) {
+            row[fieldName] = 'Ruim';
+          } else {
+            row[fieldName] = null;
+          }
+        } else if (fieldName === 'fator_comercializacao') {
+          // FC sempre vem como número, mapear para texto
+          const fcValue = parseFloat(value);
+          if (fcValue < 1) {
+            row[fieldName] = 'Desaquecido';
+          } else if (fcValue > 1) {
+            row[fieldName] = 'Aquecido';
+          } else {
+            row[fieldName] = 'Normal';
+          }
+        } else {
+          row[fieldName] = value;
+        }
+      }
+      
+      if (Object.keys(row).length > 2) { // Mais que apenas tipo_tabela e ativo
+        data.push(row);
+      }
+    }
+    
+    return data;
+  };
+
   const handleFileUpload = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
 
     try {
       const text = await file.text();
-      const data = parseCSV(text);
+      const isTXT = file.name.toLowerCase().endsWith('.txt');
+      const data = isTXT ? parseTXT(text) : parseCSV(text);
 
       if (data.length === 0) {
         toast({
           title: "❌ Arquivo vazio",
-          description: "O arquivo CSV não contém dados válidos.",
+          description: `O arquivo ${isTXT ? 'TXT' : 'CSV'} não contém dados válidos.`,
           variant: "destructive"
         });
         return;
@@ -245,7 +362,7 @@ export default function ImportacaoLoteReferencia({ open, onClose, onImportComple
       console.error("Erro ao ler arquivo:", error);
       toast({
         title: "❌ Erro ao ler arquivo",
-        description: "Verifique se o arquivo está no formato CSV correto.",
+        description: "Verifique se o arquivo está no formato correto.",
         variant: "destructive"
       });
     }
@@ -353,14 +470,25 @@ export default function ImportacaoLoteReferencia({ open, onClose, onImportComple
           {/* Info sobre formato */}
           <Alert>
             <AlertDescription>
-              <p className="font-semibold mb-2">📋 Formato do arquivo CSV:</p>
-              <ul className="text-sm space-y-1 ml-4">
-                <li>• Primeira linha deve conter os cabeçalhos</li>
-                <li>• Use vírgula (,) como separador</li>
-                <li>• Números decimais com ponto (.)</li>
-                <li>• Campos vazios podem ser deixados em branco</li>
-                <li>• Baixe o modelo para ver o formato correto</li>
-              </ul>
+              <p className="font-semibold mb-2">📋 Formatos aceitos:</p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <p className="text-sm font-semibold mb-1">CSV:</p>
+                  <ul className="text-xs space-y-1 ml-3">
+                    <li>• Primeira linha: cabeçalhos</li>
+                    <li>• Separador: vírgula (,)</li>
+                    <li>• Decimais: ponto (.)</li>
+                  </ul>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold mb-1">TXT:</p>
+                  <ul className="text-xs space-y-1 ml-3">
+                    <li>• Formato: Campo: Valor | Campo: Valor</li>
+                    <li>• Uma linha por registro</li>
+                    <li>• NULL para campos vazios</li>
+                  </ul>
+                </div>
+              </div>
               {tipoImportacao === "avaliacoes" && (
                 <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded">
                   <p className="text-xs text-blue-900">
@@ -385,7 +513,7 @@ export default function ImportacaoLoteReferencia({ open, onClose, onImportComple
             <div>
               <input
                 type="file"
-                accept=".csv"
+                accept=".csv,.txt"
                 onChange={handleFileUpload}
                 disabled={importing}
                 className="hidden"
@@ -400,7 +528,7 @@ export default function ImportacaoLoteReferencia({ open, onClose, onImportComple
                 >
                   <span>
                     <Upload className="w-4 h-4" />
-                    Selecionar Arquivo CSV
+                    Selecionar CSV ou TXT
                   </span>
                 </Button>
               </label>
