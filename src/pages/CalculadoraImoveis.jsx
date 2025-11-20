@@ -239,16 +239,27 @@ export default function CalculadoraImoveis() {
           ativo: true
         });
 
-        // Mapear padrão semelhante para categoria CUB
-        const padraoToCUB = {
-          "Baixo": "R1B - Residência unifamiliar padrão baixo",
-          "Normal": "R1N - Residência unifamiliar padrão normal",
-          "Alto": "R1A - Residência unifamiliar padrão alto",
-          "Luxo": "R1A - Residência unifamiliar padrão alto"
-        };
-
-        const cubCategoria = padraoToCUB[padraoSemelhante] || "R1N - Residência unifamiliar padrão normal";
-        const cubEncontrado = cubData.find(c => c.categoria === cubCategoria);
+        // Usar o padrão semelhante diretamente ou mapear para uma categoria CUB existente
+        let cubEncontrado = cubData.find(c => c.categoria === padraoSemelhante);
+        
+        // Se não encontrar exato, tentar mapear
+        if (!cubEncontrado) {
+          const padraoToCUB = {
+            "Lote": null,
+            "Kitnet": "R1B - Residência unifamiliar padrão baixo",
+            "RPIQ - Residência unifamiliar popular": "R1B - Residência unifamiliar padrão baixo"
+          };
+          
+          const categoriaMapeada = padraoToCUB[padraoSemelhante];
+          if (categoriaMapeada) {
+            cubEncontrado = cubData.find(c => c.categoria === categoriaMapeada);
+          }
+        }
+        
+        // Se ainda não encontrou, usar R1N como padrão
+        if (!cubEncontrado && padraoSemelhante !== "Lote") {
+          cubEncontrado = cubData.find(c => c.categoria === "R1N - Residência unifamiliar padrão normal");
+        }
         
         if (cubEncontrado) {
           const BDI = 1.2309; // Fixo conforme planilha
@@ -256,40 +267,42 @@ export default function CalculadoraImoveis() {
 
           // Aplicar depreciação Ross Heidecke
           if (idadeAparente && parseInt(idadeAparente) > 0) {
-            // Vida útil padrão
-            const vidasUteis = {
-              "Lote": 50,
-              "Casa": 65,
-              "Apartamento": 60,
-              "Comercial": 70
+            // Extrair anos da vida útil
+            const extrairAnos = (vidaUtilStr) => {
+              if (vidaUtilStr === "Lote") return 50;
+              const match = vidaUtilStr.match(/(\d+)\s*anos/i);
+              return match ? parseInt(match[1]) : 50;
             };
 
-            const vidaUtilAnos = vidasUteis[vidaUtil] || 50;
+            const vidaUtilAnos = extrairAnos(vidaUtil);
             const idadeAnos = parseInt(idadeAparente);
             const percVidaUtil = Math.min(100, (idadeAnos / vidaUtilAnos) * 100);
 
-            // Mapeamento estado de conservação para coluna Ross Heidecke
-            const conservacaoToCol = {
-              "Novo": "A",
-              "Bom": "B",
-              "Regular": "C",
-              "Ruim": "G"
+            // Extrair letra do estado de conservação (ex: "C - Regular" -> "C")
+            const extrairLetra = (estado) => {
+              if (!estado) return "C";
+              const match = estado.match(/^([A-H])/i);
+              return match ? match[1].toUpperCase() : "C";
             };
 
-            const coluna = conservacaoToCol[estadoConservacao] || "B";
+            const coluna = extrairLetra(estadoConservacao);
             
-            // Tabela Ross Heidecke simplificada (valores aproximados)
+            // Tabela Ross Heidecke completa
             const tabelaRossHeidecke = {
               "A": { 10: 5.5, 20: 12, 30: 19.5, 40: 28.8, 50: 37.5, 60: 48.8, 70: 59.5, 80: 72, 90: 85.5, 100: 100 },
               "B": { 10: 5.53, 20: 12, 30: 19.5, 40: 28.8, 50: 37.5, 60: 48.8, 70: 59.5, 80: 72, 90: 85.5, 100: 100 },
               "C": { 10: 7.88, 20: 14.2, 30: 21.5, 40: 29.9, 50: 39.1, 60: 49.3, 70: 60.5, 80: 72.7, 90: 85.9, 100: 100 },
-              "G": { 10: 55.2, 20: 58.3, 30: 61.8, 40: 65.9, 50: 70.4, 60: 75.3, 70: 80.8, 80: 86.7, 90: 93.1, 100: 100 }
+              "D": { 10: 31.5, 20: 37.2, 30: 43.5, 40: 50.3, 50: 57.6, 60: 65.5, 70: 73.8, 80: 82.7, 90: 92.1, 100: 100 },
+              "E": { 10: 43.3, 20: 47.5, 30: 52.2, 40: 57.4, 50: 63, 60: 69.1, 70: 75.7, 80: 82.8, 90: 90.4, 100: 100 },
+              "F": { 10: 49.2, 20: 52.9, 30: 57.1, 40: 61.7, 50: 66.7, 60: 72.2, 70: 78.1, 80: 84.5, 90: 91.3, 100: 100 },
+              "G": { 10: 55.2, 20: 58.3, 30: 61.8, 40: 65.9, 50: 70.4, 60: 75.3, 70: 80.8, 80: 86.7, 90: 93.1, 100: 100 },
+              "H": { 10: 77.6, 20: 79.2, 30: 81, 40: 83.2, 50: 85.6, 60: 88.2, 70: 91.1, 80: 94.2, 90: 97.5, 100: 100 }
             };
 
             // Interpolar valor K
-            const tabela = tabelaRossHeidecke[coluna] || tabelaRossHeidecke["B"];
+            const tabela = tabelaRossHeidecke[coluna] || tabelaRossHeidecke["C"];
             const percArredondado = Math.ceil(percVidaUtil / 10) * 10;
-            const K = tabela[Math.min(100, percArredondado)] || 50;
+            const K = tabela[Math.min(100, Math.max(10, percArredondado))] || 50;
 
             // Depreciação = (100 - K) / 100
             const depreciacao = (100 - K) / 100;
