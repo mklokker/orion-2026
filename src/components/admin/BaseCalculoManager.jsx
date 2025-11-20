@@ -45,6 +45,15 @@ export default function BaseCalculoManager() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
   const [showImportDialog, setShowImportDialog] = useState(false);
+  
+  // Estados para seleção e filtros
+  const [selectedItems, setSelectedItems] = useState([]);
+  const [filters, setFilters] = useState({
+    regiao: "",
+    bairro: "",
+    categoria: "",
+    ativo: "todos"
+  });
 
   useEffect(() => {
     loadData();
@@ -62,7 +71,36 @@ export default function BaseCalculoManager() {
   };
 
   const getItemsByType = (tipo) => {
-    return tabelas.filter(t => t.tipo_tabela === tipo);
+    let items = tabelas.filter(t => t.tipo_tabela === tipo);
+    
+    // Aplicar filtros
+    if (filters.regiao) {
+      items = items.filter(i => i.regiao?.toLowerCase().includes(filters.regiao.toLowerCase()));
+    }
+    if (filters.bairro) {
+      items = items.filter(i => i.bairro?.toLowerCase().includes(filters.bairro.toLowerCase()));
+    }
+    if (filters.categoria) {
+      items = items.filter(i => i.categoria?.toLowerCase().includes(filters.categoria.toLowerCase()));
+    }
+    if (filters.ativo !== "todos") {
+      items = items.filter(i => i.ativo === (filters.ativo === "ativo"));
+    }
+    
+    return items;
+  };
+
+  const getFilteredAvaliacoes = () => {
+    let items = avaliacoes;
+    
+    if (filters.regiao) {
+      items = items.filter(i => i.regiao?.toLowerCase().includes(filters.regiao.toLowerCase()));
+    }
+    if (filters.bairro) {
+      items = items.filter(i => i.bairro?.toLowerCase().includes(filters.bairro.toLowerCase()));
+    }
+    
+    return items;
   };
 
   const handleCreate = (tipo) => {
@@ -233,6 +271,81 @@ export default function BaseCalculoManager() {
         description: "Erro ao atualizar avaliação. Verifique os dados.",
         variant: "destructive"
       });
+    }
+  };
+
+  const handleBulkStatusChange = async (status) => {
+    if (selectedItems.length === 0) {
+      toast({
+        title: "⚠️ Nenhum item selecionado",
+        description: "Selecione pelo menos um item para alterar o status.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      for (const id of selectedItems) {
+        await TabelaReferencia.update(id, { ativo: status });
+      }
+      
+      toast({
+        title: "✅ Status atualizado!",
+        description: `${selectedItems.length} registro(s) ${status ? 'ativado(s)' : 'desativado(s)'} com sucesso.`,
+      });
+      
+      setSelectedItems([]);
+      loadData();
+    } catch (error) {
+      toast({
+        title: "❌ Erro",
+        description: "Erro ao atualizar status. Tente novamente.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleDuplicate = (item) => {
+    const duplicate = { ...item };
+    delete duplicate.id;
+    delete duplicate.created_date;
+    delete duplicate.updated_date;
+    delete duplicate.created_by;
+    setNewItem(duplicate);
+    
+    toast({
+      title: "📋 Registro duplicado",
+      description: "Edite os campos e clique em Salvar para criar o novo registro.",
+    });
+  };
+
+  const handleDuplicateAvaliacao = (item) => {
+    const duplicate = { ...item };
+    delete duplicate.id;
+    delete duplicate.created_date;
+    delete duplicate.updated_date;
+    delete duplicate.created_by;
+    setNewAvaliacao(duplicate);
+    
+    toast({
+      title: "📋 Avaliação duplicada",
+      description: "Edite os campos e clique em Salvar para criar o novo registro.",
+    });
+  };
+
+  const toggleSelectItem = (id) => {
+    setSelectedItems(prev => 
+      prev.includes(id) 
+        ? prev.filter(itemId => itemId !== id)
+        : [...prev, id]
+    );
+  };
+
+  const toggleSelectAll = (items) => {
+    if (selectedItems.length === items.length) {
+      setSelectedItems([]);
+    } else {
+      setSelectedItems(items.map(item => item.id));
     }
   };
 
@@ -635,20 +748,94 @@ export default function BaseCalculoManager() {
 
   const renderTable = (tipo, titulo) => {
     const items = getItemsByType(tipo);
+    const allSelected = items.length > 0 && selectedItems.length === items.length;
 
     return (
       <Card>
         <CardHeader className="bg-gradient-to-r from-gray-50 to-blue-50">
-          <div className="flex justify-between items-center">
-            <CardTitle>{titulo}</CardTitle>
-            <Button 
-              onClick={() => handleCreate(tipo)}
-              size="sm"
-              className="gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              Adicionar
-            </Button>
+          <div className="flex flex-col gap-3">
+            <div className="flex justify-between items-center">
+              <CardTitle>{titulo}</CardTitle>
+              <Button 
+                onClick={() => handleCreate(tipo)}
+                size="sm"
+                className="gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                Adicionar
+              </Button>
+            </div>
+            
+            {/* Filtros */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
+              {(tipo === "Valor_Metro_Quadrado") && (
+                <>
+                  <Input
+                    placeholder="Filtrar por região..."
+                    value={filters.regiao}
+                    onChange={(e) => setFilters({ ...filters, regiao: e.target.value })}
+                    className="text-sm"
+                  />
+                  <Input
+                    placeholder="Filtrar por bairro..."
+                    value={filters.bairro}
+                    onChange={(e) => setFilters({ ...filters, bairro: e.target.value })}
+                    className="text-sm"
+                  />
+                </>
+              )}
+              {(tipo === "Fator_Mercado" || tipo === "Depreciacao" || tipo === "CUB") && (
+                <Input
+                  placeholder="Filtrar por categoria..."
+                  value={filters.categoria}
+                  onChange={(e) => setFilters({ ...filters, categoria: e.target.value })}
+                  className="text-sm"
+                />
+              )}
+              <Select value={filters.ativo} onValueChange={(value) => setFilters({ ...filters, ativo: value })}>
+                <SelectTrigger className="text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos</SelectItem>
+                  <SelectItem value="ativo">Ativos</SelectItem>
+                  <SelectItem value="inativo">Inativos</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {/* Ações em massa */}
+            {selectedItems.length > 0 && (
+              <div className="flex gap-2 items-center bg-blue-50 p-2 rounded-lg border border-blue-200">
+                <span className="text-sm font-medium text-blue-900">
+                  {selectedItems.length} selecionado(s)
+                </span>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleBulkStatusChange(true)}
+                  className="gap-1"
+                >
+                  Ativar
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleBulkStatusChange(false)}
+                  className="gap-1"
+                >
+                  Desativar
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setSelectedItems([])}
+                  className="gap-1"
+                >
+                  Limpar Seleção
+                </Button>
+              </div>
+            )}
           </div>
         </CardHeader>
         <CardContent className="pt-6">
@@ -663,6 +850,14 @@ export default function BaseCalculoManager() {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead className="w-12">
+                      <input
+                        type="checkbox"
+                        checked={allSelected}
+                        onChange={() => toggleSelectAll(items)}
+                        className="w-4 h-4 cursor-pointer"
+                      />
+                    </TableHead>
                     {tipo === "Valor_Metro_Quadrado" && (
                       <>
                         <TableHead>Região</TableHead>
@@ -690,7 +885,7 @@ export default function BaseCalculoManager() {
                     )}
                     <TableHead>Descrição</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead className="w-24">Ações</TableHead>
+                    <TableHead className="w-32">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -698,7 +893,7 @@ export default function BaseCalculoManager() {
                     if (editingItem && editingItem.id === item.id) {
                       return (
                         <TableRow key={item.id}>
-                          <TableCell colSpan={tipo === "Valor_Metro_Quadrado" ? 7 : 6}>
+                          <TableCell colSpan={tipo === "Valor_Metro_Quadrado" ? 8 : 7}>
                             {renderForm(editingItem, false)}
                           </TableCell>
                         </TableRow>
@@ -707,6 +902,14 @@ export default function BaseCalculoManager() {
 
                     return (
                       <TableRow key={item.id}>
+                        <TableCell>
+                          <input
+                            type="checkbox"
+                            checked={selectedItems.includes(item.id)}
+                            onChange={() => toggleSelectItem(item.id)}
+                            className="w-4 h-4 cursor-pointer"
+                          />
+                        </TableCell>
                         {tipo === "Valor_Metro_Quadrado" && (
                           <>
                             <TableCell className="font-medium">{item.regiao}</TableCell>
@@ -740,6 +943,19 @@ export default function BaseCalculoManager() {
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-1">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => handleDuplicate(item)}
+                                  className="text-purple-600 hover:text-purple-700 hover:bg-purple-50"
+                                >
+                                  <Plus className="w-4 h-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Duplicar</TooltipContent>
+                            </Tooltip>
                             <Button
                               variant="ghost"
                               size="icon"
@@ -820,22 +1036,51 @@ export default function BaseCalculoManager() {
         <TabsContent value="avaliacoes" className="space-y-4">
           <Card>
             <CardHeader className="bg-gradient-to-r from-gray-50 to-blue-50">
-              <div className="flex justify-between items-center">
-                <CardTitle>Avaliações Históricas</CardTitle>
-                <Button 
-                  onClick={handleCreateAvaliacao}
-                  size="sm"
-                  className="gap-2"
-                >
-                  <Plus className="w-4 h-4" />
-                  Adicionar
-                </Button>
+              <div className="flex flex-col gap-3">
+                <div className="flex justify-between items-center">
+                  <CardTitle>Avaliações Históricas</CardTitle>
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={() => setShowImportDialog(true)}
+                      size="sm"
+                      variant="outline"
+                      className="gap-2"
+                    >
+                      <Upload className="w-4 h-4" />
+                      Importar CSV
+                    </Button>
+                    <Button 
+                      onClick={handleCreateAvaliacao}
+                      size="sm"
+                      className="gap-2"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Adicionar
+                    </Button>
+                  </div>
+                </div>
+                
+                {/* Filtros */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                  <Input
+                    placeholder="Filtrar por região..."
+                    value={filters.regiao}
+                    onChange={(e) => setFilters({ ...filters, regiao: e.target.value })}
+                    className="text-sm"
+                  />
+                  <Input
+                    placeholder="Filtrar por bairro..."
+                    value={filters.bairro}
+                    onChange={(e) => setFilters({ ...filters, bairro: e.target.value })}
+                    className="text-sm"
+                  />
+                </div>
               </div>
             </CardHeader>
             <CardContent className="pt-6">
               {newAvaliacao && renderAvaliacaoForm(newAvaliacao, true)}
 
-              {avaliacoes.length === 0 ? (
+              {getFilteredAvaliacoes().length === 0 ? (
                 <p className="text-center text-gray-500 py-8">
                   Nenhuma avaliação histórica cadastrada
                 </p>
@@ -854,7 +1099,7 @@ export default function BaseCalculoManager() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {avaliacoes.map((av) => {
+                      {getFilteredAvaliacoes().map((av) => {
                         if (editingAvaliacao && editingAvaliacao.id === av.id) {
                           return (
                             <TableRow key={av.id}>
@@ -879,6 +1124,19 @@ export default function BaseCalculoManager() {
                             </TableCell>
                             <TableCell>
                               <div className="flex gap-1">
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      onClick={() => handleDuplicateAvaliacao(av)}
+                                      className="text-purple-600 hover:text-purple-700 hover:bg-purple-50"
+                                    >
+                                      <Plus className="w-4 h-4" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>Duplicar</TooltipContent>
+                                </Tooltip>
                                 <Button
                                   variant="ghost"
                                   size="icon"
