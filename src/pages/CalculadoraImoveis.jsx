@@ -110,12 +110,9 @@ export default function CalculadoraImoveis() {
 
   const loadRegioes = async () => {
     try {
-      const tabelas = await TabelaReferencia.filter({
-        tipo_tabela: "Valor_Metro_Quadrado",
-        ativo: true
-      });
-
-      const regioesUnicas = [...new Set(tabelas.map(t => t.regiao))].filter(Boolean).sort();
+      // Buscar das avaliações históricas
+      const todasAvaliacoes = await AvaliacaoImovel.list();
+      const regioesUnicas = [...new Set(todasAvaliacoes.map(a => a.regiao))].filter(Boolean).sort();
       setRegioes(regioesUnicas);
     } catch (error) {
       console.error("Erro ao carregar regiões:", error);
@@ -124,13 +121,10 @@ export default function CalculadoraImoveis() {
 
   const loadBairros = async (regiaoSelecionada) => {
     try {
-      const tabelas = await TabelaReferencia.filter({
-        tipo_tabela: "Valor_Metro_Quadrado",
-        regiao: regiaoSelecionada,
-        ativo: true
+      const avaliacoesDaRegiao = await AvaliacaoImovel.filter({
+        regiao: regiaoSelecionada
       });
-
-      const bairrosUnicos = [...new Set(tabelas.map(t => t.bairro))].filter(Boolean).sort();
+      const bairrosUnicos = [...new Set(avaliacoesDaRegiao.map(a => a.bairro))].filter(Boolean).sort();
       setBairros(bairrosUnicos);
     } catch (error) {
       console.error("Erro ao carregar bairros:", error);
@@ -139,14 +133,11 @@ export default function CalculadoraImoveis() {
 
   const loadSubBairros = async (regiaoSelecionada, bairroSelecionado) => {
     try {
-      const tabelas = await TabelaReferencia.filter({
-        tipo_tabela: "Valor_Metro_Quadrado",
+      const avaliacoesDoBairro = await AvaliacaoImovel.filter({
         regiao: regiaoSelecionada,
-        bairro: bairroSelecionado,
-        ativo: true
+        bairro: bairroSelecionado
       });
-
-      const subBairrosUnicos = [...new Set(tabelas.map(t => t.descricao))].filter(Boolean).sort();
+      const subBairrosUnicos = [...new Set(avaliacoesDoBairro.map(a => a.sub_bairro))].filter(Boolean).sort();
       setSubBairros(subBairrosUnicos);
     } catch (error) {
       console.error("Erro ao carregar sub-bairros:", error);
