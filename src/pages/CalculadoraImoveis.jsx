@@ -28,6 +28,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Loader2, HelpCircle } from "lucide-react";
 import AvaliacaoExport from "../components/calculadora/AvaliacaoExport";
 
 export default function CalculadoraImoveis() {
@@ -64,6 +71,7 @@ export default function CalculadoraImoveis() {
   const [valorMedioVenda, setValorMedioVenda] = useState(0);
   const [limiteInferior, setLimiteInferior] = useState(0);
   const [limiteSuperior, setLimiteSuperior] = useState(0);
+  const [calculando, setCalculando] = useState(false);
   
   // Dados do cliente
   const [nomeCliente, setNomeCliente] = useState("");
@@ -163,13 +171,14 @@ export default function CalculadoraImoveis() {
   const calcularAvaliacao = async () => {
     if (!areaLote || !regiao || !bairro) {
       toast({
-        title: "Campos obrigatórios",
+        title: "⚠️ Campos obrigatórios",
         description: "Preencha região, bairro e área do lote.",
         variant: "destructive"
       });
       return;
     }
 
+    setCalculando(true);
     try {
       // 1. Buscar valor do m² na tabela de referência
       const valoresM2 = await TabelaReferencia.filter({
@@ -302,16 +311,18 @@ export default function CalculadoraImoveis() {
       setLimiteSuperior(valorTotal * 1.25);
 
       toast({
-        title: "Cálculo realizado!",
+        title: "✅ Cálculo realizado!",
         description: `Valor base: ${formatCurrency(valorM2)}/m² encontrado na tabela de referência.`,
       });
     } catch (error) {
       console.error("Erro ao calcular:", error);
       toast({
-        title: "Erro no cálculo",
-        description: "Erro ao consultar tabelas de referência.",
+        title: "❌ Erro no cálculo",
+        description: "Erro ao consultar tabelas de referência. Verifique se os dados estão cadastrados.",
         variant: "destructive"
       });
+    } finally {
+      setCalculando(false);
     }
   };
 
@@ -339,8 +350,17 @@ export default function CalculadoraImoveis() {
   const salvarAvaliacao = async () => {
     if (!regiao || !bairro || !areaLote) {
       toast({
-        title: "Campos obrigatórios",
-        description: "Preencha os campos obrigatórios.",
+        title: "⚠️ Campos obrigatórios",
+        description: "Preencha os campos obrigatórios (região, bairro e área).",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (valorMedioVenda === 0) {
+      toast({
+        title: "⚠️ Calcule primeiro",
+        description: "Realize o cálculo antes de salvar a avaliação.",
         variant: "destructive"
       });
       return;
@@ -371,8 +391,8 @@ export default function CalculadoraImoveis() {
       });
 
       toast({
-        title: "Sucesso!",
-        description: "Avaliação salva com sucesso.",
+        title: "✅ Sucesso!",
+        description: "Avaliação salva no histórico com sucesso.",
       });
 
       loadData();
@@ -380,8 +400,8 @@ export default function CalculadoraImoveis() {
     } catch (error) {
       console.error("Erro ao salvar avaliação:", error);
       toast({
-        title: "Erro",
-        description: "Erro ao salvar avaliação.",
+        title: "❌ Erro ao salvar",
+        description: "Não foi possível salvar a avaliação. Tente novamente.",
         variant: "destructive"
       });
     }
@@ -418,8 +438,9 @@ export default function CalculadoraImoveis() {
   };
 
   return (
-    <div className="p-4 md:p-8 min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
-      <div className="max-w-7xl mx-auto space-y-6">
+    <TooltipProvider>
+      <div className="p-4 md:p-8 min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+        <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="text-center space-y-2">
           <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-700 to-indigo-700 bg-clip-text text-transparent flex items-center justify-center gap-3">
@@ -499,7 +520,17 @@ export default function CalculadoraImoveis() {
               <CardContent className="pt-6 space-y-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="area-lote">Área do Lote / Área Total Útil (m²) *</Label>
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="area-lote">Área do Lote / Área Total Útil (m²) *</Label>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <HelpCircle className="w-4 h-4 text-gray-400 cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Área total do terreno em metros quadrados</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
                     <Input
                       id="area-lote"
                       type="number"
@@ -509,7 +540,17 @@ export default function CalculadoraImoveis() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="area-construida">Área Construída Equivalente (m²)</Label>
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="area-construida">Área Construída Equivalente (m²)</Label>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <HelpCircle className="w-4 h-4 text-gray-400 cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Área total das edificações no terreno</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
                     <Input
                       id="area-construida"
                       type="number"
@@ -609,9 +650,23 @@ export default function CalculadoraImoveis() {
                   </div>
                 </div>
 
-                <Button onClick={calcularAvaliacao} className="w-full gap-2" size="lg">
-                  <Calculator className="w-5 h-5" />
-                  Calcular Avaliação
+                <Button 
+                  onClick={calcularAvaliacao} 
+                  className="w-full gap-2" 
+                  size="lg"
+                  disabled={calculando}
+                >
+                  {calculando ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Calculando...
+                    </>
+                  ) : (
+                    <>
+                      <Calculator className="w-5 h-5" />
+                      Calcular Avaliação
+                    </>
+                  )}
                 </Button>
               </CardContent>
             </Card>
@@ -928,6 +983,7 @@ export default function CalculadoraImoveis() {
         onClose={() => setShowExportDialog(false)}
         avaliacao={avaliacaoParaExportar}
       />
-    </div>
+      </div>
+    </TooltipProvider>
   );
 }
