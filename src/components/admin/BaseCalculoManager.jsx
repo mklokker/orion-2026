@@ -5,8 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Pencil, Trash2, Save, X } from "lucide-react";
+import { Plus, Pencil, Trash2, Save, X, Upload } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import ImportacaoLoteReferencia from "./ImportacaoLoteReferencia";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Select,
@@ -39,6 +40,7 @@ export default function BaseCalculoManager() {
   const [newItem, setNewItem] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
+  const [showImportDialog, setShowImportDialog] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -449,10 +451,19 @@ export default function BaseCalculoManager() {
     <TooltipProvider>
       <div className="space-y-4">
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <p className="text-sm text-blue-900">
-            <strong>ℹ️ Base de Cálculo:</strong> Gerencie aqui todos os valores e tabelas utilizados pela Calculadora de Avaliação de Imóveis. 
-            Alterações aqui afetam os cálculos futuros.
-          </p>
+          <div className="flex items-start justify-between gap-4">
+            <p className="text-sm text-blue-900 flex-1">
+              <strong>ℹ️ Base de Cálculo:</strong> Gerencie aqui todos os valores e tabelas utilizados pela Calculadora de Avaliação de Imóveis. 
+              Alterações aqui afetam os cálculos futuros.
+            </p>
+            <Button
+              onClick={() => setShowImportDialog(true)}
+              className="gap-2 bg-green-600 hover:bg-green-700 shrink-0"
+            >
+              <Upload className="w-4 h-4" />
+              Importação em Lote
+            </Button>
+          </div>
         </div>
         
         <Tabs defaultValue="valor_m2" className="w-full">
@@ -506,6 +517,12 @@ export default function BaseCalculoManager() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <ImportacaoLoteReferencia
+        open={showImportDialog}
+        onClose={() => setShowImportDialog(false)}
+        onImportComplete={loadData}
+      />
     </TooltipProvider>
   );
 }
