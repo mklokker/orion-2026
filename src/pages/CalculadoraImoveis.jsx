@@ -30,6 +30,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AvaliacaoExport from "../components/calculadora/AvaliacaoExport";
 import ImportHistoricoButton from "../components/calculadora/ImportHistoricoButton";
+import ImportExportCSV from "../components/calculadora/ImportExportCSV";
 
 export default function CalculadoraImoveis() {
   const { toast } = useToast();
@@ -893,7 +894,10 @@ export default function CalculadoraImoveis() {
               <CardHeader className="bg-gradient-to-r from-gray-50 to-slate-50">
                 <div className="flex items-center justify-between">
                   <CardTitle className="text-sm">Avaliações Recentes</CardTitle>
-                  {isAdmin && <ImportHistoricoButton onImportComplete={loadData} />}
+                  <div className="flex gap-2">
+                    {isAdmin && <ImportHistoricoButton onImportComplete={loadData} />}
+                    {isAdmin && <ImportExportCSV />}
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="pt-6">
