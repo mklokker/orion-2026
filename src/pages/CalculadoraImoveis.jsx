@@ -16,7 +16,8 @@ import {
   FileText,
   TrendingUp,
   TrendingDown,
-  Minus
+  Minus,
+  Download
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import {
@@ -27,6 +28,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import AvaliacaoExport from "../components/calculadora/AvaliacaoExport";
 
 export default function CalculadoraImoveis() {
   const { toast } = useToast();
@@ -37,6 +39,15 @@ export default function CalculadoraImoveis() {
   const [regiao, setRegiao] = useState("");
   const [bairro, setBairro] = useState("");
   const [subBairro, setSubBairro] = useState("");
+  
+  // Opções de localização para dropdowns
+  const [regioes, setRegioes] = useState([]);
+  const [bairros, setBairros] = useState([]);
+  const [subBairros, setSubBairros] = useState([]);
+  
+  // Estado para exportação
+  const [showExportDialog, setShowExportDialog] = useState(false);
+  const [avaliacaoParaExportar, setAvaliacaoParaExportar] = useState(null);
   
   // Dados do imóvel
   const [areaLote, setAreaLote] = useState("");
@@ -89,9 +100,73 @@ export default function CalculadoraImoveis() {
 
       const avaliacoesData = await AvaliacaoImovel.list("-created_date");
       setAvaliacoes(avaliacoesData);
+
+      // Carregar regiões únicas da tabela de referência
+      await loadRegioes();
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
     }
+  };
+
+  const loadRegioes = async () => {
+    try {
+      const tabelas = await TabelaReferencia.filter({
+        tipo_tabela: "Valor_Metro_Quadrado",
+        ativo: true
+      });
+
+      const regioesUnicas = [...new Set(tabelas.map(t => t.regiao))].filter(Boolean).sort();
+      setRegioes(regioesUnicas);
+    } catch (error) {
+      console.error("Erro ao carregar regiões:", error);
+    }
+  };
+
+  const loadBairros = async (regiaoSelecionada) => {
+    try {
+      const tabelas = await TabelaReferencia.filter({
+        tipo_tabela: "Valor_Metro_Quadrado",
+        regiao: regiaoSelecionada,
+        ativo: true
+      });
+
+      const bairrosUnicos = [...new Set(tabelas.map(t => t.bairro))].filter(Boolean).sort();
+      setBairros(bairrosUnicos);
+    } catch (error) {
+      console.error("Erro ao carregar bairros:", error);
+    }
+  };
+
+  const loadSubBairros = async (regiaoSelecionada, bairroSelecionado) => {
+    try {
+      const tabelas = await TabelaReferencia.filter({
+        tipo_tabela: "Valor_Metro_Quadrado",
+        regiao: regiaoSelecionada,
+        bairro: bairroSelecionado,
+        ativo: true
+      });
+
+      const subBairrosUnicos = [...new Set(tabelas.map(t => t.descricao))].filter(Boolean).sort();
+      setSubBairros(subBairrosUnicos);
+    } catch (error) {
+      console.error("Erro ao carregar sub-bairros:", error);
+    }
+  };
+
+  const handleRegiaoChange = (value) => {
+    setRegiao(value);
+    setBairro("");
+    setSubBairro("");
+    setBairros([]);
+    setSubBairros([]);
+    loadBairros(value);
+  };
+
+  const handleBairroChange = (value) => {
+    setBairro(value);
+    setSubBairro("");
+    setSubBairros([]);
+    loadSubBairros(regiao, value);
   };
 
   const calcularAvaliacao = async () => {
@@ -380,31 +455,44 @@ export default function CalculadoraImoveis() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="regiao">Região *</Label>
-                    <Input
-                      id="regiao"
-                      placeholder="Ex: Lagoa Dourada"
-                      value={regiao}
-                      onChange={(e) => setRegiao(e.target.value)}
-                    />
+                    <Select value={regiao} onValueChange={handleRegiaoChange}>
+                      <SelectTrigger id="regiao">
+                        <SelectValue placeholder="Selecione a região" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {regioes.map(r => (
+                          <SelectItem key={r} value={r}>{r}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="bairro">Bairro *</Label>
-                    <Input
-                      id="bairro"
-                      placeholder="Ex: Morro Vermelho"
-                      value={bairro}
-                      onChange={(e) => setBairro(e.target.value)}
-                    />
+                    <Select value={bairro} onValueChange={handleBairroChange} disabled={!regiao}>
+                      <SelectTrigger id="bairro">
+                        <SelectValue placeholder={regiao ? "Selecione o bairro" : "Selecione uma região primeiro"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {bairros.map(b => (
+                          <SelectItem key={b} value={b}>{b}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="sub-bairro">Sub-Bairro/Localização</Label>
-                  <Input
-                    id="sub-bairro"
-                    placeholder="Localização específica"
-                    value={subBairro}
-                    onChange={(e) => setSubBairro(e.target.value)}
-                  />
+                  <Select value={subBairro} onValueChange={setSubBairro} disabled={!bairro}>
+                    <SelectTrigger id="sub-bairro">
+                      <SelectValue placeholder={bairro ? "Selecione (opcional)" : "Selecione um bairro primeiro"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={null}>Nenhum</SelectItem>
+                      {subBairros.map(sb => (
+                        <SelectItem key={sb} value={sb}>{sb}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </CardContent>
             </Card>
@@ -654,6 +742,39 @@ export default function CalculadoraImoveis() {
                     Salvar Avaliação
                   </Button>
                 </div>
+
+                {valorMedioVenda > 0 && (
+                  <Button 
+                    onClick={() => {
+                      setAvaliacaoParaExportar({
+                        regiao, bairro, sub_bairro: subBairro,
+                        area_lote: parseFloat(areaLote),
+                        area_construida: areaConstruida ? parseFloat(areaConstruida) : 0,
+                        vida_util: vidaUtil,
+                        idade_aparente: idadeAparente ? parseInt(idadeAparente) : 0,
+                        padrao_semelhante: padraoSemelhante,
+                        estado_conservacao: estadoConservacao,
+                        fator_comercializacao: fatorComercializacao,
+                        valor_benfeitoria: valorBenfeitoria,
+                        valor_medio_lote: valorMedioLote,
+                        valor_medio_venda: valorMedioVenda,
+                        limite_inferior: limiteInferior,
+                        limite_superior: limiteSuperior,
+                        nome_cliente: nomeCliente,
+                        cpf_cliente: cpfCliente,
+                        endereco_cliente: enderecoCliente,
+                        telefone_cliente: telefoneCliente,
+                        valor_considerado: valorConsiderado ? parseFloat(valorConsiderado) : null
+                      });
+                      setShowExportDialog(true);
+                    }}
+                    variant="outline" 
+                    className="w-full gap-2"
+                  >
+                    <Download className="w-4 h-4" />
+                    Gerar PDF/Imprimir
+                  </Button>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -788,13 +909,20 @@ export default function CalculadoraImoveis() {
                 ) : (
                   <div className="space-y-2 max-h-96 overflow-y-auto">
                     {avaliacoes.slice(0, 10).map((av) => (
-                      <div key={av.id} className="p-3 bg-gray-50 rounded-lg text-sm">
+                      <button
+                        key={av.id}
+                        onClick={() => {
+                          setAvaliacaoParaExportar(av);
+                          setShowExportDialog(true);
+                        }}
+                        className="w-full p-3 bg-gray-50 hover:bg-blue-50 rounded-lg text-sm text-left transition-colors"
+                      >
                         <div className="font-semibold">{av.regiao} - {av.bairro}</div>
                         <div className="text-xs text-gray-600">{av.area_lote}m²</div>
                         <div className="text-sm font-bold text-green-700">
                           {formatCurrency(av.valor_medio_venda)}
                         </div>
-                      </div>
+                      </button>
                     ))}
                   </div>
                 )}
@@ -803,6 +931,12 @@ export default function CalculadoraImoveis() {
           </div>
         </div>
       </div>
+
+      <AvaliacaoExport
+        open={showExportDialog}
+        onClose={() => setShowExportDialog(false)}
+        avaliacao={avaliacaoParaExportar}
+      />
     </div>
   );
 }
