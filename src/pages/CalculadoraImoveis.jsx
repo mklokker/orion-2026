@@ -94,10 +94,7 @@ export default function CalculadoraImoveis() {
     }
   };
 
-  const calcularAvaliacao = () => {
-    // PLACEHOLDER: Aqui virá a lógica de cálculo baseada nas tabelas de referência
-    // Por enquanto, simulando valores para demonstração
-    
+  const calcularAvaliacao = async () => {
     if (!areaLote || !regiao || !bairro) {
       toast({
         title: "Campos obrigatórios",
@@ -107,29 +104,149 @@ export default function CalculadoraImoveis() {
       return;
     }
 
-    // Valor base fictício por m² (será substituído por consulta às tabelas)
-    const valorBaseM2 = 290; // R$ por m²
-    
-    // Cálculo básico
-    const valorBase = parseFloat(areaLote) * valorBaseM2;
-    
-    // Fator de mercado
-    let fatorMercado = 1.0;
-    if (fatorComercializacao === "Desaquecido") fatorMercado = 0.85;
-    if (fatorComercializacao === "Aquecido") fatorMercado = 1.15;
-    
-    const valorCalculado = valorBase * fatorMercado;
-    
-    setValorMedioLote(valorCalculado);
-    setValorMedioVenda(Math.round(valorCalculado / 100) * 100); // Arredondar
-    setLimiteInferior(valorCalculado * 0.75);
-    setLimiteSuperior(valorCalculado * 1.25);
-    setValorBenfeitoria(0); // Para lotes
+    try {
+      // 1. Buscar valor do m² na tabela de referência
+      const valoresM2 = await TabelaReferencia.filter({
+        tipo_tabela: "Valor_Metro_Quadrado",
+        regiao: regiao,
+        bairro: bairro,
+        ativo: true
+      });
 
-    toast({
-      title: "Cálculo realizado!",
-      description: "Os valores foram calculados com base nos dados informados.",
-    });
+      let valorM2 = 0;
+      if (valoresM2.length > 0) {
+        valorM2 = valoresM2[0].valor;
+      } else {
+        // Tentar buscar valor geral do bairro
+        const valoresGerais = await TabelaReferencia.filter({
+          tipo_tabela: "Valor_Metro_Quadrado",
+          regiao: regiao,
+          ativo: true
+        });
+        
+        if (valoresGerais.length > 0) {
+          valorM2 = valoresGerais[0].valor;
+        } else {
+          toast({
+            title: "Valor não encontrado",
+            description: "Não há valor cadastrado para esta região/bairro. Usando R$ 200/m² como base.",
+            variant: "destructive"
+          });
+          valorM2 = 200;
+        }
+      }
+
+      // 2. Calcular valor do lote
+      const area = parseFloat(areaLote);
+      let valorLote = area * valorM2;
+
+      // 3. Aplicar fator de comercialização
+      const fatoresComercializacao = await TabelaReferencia.filter({
+        tipo_tabela: "Fator_Mercado",
+        categoria: fatorComercializacao,
+        ativo: true
+      });
+
+      let fatorMercado = 1.0;
+      if (fatoresComercializacao.length > 0) {
+        fatorMercado = fatoresComercializacao[0].valor;
+      }
+
+      valorLote = valorLote * fatorMercado;
+
+      // 4. Calcular benfeitoria (se houver área construída)
+      let valorBenfeitoriaCalc = 0;
+      
+      if (areaConstruida && parseFloat(areaConstruida) > 0 && padraoSemelhante !== "Lote") {
+        // Buscar CUB
+        const cubData = await TabelaReferencia.filter({
+          tipo_tabela: "CUB",
+          ativo: true
+        });
+
+        // Mapear padrão semelhante para categoria CUB
+        const padraoToCUB = {
+          "Baixo": "R1B - Residência unifamiliar padrão baixo",
+          "Normal": "R1N - Residência unifamiliar padrão normal",
+          "Alto": "R1A - Residência unifamiliar padrão alto",
+          "Luxo": "R1A - Residência unifamiliar padrão alto"
+        };
+
+        const cubCategoria = padraoToCUB[padraoSemelhante] || "R1N - Residência unifamiliar padrão normal";
+        const cubEncontrado = cubData.find(c => c.categoria === cubCategoria);
+        
+        if (cubEncontrado) {
+          const BDI = 1.2309; // Fixo conforme planilha
+          const custoBenfeitoria = cubEncontrado.valor * parseFloat(areaConstruida) * BDI;
+
+          // Aplicar depreciação Ross Heidecke
+          if (idadeAparente && parseInt(idadeAparente) > 0) {
+            // Vida útil padrão
+            const vidasUteis = {
+              "Lote": 50,
+              "Casa": 65,
+              "Apartamento": 60,
+              "Comercial": 70
+            };
+
+            const vidaUtilAnos = vidasUteis[vidaUtil] || 50;
+            const idadeAnos = parseInt(idadeAparente);
+            const percVidaUtil = Math.min(100, (idadeAnos / vidaUtilAnos) * 100);
+
+            // Mapeamento estado de conservação para coluna Ross Heidecke
+            const conservacaoToCol = {
+              "Novo": "A",
+              "Bom": "B",
+              "Regular": "C",
+              "Ruim": "G"
+            };
+
+            const coluna = conservacaoToCol[estadoConservacao] || "B";
+            
+            // Tabela Ross Heidecke simplificada (valores aproximados)
+            const tabelaRossHeidecke = {
+              "A": { 10: 5.5, 20: 12, 30: 19.5, 40: 28.8, 50: 37.5, 60: 48.8, 70: 59.5, 80: 72, 90: 85.5, 100: 100 },
+              "B": { 10: 5.53, 20: 12, 30: 19.5, 40: 28.8, 50: 37.5, 60: 48.8, 70: 59.5, 80: 72, 90: 85.5, 100: 100 },
+              "C": { 10: 7.88, 20: 14.2, 30: 21.5, 40: 29.9, 50: 39.1, 60: 49.3, 70: 60.5, 80: 72.7, 90: 85.9, 100: 100 },
+              "G": { 10: 55.2, 20: 58.3, 30: 61.8, 40: 65.9, 50: 70.4, 60: 75.3, 70: 80.8, 80: 86.7, 90: 93.1, 100: 100 }
+            };
+
+            // Interpolar valor K
+            const tabela = tabelaRossHeidecke[coluna] || tabelaRossHeidecke["B"];
+            const percArredondado = Math.ceil(percVidaUtil / 10) * 10;
+            const K = tabela[Math.min(100, percArredondado)] || 50;
+
+            // Depreciação = (100 - K) / 100
+            const depreciacao = (100 - K) / 100;
+
+            valorBenfeitoriaCalc = custoBenfeitoria * (1 - depreciacao);
+          } else {
+            valorBenfeitoriaCalc = custoBenfeitoria;
+          }
+        }
+      }
+
+      // 5. Valor médio de venda = Valor Lote + Valor Benfeitoria
+      const valorTotal = valorLote + valorBenfeitoriaCalc;
+      
+      setValorMedioLote(valorLote);
+      setValorBenfeitoria(valorBenfeitoriaCalc);
+      setValorMedioVenda(Math.round(valorTotal / 1000) * 1000); // Arredondar para milhar
+      setLimiteInferior(valorTotal * 0.75);
+      setLimiteSuperior(valorTotal * 1.25);
+
+      toast({
+        title: "Cálculo realizado!",
+        description: `Valor base: ${formatCurrency(valorM2)}/m² encontrado na tabela de referência.`,
+      });
+    } catch (error) {
+      console.error("Erro ao calcular:", error);
+      toast({
+        title: "Erro no cálculo",
+        description: "Erro ao consultar tabelas de referência.",
+        variant: "destructive"
+      });
+    }
   };
 
   const calcularPorcentagem = () => {
