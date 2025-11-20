@@ -44,6 +44,7 @@ import UserProfileModal from "./components/profile/UserProfileModal";
 import NotificationCenter from "./components/notifications/NotificationCenter";
 import TaskViewEditModal from "./components/tasks/TaskViewEditModal";
 import ServiceViewEditModal from "./components/services/ServiceViewEditModal";
+import { Toaster } from "./components/ui/toaster";
 
 const getInitials = (name) => {
   if (!name) return "U";
@@ -472,6 +473,7 @@ export default function Layout({ children }) {
           )}
         </>
       )}
+      <Toaster />
     </SidebarProvider>
   );
 }
