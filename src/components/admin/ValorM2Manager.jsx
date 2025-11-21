@@ -29,10 +29,11 @@ export default function ValorM2Manager() {
 
   const downloadModelo = () => {
     const csvContent = `cidade,bairro,sub_bairro,codigo,valor_m2
-São João del Rei,Centro,Centro Histórico,001,450.50
-São João del Rei,Centro,Praça Tiradentes,002,480.00
-São João del Rei,Bonfim,Bonfim Sul,003,320.00
-Tiradentes,Centro,Largo das Forras,004,380.00`;
+Sao_Joao_Del_Rei,Centro,Apartamento - Localização Boa,6.5.2.3,3645.17
+Sao_Joao_Del_Rei,Centro,Casa - Localização Boa,6.5.2.2,3668.88
+Sao_Joao_Del_Rei,Centro,O Lote,6.5.2.1,1072.22
+Tiradentes,Centro Histórico Tiradentes - Casa,7.4.1,7355.77
+Tiradentes,Centro Histórico Tiradentes - Lote,7.4.2,522.33`;
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
@@ -66,44 +67,61 @@ Tiradentes,Centro,Largo das Forras,004,380.00`;
 
       const data = [];
       for (let i = 1; i < lines.length; i++) {
-        const [cidade, bairro, sub_bairro, codigo, valor_m2] = lines[i].split(',').map(v => v.trim());
+        const line = lines[i].trim();
+        if (!line) continue; // Pular linhas vazias
         
-        if (cidade && bairro && sub_bairro && valor_m2) {
-          // Remove formatação monetária
-          let valorLimpo = valor_m2
-            .replace(/R\$/g, '')
-            .replace(/\s/g, '');
-
-          // Detectar o último ponto/vírgula como separador decimal
-          // Ex: 3.645.17 → 3645.17 ou 3.645,17 → 3645.17
-          const ultimoPonto = valorLimpo.lastIndexOf('.');
-          const ultimaVirgula = valorLimpo.lastIndexOf(',');
-          
-          if (ultimaVirgula > ultimoPonto) {
-            // Formato: 3.645,17 (padrão BR)
-            valorLimpo = valorLimpo.replace(/\./g, '').replace(',', '.');
-          } else if (ultimoPonto !== -1) {
-            // Formato: 3.645.17 ou 3645.17
-            // Se tem apenas um ponto ou o último ponto está nos últimos 2-3 chars, é decimal
-            const partes = valorLimpo.split('.');
-            if (partes.length === 2 && partes[1].length <= 2) {
-              // Apenas um ponto e está nos decimais: 3645.17
-              valorLimpo = valorLimpo; // já está correto
-            } else {
-              // Múltiplos pontos: remover todos exceto o último
-              valorLimpo = partes.slice(0, -1).join('') + '.' + partes[partes.length - 1];
-            }
-          }
-
-          data.push({
-            cidade,
-            bairro,
-            sub_bairro,
-            codigo: codigo || null,
-            valor_m2: parseFloat(valorLimpo),
-            ativo: true
-          });
+        const [cidade, bairro, sub_bairro, codigo, valor_m2] = line.split(',').map(v => v.trim());
+        
+        // Validar campos obrigatórios
+        if (!cidade || !bairro || !sub_bairro || !valor_m2) {
+          console.warn(`Linha ${i + 1} ignorada (campos faltando):`, line);
+          continue;
         }
+
+        // Validar se valor_m2 é numérico
+        if (valor_m2 === 'NULL' || valor_m2 === '-' || valor_m2 === '') {
+          console.warn(`Linha ${i + 1} ignorada (valor inválido):`, line);
+          continue;
+        }
+
+        // Remove formatação monetária e processa o valor
+        let valorLimpo = valor_m2
+          .replace(/R\$/g, '')
+          .replace(/\s/g, '');
+
+        // Detectar o último ponto/vírgula como separador decimal
+        const ultimoPonto = valorLimpo.lastIndexOf('.');
+        const ultimaVirgula = valorLimpo.lastIndexOf(',');
+        
+        if (ultimaVirgula > ultimoPonto) {
+          // Formato: 3.645,17 (padrão BR)
+          valorLimpo = valorLimpo.replace(/\./g, '').replace(',', '.');
+        } else if (ultimoPonto !== -1) {
+          // Formato: 3.645.17 ou 3645.17
+          const partes = valorLimpo.split('.');
+          if (partes.length === 2 && partes[1].length <= 2) {
+            // Apenas um ponto nos decimais: 3645.17
+            valorLimpo = valorLimpo;
+          } else {
+            // Múltiplos pontos: remover todos exceto o último
+            valorLimpo = partes.slice(0, -1).join('') + '.' + partes[partes.length - 1];
+          }
+        }
+
+        const valorFinal = parseFloat(valorLimpo);
+        if (isNaN(valorFinal)) {
+          console.warn(`Linha ${i + 1} ignorada (valor não numérico):`, line);
+          continue;
+        }
+
+        data.push({
+          cidade,
+          bairro,
+          sub_bairro,
+          codigo: codigo && codigo !== 'NULL' ? codigo : null,
+          valor_m2: valorFinal,
+          ativo: true
+        });
       }
 
       if (data.length === 0) {
