@@ -210,7 +210,7 @@ Tiradentes,Centro,Largo das Forras,004,380.00`;
           <div>
             <input
               type="file"
-              accept=".csv"
+              accept=".csv,.txt"
               onChange={handleFileUpload}
               disabled={loading}
               className="hidden"
@@ -220,7 +220,7 @@ Tiradentes,Centro,Largo das Forras,004,380.00`;
               <Button variant="outline" className="gap-2" disabled={loading} asChild>
                 <span>
                   <Upload className="w-4 h-4" />
-                  {loading ? "Importando..." : "Importar CSV"}
+                  {loading ? "Importando..." : "Importar CSV/TXT"}
                 </span>
               </Button>
             </label>
