@@ -70,11 +70,30 @@ Tiradentes,Centro,Largo das Forras,004,380.00`;
         
         if (cidade && bairro && sub_bairro && valor_m2) {
           // Remove formatação monetária
-          const valorLimpo = valor_m2
+          let valorLimpo = valor_m2
             .replace(/R\$/g, '')
-            .replace(/\s/g, '')
-            .replace(/\./g, '') // Remove separador de milhares
-            .replace(',', '.'); // Troca vírgula por ponto
+            .replace(/\s/g, '');
+
+          // Detectar o último ponto/vírgula como separador decimal
+          // Ex: 3.645.17 → 3645.17 ou 3.645,17 → 3645.17
+          const ultimoPonto = valorLimpo.lastIndexOf('.');
+          const ultimaVirgula = valorLimpo.lastIndexOf(',');
+          
+          if (ultimaVirgula > ultimoPonto) {
+            // Formato: 3.645,17 (padrão BR)
+            valorLimpo = valorLimpo.replace(/\./g, '').replace(',', '.');
+          } else if (ultimoPonto !== -1) {
+            // Formato: 3.645.17 ou 3645.17
+            // Se tem apenas um ponto ou o último ponto está nos últimos 2-3 chars, é decimal
+            const partes = valorLimpo.split('.');
+            if (partes.length === 2 && partes[1].length <= 2) {
+              // Apenas um ponto e está nos decimais: 3645.17
+              valorLimpo = valorLimpo; // já está correto
+            } else {
+              // Múltiplos pontos: remover todos exceto o último
+              valorLimpo = partes.slice(0, -1).join('') + '.' + partes[partes.length - 1];
+            }
+          }
 
           data.push({
             cidade,
