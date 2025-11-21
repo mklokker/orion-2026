@@ -2,6 +2,9 @@ import React, { useState, useEffect } from "react";
 import { AvaliacaoImovel } from "@/entities/AvaliacaoImovel";
 import { TabelaReferencia } from "@/entities/TabelaReferencia";
 import { TabelaDepreciacaoRoss } from "@/entities/TabelaDepreciacaoRoss";
+import { ValorM2 } from "@/entities/ValorM2";
+import { PadraoSemelhante } from "@/entities/PadraoSemelhante";
+import { FatorMercado } from "@/entities/FatorMercado";
 import { User } from "@/entities/User";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -107,15 +110,18 @@ export default function CalculadoraImoveis() {
   const [currentUser, setCurrentUser] = useState(null);
   const [avaliacoes, setAvaliacoes] = useState([]);
   
-  // Dados de localização
-  const [regiao, setRegiao] = useState("");
+  // Dados de localização (NOVA ESTRUTURA: Cidade → Bairro → Sub-bairro)
+  const [cidade, setCidade] = useState("");
   const [bairro, setBairro] = useState("");
   const [subBairro, setSubBairro] = useState("");
   
-  // Opções de localização para dropdowns
-  const [regioes, setRegioes] = useState([]);
+  // Opções de localização para dropdowns dependentes
+  const [cidades, setCidades] = useState([]);
   const [bairros, setBairros] = useState([]);
   const [subBairros, setSubBairros] = useState([]);
+  
+  // Cache de valores m²
+  const [valoresM2, setValoresM2] = useState([]);
   
   // Estado para exportação
   const [showExportDialog, setShowExportDialog] = useState(false);
@@ -174,68 +180,51 @@ export default function CalculadoraImoveis() {
       const avaliacoesData = await AvaliacaoImovel.list("-created_date");
       setAvaliacoes(avaliacoesData);
 
-      await loadRegioes();
+      // Carregar valores m² (nova estrutura)
+      const valoresData = await ValorM2.filter({ ativo: true });
+      setValoresM2(valoresData);
+
+      // Extrair cidades únicas
+      const cidadesUnicas = [...new Set(valoresData.map(v => v.cidade))].filter(Boolean).sort();
+      setCidades(cidadesUnicas);
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
     }
   };
 
-  const loadRegioes = async () => {
-    try {
-      const todasAvaliacoes = await AvaliacaoImovel.list();
-      const regioesUnicas = [...new Set(todasAvaliacoes.map(a => a.regiao))].filter(Boolean).sort();
-      setRegioes(regioesUnicas);
-    } catch (error) {
-      console.error("Erro ao carregar regiões:", error);
-    }
-  };
-
-  const loadBairros = async (regiaoSelecionada) => {
-    try {
-      const avaliacoesDaRegiao = await AvaliacaoImovel.filter({
-        regiao: regiaoSelecionada
-      });
-      const bairrosUnicos = [...new Set(avaliacoesDaRegiao.map(a => a.bairro))].filter(Boolean).sort();
-      setBairros(bairrosUnicos);
-    } catch (error) {
-      console.error("Erro ao carregar bairros:", error);
-    }
-  };
-
-  const loadSubBairros = async (regiaoSelecionada, bairroSelecionado) => {
-    try {
-      const avaliacoesDoBairro = await AvaliacaoImovel.filter({
-        regiao: regiaoSelecionada,
-        bairro: bairroSelecionado
-      });
-      const subBairrosUnicos = [...new Set(avaliacoesDoBairro.map(a => a.sub_bairro))].filter(Boolean).sort();
-      setSubBairros(subBairrosUnicos);
-    } catch (error) {
-      console.error("Erro ao carregar sub-bairros:", error);
-    }
-  };
-
-  const handleRegiaoChange = (value) => {
-    setRegiao(value);
+  const handleCidadeChange = (value) => {
+    setCidade(value);
     setBairro("");
     setSubBairro("");
-    setBairros([]);
     setSubBairros([]);
-    loadBairros(value);
+
+    // Filtrar bairros da cidade selecionada
+    const bairrosDaCidade = [...new Set(
+      valoresM2
+        .filter(v => v.cidade === value)
+        .map(v => v.bairro)
+    )].filter(Boolean).sort();
+    setBairros(bairrosDaCidade);
   };
 
   const handleBairroChange = (value) => {
     setBairro(value);
     setSubBairro("");
-    setSubBairros([]);
-    loadSubBairros(regiao, value);
+
+    // Filtrar sub-bairros do bairro selecionado
+    const subBairrosDoBairro = [...new Set(
+      valoresM2
+        .filter(v => v.cidade === cidade && v.bairro === value)
+        .map(v => v.sub_bairro)
+    )].filter(Boolean).sort();
+    setSubBairros(subBairrosDoBairro);
   };
 
   const calcularAvaliacao = async () => {
-    if (!areaLote || !regiao || !bairro) {
+    if (!areaLote || !cidade || !bairro || !subBairro) {
       toast({
         title: "⚠️ Campos obrigatórios",
-        description: "Preencha região, bairro e área do lote.",
+        description: "Preencha cidade, bairro, sub-bairro e área do lote.",
         variant: "destructive"
       });
       return;
@@ -246,138 +235,77 @@ export default function CalculadoraImoveis() {
       const areaLoteNum = parseFloat(areaLote);
       const areaConstrNum = areaConstruida ? parseFloat(areaConstruida) : 0;
 
-      // 1) Buscar valor do m² (mantendo sua estrutura de TabelaReferencia)
-      let valorM2 = 0;
-
-      // primeiro tenta combinação região+bairro
-      const valoresM2Diretos = await TabelaReferencia.filter({
-        tipo_tabela: "Valor_Metro_Quadrado",
-        regiao: regiao,
+      // 1) Buscar valor do m² (NOVA ESTRUTURA: cidade + bairro + sub_bairro)
+      const valoresEncontrados = await ValorM2.filter({
+        cidade: cidade,
         bairro: bairro,
+        sub_bairro: subBairro,
         ativo: true
       });
 
-      if (valoresM2Diretos.length > 0) {
-        valorM2 = valoresM2Diretos[0].valor;
-      } else {
-        // fallback: qualquer valor da região
-        const valoresGerais = await TabelaReferencia.filter({
-          tipo_tabela: "Valor_Metro_Quadrado",
-          regiao: regiao,
-          ativo: true
+      if (valoresEncontrados.length === 0) {
+        toast({
+          title: "❌ Valor não encontrado",
+          description: "Não há valor de m² cadastrado para esta localização.",
+          variant: "destructive"
         });
-        if (valoresGerais.length > 0) {
-          valorM2 = valoresGerais[0].valor;
-        } else {
-          toast({
-            title: "Valor não encontrado",
-            description: "Não há valor cadastrado para esta região/bairro. Usando R$ 200/m² como base.",
-            variant: "destructive"
-          });
-          valorM2 = 200;
-        }
+        setCalculando(false);
+        return;
       }
 
-      // 2) Valor do lote
-      const valorLote = areaLoteNum * valorM2;
+      const valorM2 = valoresEncontrados[0].valor_m2;
 
-      // 3) Fator de mercado (Desaquecido / Normal / Aquecido)
-      let fatorMercado = 1.0;
-      const fatoresComercializacao = await TabelaReferencia.filter({
-        tipo_tabela: "Fator_Mercado",
-        categoria: fatorComercializacao,
+      // 2) Buscar fator de mercado (da nova tabela FatorMercado)
+      let fatorMercadoValor = 1.0;
+      const fatoresMercado = await FatorMercado.filter({
+        descricao: fatorComercializacao,
         ativo: true
       });
-      if (fatoresComercializacao.length > 0) {
-        fatorMercado = fatoresComercializacao[0].valor;
+      if (fatoresMercado.length > 0) {
+        fatorMercadoValor = fatoresMercado[0].fator;
       }
 
-      // 4) Cálculo da benfeitoria depreciada (Ross-Heidecke) – se houver área construída
-      let valorBenfeitoriaCalc = 0;
-
-      if (areaConstrNum > 0 && padraoSemelhante !== "Lote") {
-        const cubData = await TabelaReferencia.filter({
-          tipo_tabela: "CUB",
+      // 3) Buscar valor do padrão semelhante (da nova tabela PadraoSemelhante)
+      let valorPadrao = 0;
+      if (padraoSemelhante !== "Lote") {
+        const padroes = await PadraoSemelhante.filter({
+          descricao: padraoSemelhante,
           ativo: true
         });
-
-        // tentar match exato com categoria
-        let cubEncontrado = cubData.find(c => c.categoria === padraoSemelhante);
-
-        // mapeamento alternativo simples
-        if (!cubEncontrado) {
-          const padraoToCUB = {
-            "Lote": null,
-            "Kitnet": "R1B - Residência unifamiliar padrão baixo",
-            "RPIQ - Residência unifamiliar popular": "R1B - Residência unifamiliar padrão baixo"
-          };
-          const categoriaMapeada = padraoToCUB[padraoSemelhante];
-          if (categoriaMapeada) {
-            cubEncontrado = cubData.find(c => c.categoria === categoriaMapeada);
-          }
-        }
-
-        // fallback padrão
-        if (!cubEncontrado && padraoSemelhante !== "Lote") {
-          cubEncontrado = cubData.find(c => c.categoria === "R1N - Residência unifamiliar padrão normal");
-        }
-
-        if (cubEncontrado) {
-          const BDI = 1.2309; // mesmo da planilha
-          const custoBenfeitoria = cubEncontrado.valor * areaConstrNum * BDI;
-
-          if (idadeAparente && parseInt(idadeAparente) > 0) {
-            const vidaUtilAnos = extrairAnosVidaUtil(vidaUtil);
-            const idadeAnos = parseInt(idadeAparente);
-
-            let percVidaUtil = (idadeAnos / vidaUtilAnos) * 100;
-            // limita entre 0 e 100
-            percVidaUtil = Math.max(0, Math.min(100, percVidaUtil));
-
-            // obtém K pela tabela Ross-Heidecke (agora é async)
-            const K = await obterK_RossHeidecke(percVidaUtil, estadoConservacao);
-
-            // *** CORREÇÃO: valor depreciado = custo * (100 - K)/100 ***
-            const fatorDepreciacao = (100 - K) / 100;
-            valorBenfeitoriaCalc = custoBenfeitoria * fatorDepreciacao;
-          } else {
-            // sem idade: sem depreciação
-            valorBenfeitoriaCalc = custoBenfeitoria;
-          }
+        if (padroes.length > 0) {
+          valorPadrao = padroes[0].valor;
         }
       }
 
-      // 5) Regra especial para Centro / Apartamento (como na planilha)
-      const bairroEhCentro = (bairro || "").trim().toLowerCase() === "centro";
-      const subLoc = (subBairro || "").trim().toLowerCase();
-      const ehApartamentoCentro =
-        bairroEhCentro &&
-        subLoc.startsWith("apartamento -") &&
-        subLoc !== "apartamento - o lote";
+      // 4) Calcular depreciação usando Ross-Heidecke
+      let percDepreciacao = 0;
+      if (areaConstrNum > 0 && idadeAparente && parseInt(idadeAparente) > 0) {
+        const vidaUtilAnos = extrairAnosVidaUtil(vidaUtil);
+        const idadeAnos = parseInt(idadeAparente);
 
-      let baseCalculo = 0;
+        let percVidaUtil = (idadeAnos / vidaUtilAnos) * 100;
+        percVidaUtil = Math.max(0, Math.min(100, percVidaUtil));
 
-      if (ehApartamentoCentro && areaConstrNum > 0) {
-        const v1 = valorLote;
-        const v2 = (valorLote / areaLoteNum) * areaConstrNum;
-        baseCalculo = Math.max(v1, v2);
-      } else {
-        baseCalculo = valorLote + valorBenfeitoriaCalc;
+        const K = await obterK_RossHeidecke(percVidaUtil, estadoConservacao);
+        percDepreciacao = K / 100; // Convertendo K para decimal (ex: 50 → 0.50)
       }
 
-      // 6) Aplica fator de mercado sobre a base
-      const valorVendaBruto = baseCalculo * fatorMercado;
+      // 5) FÓRMULA OFICIAL DO EXCEL:
+      // valor_final = area * valor_m2 * (1 - depreciacao) * fator_mercado + valor_padrao
+      
+      const valorBase = areaConstrNum > 0 ? areaConstrNum * valorM2 : areaLoteNum * valorM2;
+      const valorDepreciado = valorBase * (1 - percDepreciacao);
+      const valorComPadrao = valorDepreciado + valorPadrao;
+      const valorFinal = valorComPadrao * fatorMercadoValor;
 
-      // 7) Valor médio de venda sugerido – arredondado para o milhar
-      const valorVendaSugerido = arredondarMilhar(valorVendaBruto);
+      // Arredondar para milhares
+      const valorVendaSugerido = arredondarMilhar(valorFinal);
+      const limiteInf = arredondarMilharParaBaixo(valorFinal * 0.75);
+      const limiteSup = arredondarMilharParaCima(valorFinal * 1.25);
 
-      // 8) Limites inferior/superior (75% / 125%) arredondados
-      const limiteInf = arredondarMilharParaBaixo(valorVendaBruto * 0.75);
-      const limiteSup = arredondarMilharParaCima(valorVendaBruto * 1.25);
-
-      // salva nos estados
-      setValorMedioLote(valorLote);
-      setValorBenfeitoria(valorBenfeitoriaCalc);
+      // Salvar nos estados
+      setValorMedioLote(areaLoteNum * valorM2);
+      setValorBenfeitoria(valorDepreciado);
       setValorMedioVenda(valorVendaSugerido);
       setLimiteInferior(limiteInf);
       setLimiteSuperior(limiteSup);
@@ -420,10 +348,10 @@ export default function CalculadoraImoveis() {
   };
 
   const salvarAvaliacao = async () => {
-    if (!regiao || !bairro || !areaLote) {
+    if (!cidade || !bairro || !subBairro || !areaLote) {
       toast({
         title: "⚠️ Campos obrigatórios",
-        description: "Preencha os campos obrigatórios (região, bairro e área).",
+        description: "Preencha os campos obrigatórios (cidade, bairro, sub-bairro e área).",
         variant: "destructive"
       });
       return;
@@ -440,7 +368,7 @@ export default function CalculadoraImoveis() {
 
     try {
       await AvaliacaoImovel.create({
-        regiao,
+        regiao: cidade, // Salvar cidade como "regiao" para compatibilidade
         bairro,
         sub_bairro: subBairro,
         area_lote: parseFloat(areaLote),
@@ -480,9 +408,11 @@ export default function CalculadoraImoveis() {
   };
 
   const limparFormulario = () => {
-    setRegiao("");
+    setCidade("");
     setBairro("");
     setSubBairro("");
+    setBairros([]);
+    setSubBairros([]);
     setAreaLote("");
     setAreaConstruida("");
     setVidaUtil("Lote");
@@ -532,29 +462,29 @@ export default function CalculadoraImoveis() {
               <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50">
                 <CardTitle className="flex items-center gap-2">
                   <MapPin className="w-5 h-5" />
-                  Dados de Localização
+                  Dados de Localização (Cidade → Bairro → Sub-bairro)
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-6 space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="regiao">Região *</Label>
-                    <Select value={regiao} onValueChange={handleRegiaoChange}>
-                      <SelectTrigger id="regiao">
-                        <SelectValue placeholder="Selecione a região" />
+                    <Label htmlFor="cidade">Cidade *</Label>
+                    <Select value={cidade} onValueChange={handleCidadeChange}>
+                      <SelectTrigger id="cidade">
+                        <SelectValue placeholder="Selecione a cidade" />
                       </SelectTrigger>
                       <SelectContent>
-                        {regioes.map(r => (
-                          <SelectItem key={r} value={r}>{r}</SelectItem>
+                        {cidades.map(c => (
+                          <SelectItem key={c} value={c}>{c}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="bairro">Bairro *</Label>
-                    <Select value={bairro} onValueChange={handleBairroChange} disabled={!regiao}>
+                    <Select value={bairro} onValueChange={handleBairroChange} disabled={!cidade}>
                       <SelectTrigger id="bairro">
-                        <SelectValue placeholder={regiao ? "Selecione o bairro" : "Selecione uma região primeiro"} />
+                        <SelectValue placeholder={cidade ? "Selecione o bairro" : "Selecione uma cidade primeiro"} />
                       </SelectTrigger>
                       <SelectContent>
                         {bairros.map(b => (
@@ -563,20 +493,19 @@ export default function CalculadoraImoveis() {
                       </SelectContent>
                     </Select>
                   </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="sub-bairro">Sub-Bairro/Localização</Label>
-                  <Select value={subBairro} onValueChange={setSubBairro} disabled={!bairro}>
-                    <SelectTrigger id="sub-bairro">
-                      <SelectValue placeholder={bairro ? "Selecione (opcional)" : "Selecione um bairro primeiro"} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={null}>Nenhum</SelectItem>
-                      {subBairros.map(sb => (
-                        <SelectItem key={sb} value={sb}>{sb}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="space-y-2">
+                    <Label htmlFor="sub-bairro">Sub-Bairro *</Label>
+                    <Select value={subBairro} onValueChange={setSubBairro} disabled={!bairro}>
+                      <SelectTrigger id="sub-bairro">
+                        <SelectValue placeholder={bairro ? "Selecione o sub-bairro" : "Selecione um bairro primeiro"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {subBairros.map(sb => (
+                          <SelectItem key={sb} value={sb}>{sb}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </CardContent>
             </Card>
