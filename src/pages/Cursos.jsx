@@ -268,6 +268,7 @@ export default function Cursos() {
             {filteredCourses.map(course => {
               const videos = courseVideos[course.id] || [];
               const firstVideoThumbnail = videos.length > 0 ? getYoutubeThumbnail(videos[0].youtube_url) : null;
+              const coverImage = course.cover_image || firstVideoThumbnail;
 
               return (
                 <Card 
@@ -277,9 +278,9 @@ export default function Cursos() {
                 >
                   {/* Thumbnail */}
                   <div className="relative h-48 bg-gradient-to-br from-blue-500 to-indigo-600 overflow-hidden">
-                    {firstVideoThumbnail ? (
+                    {coverImage ? (
                       <img
-                        src={firstVideoThumbnail}
+                        src={coverImage}
                         alt={course.name}
                         className="w-full h-full object-cover"
                       />

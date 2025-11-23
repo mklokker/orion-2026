@@ -4,9 +4,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Plus, Play, Edit, Trash2, GripVertical } from "lucide-react";
+import { Plus, Play, Edit, Trash2, GripVertical, Upload, X } from "lucide-react";
 import { CourseVideo } from "@/entities/CourseVideo";
 import { useToast } from "@/components/ui/use-toast";
+import { base44 } from "@/api/base44Client";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import VideoPlayer from "./VideoPlayer";
 import {
@@ -38,6 +39,9 @@ export default function CourseModal({ open, onClose, course, videos, isAdmin, on
   const [editingVideo, setEditingVideo] = useState(null);
   const [videoTitle, setVideoTitle] = useState("");
   const [videoUrl, setVideoUrl] = useState("");
+  const [videoCoverImage, setVideoCoverImage] = useState(null);
+  const [videoCoverPreview, setVideoCoverPreview] = useState("");
+  const [isUploadingCover, setIsUploadingCover] = useState(false);
 
   React.useEffect(() => {
     setOrderedVideos(videos);
@@ -77,6 +81,8 @@ export default function CourseModal({ open, onClose, course, videos, isAdmin, on
     setEditingVideo(null);
     setVideoTitle("");
     setVideoUrl("");
+    setVideoCoverImage(null);
+    setVideoCoverPreview("");
     setShowAddVideo(true);
   };
 
@@ -84,7 +90,29 @@ export default function CourseModal({ open, onClose, course, videos, isAdmin, on
     setEditingVideo(video);
     setVideoTitle(video.title);
     setVideoUrl(video.youtube_url);
+    setVideoCoverPreview(video.cover_image || "");
+    setVideoCoverImage(null);
     setShowAddVideo(true);
+  };
+
+  const handleCoverImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "Arquivo muito grande",
+          description: "A imagem deve ter no máximo 5MB.",
+          variant: "destructive"
+        });
+        return;
+      }
+      setVideoCoverImage(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setVideoCoverPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSaveVideo = async () => {
@@ -97,11 +125,21 @@ export default function CourseModal({ open, onClose, course, videos, isAdmin, on
       return;
     }
 
+    setIsUploadingCover(true);
+
     try {
+      let coverImageUrl = editingVideo?.cover_image || "";
+
+      if (videoCoverImage) {
+        const { file_url } = await base44.integrations.Core.UploadFile({ file: videoCoverImage });
+        coverImageUrl = file_url;
+      }
+
       if (editingVideo) {
         await CourseVideo.update(editingVideo.id, {
           title: videoTitle.trim(),
-          youtube_url: videoUrl.trim()
+          youtube_url: videoUrl.trim(),
+          cover_image: coverImageUrl
         });
         toast({
           title: "Sucesso!",
@@ -112,6 +150,7 @@ export default function CourseModal({ open, onClose, course, videos, isAdmin, on
           course_id: course.id,
           title: videoTitle.trim(),
           youtube_url: videoUrl.trim(),
+          cover_image: coverImageUrl,
           order: orderedVideos.length
         });
         toast({
@@ -123,6 +162,8 @@ export default function CourseModal({ open, onClose, course, videos, isAdmin, on
       setShowAddVideo(false);
       setVideoTitle("");
       setVideoUrl("");
+      setVideoCoverImage(null);
+      setVideoCoverPreview("");
       setEditingVideo(null);
       onUpdate();
     } catch (error) {
@@ -133,6 +174,8 @@ export default function CourseModal({ open, onClose, course, videos, isAdmin, on
         variant: "destructive"
       });
     }
+
+    setIsUploadingCover(false);
   };
 
   const handleDeleteVideo = async () => {
@@ -241,7 +284,7 @@ export default function CourseModal({ open, onClose, course, videos, isAdmin, on
                                   </div>
 
                                   <img
-                                    src={getYoutubeThumbnail(video.youtube_url)}
+                                    src={video.cover_image || getYoutubeThumbnail(video.youtube_url)}
                                     alt={video.title}
                                     className="w-24 h-16 object-cover rounded"
                                   />
@@ -343,14 +386,54 @@ export default function CourseModal({ open, onClose, course, videos, isAdmin, on
                 Cole o link completo do vídeo do YouTube
               </p>
             </div>
+
+            <div className="space-y-2">
+              <Label>Capa do Vídeo (Opcional)</Label>
+              {videoCoverPreview ? (
+                <div className="relative">
+                  <img
+                    src={videoCoverPreview}
+                    alt="Capa"
+                    className="w-full h-32 object-cover rounded-lg border"
+                  />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    className="absolute top-2 right-2"
+                    onClick={() => {
+                      setVideoCoverImage(null);
+                      setVideoCoverPreview("");
+                    }}
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="border-2 border-dashed rounded-lg p-6 text-center">
+                  <input
+                    type="file"
+                    id="video-cover-upload"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleCoverImageChange}
+                  />
+                  <label htmlFor="video-cover-upload" className="cursor-pointer">
+                    <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                    <p className="text-xs text-gray-600">Clique para adicionar capa personalizada</p>
+                    <p className="text-xs text-gray-500 mt-1">Se não adicionar, usará a thumbnail do YouTube</p>
+                  </label>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="flex justify-end gap-3">
-            <Button variant="outline" onClick={() => setShowAddVideo(false)}>
+            <Button variant="outline" onClick={() => setShowAddVideo(false)} disabled={isUploadingCover}>
               Cancelar
             </Button>
-            <Button onClick={handleSaveVideo}>
-              {editingVideo ? "Salvar" : "Adicionar"}
+            <Button onClick={handleSaveVideo} disabled={isUploadingCover}>
+              {isUploadingCover ? "Enviando..." : editingVideo ? "Salvar" : "Adicionar"}
             </Button>
           </div>
         </VideoDialogContent>
