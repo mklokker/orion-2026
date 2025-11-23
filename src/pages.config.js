@@ -8,6 +8,7 @@ import Ranking from './pages/Ranking';
 import Chat from './pages/Chat';
 import Acervo from './pages/Acervo';
 import Cursos from './pages/Cursos';
+import CalculadoraAvaliacao from './pages/CalculadoraAvaliacao';
 import __Layout from './Layout.jsx';
 
 
@@ -22,6 +23,7 @@ export const PAGES = {
     "Chat": Chat,
     "Acervo": Acervo,
     "Cursos": Cursos,
+    "CalculadoraAvaliacao": CalculadoraAvaliacao,
 }
 
 export const pagesConfig = {
