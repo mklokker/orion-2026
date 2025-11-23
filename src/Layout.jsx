@@ -15,7 +15,6 @@ import {
   MessageSquare,
   Files,
   GraduationCap,
-  Calculator,
 } from "lucide-react";
 import {
   Sidebar,
@@ -110,17 +109,13 @@ export default function Layout({ children }) {
     { title: "Dashboard", url: createPageUrl("Dashboard"), icon: LayoutDashboard },
     { title: "Gestão de Tarefas", url: createPageUrl("GestaoTarefas"), icon: ClipboardList },
     { title: "Carga Diária", url: createPageUrl("CargaDiaria"), icon: FileText },
-    { title: "Calculadora Imóveis", url: createPageUrl("CalculadoraImoveis"), icon: Calculator },
     { title: "Chat", url: createPageUrl("Chat"), icon: MessageSquare },
     { title: "Acervo", url: createPageUrl("Acervo"), icon: Files },
     { title: "Cursos", url: createPageUrl("Cursos"), icon: GraduationCap },
     { title: "Produtividade Geral", url: createPageUrl("ProdutividadeGeral"), icon: TrendingUp },
     { title: "Ranking", url: createPageUrl("Ranking"), icon: Star },
     { title: "Relatórios", url: createPageUrl("Relatorios"), icon: BarChart3 },
-    ...(isAdmin ? [
-      { title: "Config. Calculadora", url: createPageUrl("ConfiguracaoCalculadora"), icon: Calculator },
-      { title: "Administração", url: createPageUrl("Admin"), icon: Settings }
-    ] : [])
+    ...(isAdmin ? [{ title: "Administração", url: createPageUrl("Admin"), icon: Settings }] : [])
   ];
 
   React.useEffect(() => {

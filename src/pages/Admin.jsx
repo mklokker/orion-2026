@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Department } from "@/entities/Department";
 import { User } from "@/entities/User";
@@ -14,7 +15,6 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import DepartmentViewEditModal from "../components/admin/DepartmentViewEditModal";
 import ImportTasksModal from "../components/admin/ImportTasksModal";
 import AppearanceSettings from "../components/admin/AppearanceSettings";
-
 import {
   Dialog,
   DialogContent,
@@ -188,12 +188,12 @@ export default function Admin() {
   return (
     <div className="p-4 md:p-8 min-h-screen">
       <div className="max-w-7xl mx-auto space-y-8">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-700 to-indigo-700 bg-clip-text text-transparent">
               Administração
             </h1>
-            <p className="text-gray-600 mt-2">Gerencie departamentos, usuários e base de cálculo</p>
+            <p className="text-gray-600 mt-2">Gerencie departamentos e usuários do sistema</p>
           </div>
           <Button
             onClick={() => setShowImportModal(true)}
@@ -391,10 +391,8 @@ export default function Admin() {
           </CardContent>
         </Card>
 
-        {/* Appearance Settings Card */}
+        {/* New Appearance Settings Card */}
         <AppearanceSettings />
-
-
 
       </div>
 
