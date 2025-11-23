@@ -221,10 +221,10 @@ export default function CalculadoraImoveis() {
   };
 
   const calcularAvaliacao = async () => {
-    if (!areaLote || !cidade || !bairro || !subBairro) {
+    if (!areaLote || !cidade || !bairro) {
       toast({
         title: "⚠️ Campos obrigatórios",
-        description: "Preencha cidade, bairro, sub-bairro e área do lote.",
+        description: "Preencha cidade, bairro e área do lote.",
         variant: "destructive"
       });
       return;
@@ -235,27 +235,71 @@ export default function CalculadoraImoveis() {
       const areaLoteNum = parseFloat(areaLote);
       const areaConstrNum = areaConstruida ? parseFloat(areaConstruida) : 0;
 
-      // 1) Buscar valor do m² (NOVA ESTRUTURA: cidade + bairro + sub_bairro)
-      const valoresEncontrados = await ValorM2.filter({
+      // ================================================================
+      // 🟦 1) BUSCA DO VALOR M² (igual à planilha)
+      // Ordem:
+      // 1. sub-bairro (se existir)
+      // 2. bairro geral (campo "normal", sem sub-bairro)
+      // 3. .Geral - Bairro (fallback regional da planilha)
+      // ================================================================
+
+      let valor_m2_sub = null;
+      let valor_m2_bairro = null;
+      let valor_m2_regiao = null;
+
+      // 1) SUB-BAIRRO (corresponde ao valor localizado de forma mais específica)
+      if (subBairro) {
+        const r1 = await ValorM2.filter({
+          cidade: cidade,
+          bairro: bairro,
+          sub_bairro: subBairro,
+          ativo: true
+        });
+        if (r1.length > 0) valor_m2_sub = r1[0].valor_m2;
+      }
+
+      // 2) BAIRRO SEM SUB-BAIRRO (corresponde a J459)
+      const r2 = await ValorM2.filter({
         cidade: cidade,
         bairro: bairro,
-        sub_bairro: subBairro,
+        sub_bairro: "",
         ativo: true
       });
+      if (r2.length > 0) valor_m2_bairro = r2[0].valor_m2;
 
-      if (valoresEncontrados.length === 0) {
+      // 3) REGIÃO GERAL (".Geral - Bairro") (corresponde a J460)
+      const r3 = await ValorM2.filter({
+        cidade: cidade,
+        bairro: `.Geral - ${bairro}`,
+        ativo: true
+      });
+      if (r3.length > 0) valor_m2_regiao = r3[0].valor_m2;
+
+      // Se nada encontrar → sub-bairro vira obrigatório
+      if (!valor_m2_sub && !valor_m2_bairro && !valor_m2_regiao) {
         toast({
-          title: "❌ Valor não encontrado",
-          description: "Não há valor de m² cadastrado para esta localização.",
+          title: "❌ Valor de referência não encontrado",
+          description: "Não foi encontrado nenhum valor m² para esta localização.",
           variant: "destructive"
         });
         setCalculando(false);
         return;
       }
 
-      const valorM2 = valoresEncontrados[0].valor_m2;
+      // ================================================================
+      // 🟧 LÓGICA FINAL DA PLANILHA (C14 * MÁXIMO(J459; J460))
+      // ================================================================
+      const baseParaLote = Math.max(
+        valor_m2_bairro ?? 0,
+        valor_m2_regiao ?? 0
+      );
 
-      // 2) Buscar fator de mercado (da nova tabela FatorMercado)
+      // Se sub-bairro existir, usa ele como referência para benfeitoria
+      const valorM2Benfeitoria = valor_m2_sub ?? baseParaLote;
+
+      // ================================================================
+      // 🟪 2) FATOR DE MERCADO
+      // ================================================================
       let fatorMercadoValor = 1.0;
       const fatoresMercado = await FatorMercado.filter({
         descricao: fatorComercializacao,
@@ -265,20 +309,23 @@ export default function CalculadoraImoveis() {
         fatorMercadoValor = fatoresMercado[0].fator;
       }
 
-      // 3) Buscar valor do padrão semelhante (da nova tabela PadraoSemelhante)
+      // ================================================================
+      // 🟩 3) PADRÃO SEMELHANTE (valor adicional)
+      // ================================================================
       let valorPadrao = 0;
       if (padraoSemelhante !== "Lote") {
         const padroes = await PadraoSemelhante.filter({
           descricao: padraoSemelhante,
           ativo: true
         });
-        if (padroes.length > 0) {
-          valorPadrao = padroes[0].valor;
-        }
+        if (padroes.length > 0) valorPadrao = padroes[0].valor;
       }
 
-      // 4) Calcular depreciação usando Ross-Heidecke
+      // ================================================================
+      // 🟥 4) DEPRECIAÇÃO (Ross-Heidecke)
+      // ================================================================
       let percDepreciacao = 0;
+
       if (areaConstrNum > 0 && idadeAparente && parseInt(idadeAparente) > 0) {
         const vidaUtilAnos = extrairAnosVidaUtil(vidaUtil);
         const idadeAnos = parseInt(idadeAparente);
@@ -287,38 +334,47 @@ export default function CalculadoraImoveis() {
         percVidaUtil = Math.max(0, Math.min(100, percVidaUtil));
 
         const K = await obterK_RossHeidecke(percVidaUtil, estadoConservacao);
-        percDepreciacao = K / 100; // Convertendo K para decimal (ex: 50 → 0.50)
+        percDepreciacao = K / 100;
       }
 
-      // 5) FÓRMULA OFICIAL DO EXCEL:
-      // valor_final = area * valor_m2 * (1 - depreciacao) * fator_mercado + valor_padrao
-      
-      const valorBase = areaConstrNum > 0 ? areaConstrNum * valorM2 : areaLoteNum * valorM2;
+      // ================================================================
+      // 🟦 5) CÁLCULO IGUAL AO EXCEL
+      // ================================================================
+      const valorBase = areaConstrNum > 0
+        ? areaConstrNum * valorM2Benfeitoria
+        : areaLoteNum * valorM2Benfeitoria;
+
       const valorDepreciado = valorBase * (1 - percDepreciacao);
       const valorComPadrao = valorDepreciado + valorPadrao;
       const valorFinal = valorComPadrao * fatorMercadoValor;
 
-      // Arredondar para milhares
       const valorVendaSugerido = arredondarMilhar(valorFinal);
       const limiteInf = arredondarMilharParaBaixo(valorFinal * 0.75);
       const limiteSup = arredondarMilharParaCima(valorFinal * 1.25);
 
-      // Salvar nos estados
-      setValorMedioLote(areaLoteNum * valorM2);
+      // ================================================================
+      // 🟩 6) VALOR DO LOTE (C14 * max(J459; J460))
+      // ================================================================
+      const valorMedioLoteCalc = areaLoteNum * baseParaLote;
+
+      // ================================================================
+      // 🟦 RESULTADOS
+      // ================================================================
       setValorBenfeitoria(valorDepreciado);
+      setValorMedioLote(valorMedioLoteCalc);
       setValorMedioVenda(valorVendaSugerido);
       setLimiteInferior(limiteInf);
       setLimiteSuperior(limiteSup);
 
       toast({
         title: "✅ Cálculo realizado!",
-        description: `Valor base de R$ ${valorM2.toFixed(2)}/m² encontrado na tabela de referência.`,
+        description: `Referência m² encontrada e cálculos aplicados exatamente como na planilha.`,
       });
     } catch (error) {
       console.error("Erro ao calcular:", error);
       toast({
         title: "❌ Erro no cálculo",
-        description: "Erro ao consultar tabelas de referência. Verifique se os dados estão cadastrados.",
+        description: "Verifique se todas as tabelas estão atualizadas.",
         variant: "destructive"
       });
     } finally {
