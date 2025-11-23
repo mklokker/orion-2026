@@ -14,7 +14,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import DepartmentViewEditModal from "../components/admin/DepartmentViewEditModal";
 import ImportTasksModal from "../components/admin/ImportTasksModal";
 import AppearanceSettings from "../components/admin/AppearanceSettings";
-import BaseCalculoManager from "../components/admin/BaseCalculoManager";
+
 import {
   Dialog,
   DialogContent,

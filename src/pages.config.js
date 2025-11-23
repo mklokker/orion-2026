@@ -9,6 +9,7 @@ import Chat from './pages/Chat';
 import Acervo from './pages/Acervo';
 import Cursos from './pages/Cursos';
 import CalculadoraImoveis from './pages/CalculadoraImoveis';
+import ConfiguracaoCalculadora from './pages/ConfiguracaoCalculadora';
 import __Layout from './Layout.jsx';
 
 
@@ -24,6 +25,7 @@ export const PAGES = {
     "Acervo": Acervo,
     "Cursos": Cursos,
     "CalculadoraImoveis": CalculadoraImoveis,
+    "ConfiguracaoCalculadora": ConfiguracaoCalculadora,
 }
 
 export const pagesConfig = {

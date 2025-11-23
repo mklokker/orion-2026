@@ -117,7 +117,10 @@ export default function Layout({ children }) {
     { title: "Produtividade Geral", url: createPageUrl("ProdutividadeGeral"), icon: TrendingUp },
     { title: "Ranking", url: createPageUrl("Ranking"), icon: Star },
     { title: "Relatórios", url: createPageUrl("Relatorios"), icon: BarChart3 },
-    ...(isAdmin ? [{ title: "Administração", url: createPageUrl("Admin"), icon: Settings }] : [])
+    ...(isAdmin ? [
+      { title: "Config. Calculadora", url: createPageUrl("ConfiguracaoCalculadora"), icon: Calculator },
+      { title: "Administração", url: createPageUrl("Admin"), icon: Settings }
+    ] : [])
   ];
 
   React.useEffect(() => {
