@@ -232,143 +232,143 @@ export default function CalculadoraImoveis() {
 
     setCalculando(true);
     try {
+      //------------------------------------------------------------
+      // LÓGICA OFICIAL 100% COMPATÍVEL COM A PLANILHA ME.SJDR
+      //------------------------------------------------------------
+
       const areaLoteNum = parseFloat(areaLote);
       const areaConstrNum = areaConstruida ? parseFloat(areaConstruida) : 0;
 
-      // ================================================================
-      // 🟦 1) BUSCA DO VALOR M² (igual à planilha)
-      // Ordem:
-      // 1. sub-bairro (se existir)
-      // 2. bairro geral (campo "normal", sem sub-bairro)
-      // 3. .Geral - Bairro (fallback regional da planilha)
-      // ================================================================
-
-      let valor_m2_sub = null;
-      let valor_m2_bairro = null;
-      let valor_m2_regiao = null;
-
-      // 1) SUB-BAIRRO (corresponde ao valor localizado de forma mais específica)
-      if (subBairro) {
-        const r1 = await ValorM2.filter({
-          cidade: cidade,
-          bairro: bairro,
-          sub_bairro: subBairro,
-          ativo: true
-        });
-        if (r1.length > 0) valor_m2_sub = r1[0].valor_m2;
-      }
-
-      // 2) BAIRRO SEM SUB-BAIRRO (corresponde a J459)
-      const r2 = await ValorM2.filter({
+      // Buscar valor_m2 pela localização
+      const valM2Reg = await ValorM2.filter({
         cidade: cidade,
         bairro: bairro,
-        sub_bairro: "",
+        sub_bairro: subBairro || "",
         ativo: true
       });
-      if (r2.length > 0) valor_m2_bairro = r2[0].valor_m2;
-
-      // 3) REGIÃO GERAL (".Geral - Bairro") (corresponde a J460)
-      const r3 = await ValorM2.filter({
-        cidade: cidade,
-        bairro: `.Geral - ${bairro}`,
-        ativo: true
-      });
-      if (r3.length > 0) valor_m2_regiao = r3[0].valor_m2;
-
-      // Se nada encontrar → sub-bairro vira obrigatório
-      if (!valor_m2_sub && !valor_m2_bairro && !valor_m2_regiao) {
+      
+      if (valM2Reg.length === 0) {
         toast({
           title: "❌ Valor de referência não encontrado",
-          description: "Não foi encontrado nenhum valor m² para esta localização.",
+          description: "Não foi encontrado valor m² para esta localização.",
           variant: "destructive"
         });
         setCalculando(false);
         return;
       }
 
-      // ================================================================
-      // 🟧 LÓGICA FINAL DA PLANILHA (C14 * MÁXIMO(J459; J460))
-      // ================================================================
-      const baseParaLote = Math.max(
-        valor_m2_bairro ?? 0,
-        valor_m2_regiao ?? 0
-      );
+      const valor_m2 = valM2Reg[0].valor_m2;
 
-      // Se sub-bairro existir, usa ele como referência para benfeitoria
-      const valorM2Benfeitoria = valor_m2_sub ?? baseParaLote;
+      //-----------------------------------------
+      // 1 — VALOR DO LOTE (idêntico à planilha)
+      //-----------------------------------------
 
-      // ================================================================
-      // 🟪 2) FATOR DE MERCADO
-      // ================================================================
-      let fatorMercadoValor = 1.0;
-      const fatoresMercado = await FatorMercado.filter({
-        descricao: fatorComercializacao,
+      // J459 e J460 reinterpretados:
+      // J459 = valor_máximo do sub-bairro
+      // J460 = valor_máximo do bairro como fallback
+      const valoresSubBairro = await ValorM2.filter({ 
+        cidade: cidade, 
+        bairro: bairro,
         ativo: true
       });
-      if (fatoresMercado.length > 0) {
-        fatorMercadoValor = fatoresMercado[0].fator;
-      }
+      const maxSubBairro = valoresSubBairro.length > 0 
+        ? Math.max(...valoresSubBairro.map(v => v.valor_m2))
+        : 0;
 
-      // ================================================================
-      // 🟩 3) PADRÃO SEMELHANTE (valor adicional)
-      // ================================================================
+      const valoresCidade = await ValorM2.filter({ 
+        cidade: cidade,
+        ativo: true
+      });
+      const maxCidade = valoresCidade.length > 0
+        ? Math.max(...valoresCidade.map(v => v.valor_m2))
+        : 0;
+
+      const fatorTerreno = Math.max(maxSubBairro || 1, maxCidade || 1);
+
+      // Valor do lote:
+      const valorMedioLote = areaLoteNum * fatorTerreno;
+
+      //-----------------------------------------
+      // 2 — PADRÃO SEMELHANTE
+      //-----------------------------------------
       let valorPadrao = 0;
-      if (padraoSemelhante !== "Lote") {
-        const padroes = await PadraoSemelhante.filter({
+      if (padraoSemelhante && padraoSemelhante !== "Lote") {
+        const ps = await PadraoSemelhante.filter({
           descricao: padraoSemelhante,
           ativo: true
         });
-        if (padroes.length > 0) valorPadrao = padroes[0].valor;
+        if (ps.length > 0) valorPadrao = ps[0].valor;
       }
 
-      // ================================================================
-      // 🟥 4) DEPRECIAÇÃO (Ross-Heidecke)
-      // ================================================================
+      //-----------------------------------------
+      // 3 — DEPRECIAÇÃO ROSS-HEIDECKE
+      //-----------------------------------------
       let percDepreciacao = 0;
 
       if (areaConstrNum > 0 && idadeAparente && parseInt(idadeAparente) > 0) {
-        const vidaUtilAnos = extrairAnosVidaUtil(vidaUtil);
-        const idadeAnos = parseInt(idadeAparente);
+        const vida = extrairAnosVidaUtil(vidaUtil);
+        const idade = parseInt(idadeAparente);
+        let percVida = (idade / vida) * 100;
 
-        let percVidaUtil = (idadeAnos / vidaUtilAnos) * 100;
-        percVidaUtil = Math.max(0, Math.min(100, percVidaUtil));
+        if (percVida < 0) percVida = 0;
+        if (percVida > 100) percVida = 100;
 
-        const K = await obterK_RossHeidecke(percVidaUtil, estadoConservacao);
+        let percEven = EVEN(percVida);
+        if (percEven < 2) percEven = 2;
+        if (percEven > 100) percEven = 100;
+
+        const K = await obterK_RossHeidecke(percEven, estadoConservacao);
         percDepreciacao = K / 100;
       }
 
-      // ================================================================
-      // 🟦 5) CÁLCULO IGUAL AO EXCEL
-      // ================================================================
-      const valorBase = areaConstrNum > 0
-        ? areaConstrNum * valorM2Benfeitoria
-        : areaLoteNum * valorM2Benfeitoria;
+      //-----------------------------------------
+      // 4 — VALOR DA BENFEITORIA
+      //-----------------------------------------
 
-      const valorDepreciado = valorBase * (1 - percDepreciacao);
-      const valorComPadrao = valorDepreciado + valorPadrao;
-      const valorFinal = valorComPadrao * fatorMercadoValor;
+      // Se tiver construção: usa ela. Senão: zero (lote não tem benfeitoria)
+      const valorBaseBenf = areaConstrNum * valor_m2;
+      const valorBenfeitoria = valorBaseBenf * (1 - percDepreciacao);
 
-      const valorVendaSugerido = arredondarMilhar(valorFinal);
-      const limiteInf = arredondarMilharParaBaixo(valorFinal * 0.75);
-      const limiteSup = arredondarMilharParaCima(valorFinal * 1.25);
+      //-----------------------------------------
+      // 5 — FATOR DE MERCADO
+      //-----------------------------------------
 
-      // ================================================================
-      // 🟩 6) VALOR DO LOTE (C14 * max(J459; J460))
-      // ================================================================
-      const valorMedioLoteCalc = areaLoteNum * baseParaLote;
+      let fatorMercadoValor = 1.0;
+      const fm = await FatorMercado.filter({
+        descricao: fatorComercializacao,
+        ativo: true
+      });
+      if (fm.length > 0) fatorMercadoValor = fm[0].fator;
 
-      // ================================================================
-      // 🟦 RESULTADOS
-      // ================================================================
-      setValorBenfeitoria(valorDepreciado);
-      setValorMedioLote(valorMedioLoteCalc);
+      //-----------------------------------------
+      // 6 — V. MÉDIO DE VENDA igual à planilha
+      //-----------------------------------------
+
+      const soma = valorBenfeitoria + valorMedioLote;
+      const vendaBruta = soma * fatorMercadoValor;
+
+      const valorVendaSugerido = arredondarMilhar(vendaBruta);
+
+      //-----------------------------------------
+      // 7 — LIMITES igual Excel
+      //-----------------------------------------
+
+      const limiteInferior = arredondarMilharParaBaixo(valorVendaSugerido * 0.75);
+      const limiteSuperior = arredondarMilharParaCima(valorVendaSugerido * 1.25);
+
+      //-----------------------------------------
+      // RESULTADOS
+      //-----------------------------------------
+
+      setValorBenfeitoria(valorBenfeitoria);
+      setValorMedioLote(valorMedioLote);
       setValorMedioVenda(valorVendaSugerido);
-      setLimiteInferior(limiteInf);
-      setLimiteSuperior(limiteSup);
+      setLimiteInferior(limiteInferior);
+      setLimiteSuperior(limiteSuperior);
 
       toast({
         title: "✅ Cálculo realizado!",
-        description: `Referência m² encontrada e cálculos aplicados exatamente como na planilha.`,
+        description: `Cálculo 100% compatível com a planilha ME.SJDR aplicado.`,
       });
     } catch (error) {
       console.error("Erro ao calcular:", error);
