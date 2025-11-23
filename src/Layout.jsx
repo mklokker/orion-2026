@@ -109,7 +109,6 @@ export default function Layout({ children }) {
     { title: "Dashboard", url: createPageUrl("Dashboard"), icon: LayoutDashboard },
     { title: "Gestão de Tarefas", url: createPageUrl("GestaoTarefas"), icon: ClipboardList },
     { title: "Carga Diária", url: createPageUrl("CargaDiaria"), icon: FileText },
-    { title: "Calculadora Imóveis", url: createPageUrl("CalculadoraAvaliacao"), icon: CheckSquare },
     { title: "Chat", url: createPageUrl("Chat"), icon: MessageSquare },
     { title: "Acervo", url: createPageUrl("Acervo"), icon: Files },
     { title: "Cursos", url: createPageUrl("Cursos"), icon: GraduationCap },
