@@ -1032,22 +1032,17 @@ export default function BaseCalculoManager() {
           </div>
         </div>
         
-        <Tabs defaultValue="valor_m2_novo" className="w-full">
-          <TabsList className="grid w-full grid-cols-6 h-auto">
-            <TabsTrigger value="valor_m2_novo" className="text-xs md:text-sm">Valor/m² (Novo)</TabsTrigger>
-            <TabsTrigger value="valor_m2" className="text-xs md:text-sm">Valor/m² (Antigo)</TabsTrigger>
+        <Tabs defaultValue="valor_m2" className="w-full">
+          <TabsList className="grid w-full grid-cols-5 h-auto">
+            <TabsTrigger value="valor_m2" className="text-xs md:text-sm">Valor/m²</TabsTrigger>
             <TabsTrigger value="fator_mercado" className="text-xs md:text-sm">Fator Mercado</TabsTrigger>
             <TabsTrigger value="depreciacao" className="text-xs md:text-sm">Depreciação</TabsTrigger>
             <TabsTrigger value="cub" className="text-xs md:text-sm">CUB</TabsTrigger>
             <TabsTrigger value="avaliacoes" className="text-xs md:text-sm">Avaliações Históricas</TabsTrigger>
           </TabsList>
 
-        <TabsContent value="valor_m2_novo" className="space-y-4">
-          <ValorM2Manager />
-        </TabsContent>
-
         <TabsContent value="valor_m2" className="space-y-4">
-          {renderTable("Valor_Metro_Quadrado", "Valor do Metro Quadrado por Região/Bairro (Sistema Antigo)")}
+          <ValorM2Manager />
         </TabsContent>
 
         <TabsContent value="fator_mercado" className="space-y-4">
