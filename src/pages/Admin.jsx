@@ -394,18 +394,7 @@ export default function Admin() {
         {/* Appearance Settings Card */}
         <AppearanceSettings />
 
-        {/* Base de Cálculo Card */}
-        <Card className="shadow-lg border-0">
-          <CardHeader className="border-b bg-gradient-to-r from-gray-50 to-blue-50">
-            <CardTitle className="flex items-center gap-2">
-              <Building2 className="w-5 h-5" />
-              Base de Cálculo - Tabelas de Referência
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <BaseCalculoManager />
-          </CardContent>
-        </Card>
+
 
       </div>
 
