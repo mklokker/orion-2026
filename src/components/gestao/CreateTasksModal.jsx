@@ -34,6 +34,15 @@ export default function CreateTasksModal({ open, onClose, users, departments, on
   const protocolRefs = useRef([]);
   const [userSearchOpen, setUserSearchOpen] = useState(false);
 
+  // Função para normalizar texto (remover acentos e pontuação)
+  const normalizeText = (text) => {
+    return text
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9\s]/g, "");
+  };
+
   // Ordenar usuários alfabeticamente pelo nome
   const sortedUsers = useMemo(() => {
     return [...users].sort((a, b) => {
@@ -227,24 +236,27 @@ export default function CreateTasksModal({ open, onClose, users, departments, on
                     <CommandList>
                       <CommandEmpty>Nenhum usuário encontrado.</CommandEmpty>
                       <CommandGroup>
-                        {sortedUsers.map(user => (
-                          <CommandItem
-                            key={user.id}
-                            value={user.display_name || user.full_name || user.email}
-                            onSelect={() => {
-                              setCommonData({...commonData, assigned_to: user.email});
-                              setUserSearchOpen(false);
-                            }}
-                          >
-                            <Check
-                              className={cn(
-                                "mr-2 h-4 w-4",
-                                commonData.assigned_to === user.email ? "opacity-100" : "opacity-0"
-                              )}
-                            />
-                            {user.display_name || user.full_name || user.email}
-                          </CommandItem>
-                        ))}
+                        {sortedUsers.map(user => {
+                          const displayName = user.display_name || user.full_name || user.email;
+                          return (
+                            <CommandItem
+                              key={user.id}
+                              value={normalizeText(displayName)}
+                              onSelect={() => {
+                                setCommonData({...commonData, assigned_to: user.email});
+                                setUserSearchOpen(false);
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  commonData.assigned_to === user.email ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              {displayName}
+                            </CommandItem>
+                          );
+                        })}
                       </CommandGroup>
                     </CommandList>
                   </Command>
