@@ -15,6 +15,7 @@ import {
   MessageSquare,
   Files,
   GraduationCap,
+  Eraser,
 } from "lucide-react";
 import {
   Sidebar,
@@ -112,6 +113,7 @@ export default function Layout({ children }) {
     { title: "Chat", url: createPageUrl("Chat"), icon: MessageSquare },
     { title: "Acervo", url: createPageUrl("Acervo"), icon: Files },
     { title: "Cursos", url: createPageUrl("Cursos"), icon: GraduationCap },
+    { title: "Removedor", url: createPageUrl("Removedor"), icon: Eraser },
     { title: "Produtividade Geral", url: createPageUrl("ProdutividadeGeral"), icon: TrendingUp },
     { title: "Ranking", url: createPageUrl("Ranking"), icon: Star },
     { title: "Relatórios", url: createPageUrl("Relatorios"), icon: BarChart3 },
