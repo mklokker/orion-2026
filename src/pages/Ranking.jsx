@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { UserStar } from "@/entities/UserStar";
 import { User } from "@/entities/User";
@@ -46,8 +45,9 @@ export default function Ranking() {
   const [currentUser, setCurrentUser] = useState(null);
   const [rankingByDepartment, setRankingByDepartment] = useState({});
   const [isLoading, setIsLoading] = useState(true);
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  // Inicializa com o mês atual por padrão
+  const [startDate, setStartDate] = useState(format(startOfMonth(new Date()), "yyyy-MM-dd"));
+  const [endDate, setEndDate] = useState(format(endOfMonth(new Date()), "yyyy-MM-dd"));
   const [expandedDepartments, setExpandedDepartments] = useState({});
 
   const isAdmin = currentUser?.role === 'admin';
