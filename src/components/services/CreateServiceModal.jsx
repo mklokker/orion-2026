@@ -1,11 +1,14 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Trash2, X } from "lucide-react";
+import { Plus, Trash2, X, Search, Check, ChevronsUpDown } from "lucide-react";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 export default function CreateServiceModal({ open, onClose, users, departments, onCreateServices }) {
   const currentYear = new Date().getFullYear();
@@ -26,10 +29,31 @@ export default function CreateServiceModal({ open, onClose, users, departments, 
 
   const [isCreating, setIsCreating] = useState(false);
   const nameRefs = useRef([]);
+  const [userSearchOpen, setUserSearchOpen] = useState(false);
 
   useEffect(() => {
     nameRefs.current = nameRefs.current.slice(0, services.length);
   }, [services.length]);
+
+  // Função para normalizar texto (remover acentos e pontuação)
+  const normalizeText = (text) => {
+    return text
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9\s]/g, "");
+  };
+
+  // Ordenar usuários alfabeticamente pelo nome
+  const sortedUsers = useMemo(() => {
+    return [...users].sort((a, b) => {
+      const nameA = (a.display_name || a.full_name || a.email).toLowerCase();
+      const nameB = (b.display_name || b.full_name || b.email).toLowerCase();
+      return nameA.localeCompare(nameB, 'pt-BR');
+    });
+  }, [users]);
+
+  const selectedUser = users.find(u => u.email === commonData.assigned_to);
 
   const handleAddService = () => {
     setServices([...services, {
@@ -154,18 +178,52 @@ export default function CreateServiceModal({ open, onClose, users, departments, 
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>Atribuir serviços a</Label>
-              <Select value={commonData.assigned_to} onValueChange={(value) => setCommonData({...commonData, assigned_to: value})}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione um usuário" />
-                </SelectTrigger>
-                <SelectContent>
-                  {users.map(user => (
-                    <SelectItem key={user.id} value={user.email}>
-                      {user.display_name || user.full_name || user.email}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Popover open={userSearchOpen} onOpenChange={setUserSearchOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={userSearchOpen}
+                    className="w-full justify-between font-normal"
+                  >
+                    {selectedUser 
+                      ? (selectedUser.display_name || selectedUser.full_name || selectedUser.email)
+                      : "Selecione ou busque um usuário..."}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="Buscar usuário..." />
+                    <CommandList>
+                      <CommandEmpty>Nenhum usuário encontrado.</CommandEmpty>
+                      <CommandGroup>
+                        {sortedUsers.map(user => {
+                          const displayName = user.display_name || user.full_name || user.email;
+                          return (
+                            <CommandItem
+                              key={user.id}
+                              value={normalizeText(displayName)}
+                              onSelect={() => {
+                                setCommonData({...commonData, assigned_to: user.email});
+                                setUserSearchOpen(false);
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  commonData.assigned_to === user.email ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              {displayName}
+                            </CommandItem>
+                          );
+                        })}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
 
             <div className="space-y-2">
