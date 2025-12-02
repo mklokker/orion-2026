@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Task } from "@/entities/Task";
 import { Service } from "@/entities/Service";
@@ -98,6 +97,7 @@ export default function Dashboard() {
   const [currentPage, setCurrentPage] = useState(1);
   const [userFilter, setUserFilter] = useState("all");
   const [filterPeriod, setFilterPeriod] = useState("all");
+  const [selectedPriority, setSelectedPriority] = useState("all");
   const [customStartDate, setCustomStartDate] = useState("");
   const [customEndDate, setCustomEndDate] = useState("");
   const [showOnlyMyItems, setShowOnlyMyItems] = useState(false);
@@ -273,8 +273,9 @@ export default function Dashboard() {
       (assignedUserName && normalizeString(assignedUserName).includes(normalizedSearch));
 
     const userFilterMatch = userFilter === 'all' || item.assigned_to === userFilter;
+    const priorityMatch = selectedPriority === 'all' || item.priority === selectedPriority;
       
-    return dateMatch && statusMatch && searchMatch && userFilterMatch;
+    return dateMatch && statusMatch && searchMatch && userFilterMatch && priorityMatch;
   });
 
   const sortedItems = [...filteredItems].sort((a, b) => {
@@ -297,6 +298,7 @@ export default function Dashboard() {
   const hasActiveFilters = 
     searchQuery !== "" ||
     userFilter !== "all" ||
+    selectedPriority !== "all" ||
     filterPeriod !== "all" ||
     customStartDate !== "" ||
     customEndDate !== "" ||
@@ -340,8 +342,9 @@ export default function Dashboard() {
         (assignedUserName && normalizeString(assignedUserName).includes(normalizedSearch));
 
       const userFilterMatch = userFilter === 'all' || item.assigned_to === userFilter;
+      const priorityMatch = selectedPriority === 'all' || item.priority === selectedPriority;
         
-      return dateMatch && searchMatch && userFilterMatch;
+      return dateMatch && searchMatch && userFilterMatch && priorityMatch;
     });
   } else {
     // Sem filtros: usar lógica do mês vigente (comportamento original)
@@ -531,9 +534,9 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-          <div className="flex-grow w-full sm:w-auto">
-            <Label htmlFor="user-filter" className="text-sm font-medium">Filtrar por Responsável</Label>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <Label htmlFor="user-filter" className="text-sm font-medium">Responsável</Label>
             <Select 
               value={userFilter} 
               onValueChange={(value) => {
@@ -542,7 +545,7 @@ export default function Dashboard() {
               }}
             >
               <SelectTrigger id="user-filter" className="bg-white mt-1">
-                <SelectValue placeholder="Selecione um usuário" />
+                <SelectValue placeholder="Todos" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos os Usuários</SelectItem>
@@ -554,7 +557,31 @@ export default function Dashboard() {
               </SelectContent>
             </Select>
           </div>
-          <div className="flex items-center space-x-2 pt-2 sm:pt-6">
+
+          <div>
+            <Label htmlFor="priority-filter" className="text-sm font-medium">Prioridade</Label>
+            <Select 
+              value={selectedPriority} 
+              onValueChange={(value) => {
+                setSelectedPriority(value);
+                setCurrentPage(1);
+              }}
+            >
+              <SelectTrigger id="priority-filter" className="bg-white mt-1">
+                <SelectValue placeholder="Todas" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas as Prioridades</SelectItem>
+                <SelectItem value="P1">P1 - Crítica</SelectItem>
+                <SelectItem value="P2">P2 - Alta</SelectItem>
+                <SelectItem value="P3">P3 - Média</SelectItem>
+                <SelectItem value="P4">P4 - Baixa</SelectItem>
+                <SelectItem value="P5">P5 - Mínima</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex items-center space-x-2 pt-6">
             <Switch
               id="my-items-only"
               checked={showOnlyMyItems}
