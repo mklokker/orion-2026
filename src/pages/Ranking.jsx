@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Star, Trophy, Medal, Award, Calendar, Building2, ChevronDown, ChevronUp } from "lucide-react";
+import { Star, Trophy, Medal, Award, Calendar, Building2, ChevronDown, ChevronUp, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -38,6 +38,15 @@ const generateDisplayNameFromEmail = (email) => {
     .join(' ');
 };
 
+const normalizeText = (text) => {
+  if (!text) return "";
+  return text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9\s]/g, "");
+};
+
 export default function Ranking() {
   const [stars, setStars] = useState([]);
   const [users, setUsers] = useState([]);
@@ -49,6 +58,7 @@ export default function Ranking() {
   const [startDate, setStartDate] = useState(format(startOfMonth(new Date()), "yyyy-MM-dd"));
   const [endDate, setEndDate] = useState(format(endOfMonth(new Date()), "yyyy-MM-dd"));
   const [expandedDepartments, setExpandedDepartments] = useState({});
+  const [searchQuery, setSearchQuery] = useState("");
 
   const isAdmin = currentUser?.role === 'admin';
 
@@ -60,7 +70,7 @@ export default function Ranking() {
     if (stars.length > 0 && users.length > 0 && departments.length > 0) {
       calculateRankingByDepartment();
     }
-  }, [stars, users, departments, startDate, endDate]);
+  }, [stars, users, departments, startDate, endDate, searchQuery]);
 
   const loadData = async () => {
     setIsLoading(true);
@@ -184,6 +194,17 @@ export default function Ranking() {
       const user = users.find(u => u.email === email);
       if (!user) return;
 
+      // Filtro de Busca por Nome
+      if (searchQuery) {
+        const normalizedSearch = normalizeText(searchQuery);
+        const normalizedName = normalizeText(user.display_name || user.full_name || email);
+        const normalizedEmail = normalizeText(email);
+        
+        if (!normalizedName.includes(normalizedSearch) && !normalizedEmail.includes(normalizedSearch)) {
+          return;
+        }
+      }
+
       const deptId = user.department_id || 'no_department';
       
       if (rankingByDept[deptId]) {
@@ -294,7 +315,19 @@ export default function Ranking() {
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Buscar Usuário</label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Input
+                    placeholder="Nome ou email..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+              </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Data Inicial</label>
                 <Input
