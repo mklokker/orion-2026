@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Task } from "@/entities/Task";
 import { Service } from "@/entities/Service";
@@ -17,6 +16,14 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/components/ui/use-toast";
 import CreateTasksModal from "../components/gestao/CreateTasksModal";
 import CreateServiceModal from "../components/services/CreateServiceModal";
@@ -43,6 +50,15 @@ const statusColors = {
 };
 
 const ITEMS_PER_PAGE = 100;
+
+const normalizeText = (text) => {
+  if (!text) return "";
+  return text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9\s]/g, ""); // Mantém apenas letras, números e espaços
+};
 
 const parseDateAsLocal = (dateString) => {
   if (!dateString) return null;
@@ -102,6 +118,12 @@ export default function GestaoTarefas() {
   const [currentPage, setCurrentPage] = useState(1);
   const [showBulkActionsModal, setShowBulkActionsModal] = useState(false);
   const [activeTab, setActiveTab] = useState("ativas");
+  
+  // Novos filtros
+  const [selectedDepartment, setSelectedDepartment] = useState("all");
+  const [selectedPriority, setSelectedPriority] = useState("all");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
   const isAdmin = currentUser?.role === 'admin';
 
@@ -417,19 +439,69 @@ export default function GestaoTarefas() {
   };
 
   // NOVA LÓGICA: Detectar se há filtros ativos
-  const hasActiveFilters = searchQuery !== "";
+  const hasActiveFilters = 
+    searchQuery !== "" || 
+    selectedDepartment !== "all" || 
+    selectedPriority !== "all" || 
+    startDate !== "" || 
+    endDate !== "";
 
   // NOVA LÓGICA: Aplicar filtros (sem separar por tab ainda) para cálculo de stats
-  const allFilteredItems = hasActiveFilters ? items.filter(item => {
-    const searchLower = searchQuery.toLowerCase();
-    const assignedToName = getUserDisplayName(item.assigned_to, users);
-    return (
-      item.protocol?.toLowerCase().includes(searchLower) ||
-      item.title?.toLowerCase().includes(searchLower) ||
-      item.assigned_to?.toLowerCase().includes(searchLower) ||
-      assignedToName?.toLowerCase().includes(searchLower)
-    );
-  }) : items;
+  const allFilteredItems = items.filter(item => {
+    // 1. Filtro de Busca Inteligente
+    let matchesSearch = true;
+    if (searchQuery) {
+      const normalizedSearch = normalizeText(searchQuery);
+      const searchWithoutPunctuation = normalizedSearch.replace(/\s/g, ''); // Remove espaços para busca de protocolo colado
+      
+      const normalizedProtocol = normalizeText(item.protocol || "");
+      const normalizedTitle = normalizeText(item.title || "");
+      const normalizedDescription = normalizeText(item.description || "");
+      const normalizedAssignedTo = normalizeText(item.assigned_to || "");
+      const normalizedAssignedName = normalizeText(getUserDisplayName(item.assigned_to, users) || "");
+      
+      // Busca flexível: ignora pontuação no protocolo (ex: 123456 acha 123.456)
+      const protocolMatch = normalizedProtocol.replace(/\s/g, '').includes(searchWithoutPunctuation);
+      
+      matchesSearch = 
+        protocolMatch ||
+        normalizedTitle.includes(normalizedSearch) ||
+        normalizedDescription.includes(normalizedSearch) ||
+        normalizedAssignedTo.includes(normalizedSearch) ||
+        normalizedAssignedName.includes(normalizedSearch);
+    }
+
+    // 2. Filtro de Departamento
+    let matchesDepartment = true;
+    if (selectedDepartment !== "all") {
+      matchesDepartment = item.department_id === selectedDepartment;
+    }
+
+    // 3. Filtro de Prioridade
+    let matchesPriority = true;
+    if (selectedPriority !== "all") {
+      matchesPriority = item.priority === selectedPriority;
+    }
+
+    // 4. Filtro de Data (Início ou Término dentro do intervalo)
+    let matchesDate = true;
+    if (startDate || endDate) {
+      const itemStartDate = item.created_date ? parseDateAsLocal(item.created_date) : null;
+      const itemEndDate = item.end_date ? parseDateAsLocal(item.end_date) : null;
+      const filterStart = startDate ? parseDateAsLocal(startDate) : null;
+      const filterEnd = endDate ? parseDateAsLocal(endDate) : null;
+
+      // Lógica: se qualquer parte da duração da tarefa sobrepor o intervalo OU se a data de criação estiver no intervalo
+      // Simplificação: vamos filtrar pela data de criação OU data de término estar no intervalo
+      
+      const isAfterStart = !filterStart || (itemStartDate && itemStartDate >= filterStart) || (itemEndDate && itemEndDate >= filterStart);
+      const isBeforeEnd = !filterEnd || (itemStartDate && itemStartDate <= filterEnd) || (itemEndDate && itemEndDate <= filterEnd);
+      
+      matchesDate = isAfterStart && isBeforeEnd;
+    }
+
+    return matchesSearch && matchesDepartment && matchesPriority && matchesDate;
+  });
 
   // Separar por tab para exibição
   const filteredByTab = allFilteredItems.filter(item => {
@@ -537,18 +609,72 @@ export default function GestaoTarefas() {
           </button>
         </div>
 
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-          <Input
-            placeholder="Buscar por protocolo, serviço, título, responsável..."
-            value={searchQuery}
-            onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setCurrentPage(1);
-            }}
-            className="pl-12 h-12 text-base bg-white"
-          />
-        </div>
+        <Card className="bg-white shadow-sm border p-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="md:col-span-4 relative">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Input
+                placeholder="Buscar por protocolo, serviço, título, responsável (busca inteligente)..."
+                value={searchQuery}
+                onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setCurrentPage(1);
+                }}
+                className="pl-12 h-12 text-base bg-white"
+              />
+            </div>
+
+            <div className="space-y-1">
+              <Label className="text-xs text-gray-500">Departamento</Label>
+              <Select value={selectedDepartment} onValueChange={(v) => { setSelectedDepartment(v); setCurrentPage(1); }}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Todos" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os Departamentos</SelectItem>
+                  {departments.map(dept => (
+                    <SelectItem key={dept.id} value={dept.id}>{dept.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1">
+              <Label className="text-xs text-gray-500">Prioridade</Label>
+              <Select value={selectedPriority} onValueChange={(v) => { setSelectedPriority(v); setCurrentPage(1); }}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Todas" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas as Prioridades</SelectItem>
+                  <SelectItem value="P1">P1 - Crítica</SelectItem>
+                  <SelectItem value="P2">P2 - Alta</SelectItem>
+                  <SelectItem value="P3">P3 - Média</SelectItem>
+                  <SelectItem value="P4">P4 - Baixa</SelectItem>
+                  <SelectItem value="P5">P5 - Mínima</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-1">
+              <Label className="text-xs text-gray-500">Data Inicial</Label>
+              <Input 
+                type="date" 
+                value={startDate} 
+                onChange={(e) => { setStartDate(e.target.value); setCurrentPage(1); }} 
+              />
+            </div>
+
+            <div className="space-y-1">
+              <Label className="text-xs text-gray-500">Data Final</Label>
+              <Input 
+                type="date" 
+                value={endDate} 
+                onChange={(e) => { setEndDate(e.target.value); setCurrentPage(1); }} 
+              />
+            </div>
+          </div>
+        </Card>
 
         <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
           <Table>
