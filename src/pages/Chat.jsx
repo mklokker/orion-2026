@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from "react";
 import { ChatConversation } from "@/entities/ChatConversation";
 import { ChatMessage } from "@/entities/ChatMessage";
@@ -62,6 +61,8 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { getPublicUsers } from "@/functions/getPublicUsers";
+import { useQueryClient } from "@tanstack/react-query";
+import { useConversations, useMessages, useTypingStatus, useOnlineStatusUpdater } from "@/components/chat/useChat";
 
 // Função para converter para timezone de São Paulo (UTC-3)
 const toSaoPauloTime = (date) => {
@@ -124,10 +125,22 @@ export default function Chat() {
   const [currentUser, setCurrentUser] = useState(null);
   const [users, setUsers] = useState([]);
   const [departments, setDepartments] = useState([]);
-  const [conversations, setConversations] = useState([]);
-  const [conversationsWithUnread, setConversationsWithUnread] = useState([]);
+  const queryClient = useQueryClient();
+  const { data: conversations = [] } = useConversations(currentUser?.email);
+  const { data: messagesData = [] } = useMessages(selectedConversation?.id);
+  
   const [selectedConversation, setSelectedConversation] = useState(null);
   const [messages, setMessages] = useState([]);
+  
+  useEffect(() => {
+    if (messagesData) setMessages(messagesData);
+  }, [messagesData]);
+
+  const { setTyping, typingUsers: typingUsersList } = useTypingStatus(selectedConversation?.id, currentUser?.email);
+  const typingUsers = new Set(typingUsersList);
+  
+  useOnlineStatusUpdater(currentUser?.email);
+
   const [newMessage, setNewMessage] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [showNewChatDialog, setShowNewChatDialog] = useState(false);
@@ -144,7 +157,7 @@ export default function Chat() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [conversationToDelete, setConversationToDelete] = useState(null);
   const [isTyping, setIsTyping] = useState(false);
-  const [typingUsers, setTypingUsers] = useState(new Set()); // This would typically be populated by real-time updates
+  // const [typingUsers, setTypingUsers] = useState(new Set()); // Replaced by hook
   const [showArchived, setShowArchived] = useState(false);
   const scrollRef = useRef(null);
   const inputRef = useRef(null);
@@ -159,11 +172,6 @@ export default function Chat() {
 
   useEffect(() => {
     loadInitialData();
-    
-    // COMPLETAMENTE REMOVIDO: Polling automático
-    // Chat agora funciona apenas com atualizações manuais (enviar mensagem, selecionar conversa)
-    
-    return () => {};
   }, []);
 
   useEffect(() => {
@@ -581,7 +589,7 @@ export default function Chat() {
         }
       }
       
-      await loadConversations(userData.email);
+      // loadConversations(userData.email); // Handled by hook
     } catch (error) {
       if (error?.response?.status !== 429) {
         console.error("[Chat] Erro ao carregar dados iniciais:", error);
@@ -669,9 +677,9 @@ export default function Chat() {
     }
   };
 
-  const handleSelectConversation = async (conversation) => {
+  const handleSelectConversation = (conversation) => {
     setSelectedConversation(conversation);
-    await loadMessages(conversation.id);
+    // Messages will load via hook
   };
 
   const extractMentions = (text) => {
@@ -748,7 +756,7 @@ export default function Chat() {
             variant: "destructive"
           });
           
-          await loadConversations();
+          queryClient.invalidateQueries({ queryKey: ['conversations'] });
           setSelectedConversation(null);
           setMessages([]);
           return;
@@ -767,7 +775,7 @@ export default function Chat() {
             description: "Esta conversa foi excluída. Suas mensagens foram salvas mas a conversa não está mais disponível.",
           });
           
-          await loadConversations();
+          queryClient.invalidateQueries({ queryKey: ['conversations'] });
           setSelectedConversation(null);
           setMessages([]);
           return;
@@ -808,7 +816,7 @@ export default function Chat() {
       }
 
       // Atualizar lista de conversas em background
-      loadConversations().catch(() => {});
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
     } catch (error) {
       console.error("[Chat] Erro ao enviar mensagem:", error);
       
@@ -822,7 +830,7 @@ export default function Chat() {
           description: "Esta conversa foi excluída. Recarregando...",
           variant: "destructive"
         });
-        await loadConversations();
+        queryClient.invalidateQueries({ queryKey: ['conversations'] });
         setSelectedConversation(null);
         setMessages([]);
       } else {
@@ -871,6 +879,7 @@ export default function Chat() {
     // Typing indicator logic
     if (value.trim()) {
       setIsTyping(true);
+      setTyping(); // Call hook mutation
       
       // Clear previous timeout
       if (typingTimeoutRef.current) {
@@ -1038,7 +1047,7 @@ export default function Chat() {
           setMessages([]);
         }
         
-        await loadConversations();
+        queryClient.invalidateQueries({ queryKey: ['conversations'] });
       } else {
         toast({
           title: "Erro",
@@ -1100,7 +1109,7 @@ export default function Chat() {
         description: isArchived ? "Conversa restaurada para a lista principal" : "Conversa movida para arquivados",
       });
       
-      await loadConversations();
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
       
       if (selectedConversation?.id === conversation.id && !isArchived) { // If archived, deselect it
         setSelectedConversation(null);
@@ -1232,7 +1241,7 @@ export default function Chat() {
       setIsPublicGroup(false);
       setSelectedDepartment("");
       
-      await loadConversations();
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
       handleSelectConversation(newConversation);
     } catch (error) {
       console.error("[Chat] ❌ ERRO ao criar conversa:", error);
@@ -1312,7 +1321,7 @@ export default function Chat() {
   };
 
   // Filter conversations based on search, pin status, and archive status
-  const filteredConversations = conversations
+  const filteredConversations = (conversations || [])
     .filter(conv => {
       const isArchived = isConversationArchived(conv);
       
@@ -1344,7 +1353,7 @@ export default function Chat() {
       return bDate.getTime() - aDate.getTime();
     });
 
-  const archivedCount = conversations.filter(conv => isConversationArchived(conv)).length;
+  const archivedCount = (conversations || []).filter(conv => isConversationArchived(conv)).length;
 
   const filteredUsers = users.filter(u => 
     u.email !== currentUser?.email &&
