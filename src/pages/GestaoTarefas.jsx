@@ -34,6 +34,8 @@ import ServiceViewEditModal from "../components/services/ServiceViewEditModal";
 import BulkActionsModal from "../components/gestao/BulkActionsModal";
 import { TaskInteraction } from "@/entities/TaskInteraction";
 import { ServiceInteraction } from "@/entities/ServiceInteraction";
+import { useQueryClient } from "@tanstack/react-query";
+import { useCurrentUser, useUsers, useDepartments, useTasks, useServices } from "@/components/useData";
 
 const priorityColors = {
   "P1": "bg-red-500 text-white",
