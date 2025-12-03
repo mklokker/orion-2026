@@ -1216,7 +1216,7 @@ export default function Chat() {
   };
 
   const getUnreadCount = (conversationId) => {
-    const conv = conversationsWithUnread.find(c => c.id === conversationId);
+    const conv = conversations.find(c => c.id === conversationId);
     return conv?.unreadCount || 0;
   };
 
