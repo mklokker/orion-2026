@@ -11,7 +11,7 @@ import { Star, Trophy, Medal, Award, Calendar, Building2, ChevronDown, ChevronUp
 import { Button } from "@/components/ui/button";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { useCurrentUser, useUsers, useDepartments, useStars } from "@/hooks/useData";
+import { useCurrentUser, useUsers, useDepartments, useStars } from "@/components/useData";
 
 const parseDateAsLocal = (dateString) => {
   if (!dateString) return null;

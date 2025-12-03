@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useQueryClient } from "@tanstack/react-query";
-import { useCurrentUser, useUsers, useDepartments, useTasks, useServices } from "@/hooks/useData";
+import { useCurrentUser, useUsers, useDepartments, useTasks, useServices } from "@/components/useData";
 import TaskCard from "../components/dashboard/TaskCard";
 import TaskViewEditModal from "../components/tasks/TaskViewEditModal";
 import ServiceViewEditModal from "../components/services/ServiceViewEditModal";
