@@ -202,36 +202,36 @@ export default function MessageBubble({
                 href={message.attachment_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`flex items-center gap-3 p-2 rounded-lg mt-2 transition-colors ${
-                  isOwn ? "bg-blue-700/50 hover:bg-blue-700" : "bg-gray-100 hover:bg-gray-200"
+                className={`flex items-center gap-3 p-3 rounded-lg mt-2 transition-colors border ${
+                  isOwn ? "bg-[#c6e9c1] border-[#b5dab0] hover:bg-[#b5dab0]" : "bg-gray-50 border-gray-200 hover:bg-gray-100"
                 }`}
               >
-                <div className="bg-white/20 p-2 rounded">
-                  <FileText className="w-5 h-5" />
+                <div className="bg-white/60 p-2 rounded-full">
+                  <FileText className="w-5 h-5 text-gray-700" />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate max-w-[150px]">
+                <div className="flex-1 min-w-0 text-gray-800">
+                  <p className="text-sm font-medium truncate max-w-[180px]">
                     {message.attachment_name || "Arquivo"}
                   </p>
                   <p className="text-xs opacity-70">Clique para baixar</p>
                 </div>
-                <Download className="w-4 h-4 opacity-70" />
+                <Download className="w-4 h-4 text-gray-500" />
               </a>
             )}
 
             {/* Metadata: Time & Status */}
-            <div className={`flex items-center justify-end gap-1 mt-1 ${isOwn ? "text-blue-100" : "text-gray-400"}`}>
-              <span className="text-[10px]">{formatTime(message.created_date)}</span>
+            <div className="flex items-center justify-end gap-1 mt-1">
+              <span className="text-[11px] text-gray-500">{formatTime(message.created_date)}</span>
               {isOwn && (
-                <>
+                <div className="ml-0.5">
                   {readStatus.isReadByAll ? (
-                    <CheckCheck className="w-3 h-3 text-blue-200" />
+                    <CheckCheck className="w-4 h-4 text-blue-500" />
                   ) : readStatus.isRead ? (
-                    <CheckCheck className="w-3 h-3 text-blue-300/70" /> // Delivered/Partially read
+                    <CheckCheck className="w-4 h-4 text-blue-500" />
                   ) : (
-                    <Check className="w-3 h-3 text-blue-300/70" /> // Sent
+                    <Check className="w-4 h-4 text-gray-500" />
                   )}
-                </>
+                </div>
               )}
             </div>
           </div>
