@@ -22,6 +22,22 @@ import { ptBR } from "date-fns/locale";
 
 const REACTIONS = ["👍", "❤️", "😂", "😮", "😢", "😡"];
 
+// Função para gerar cor consistente baseada no nome
+const stringToColor = (str) => {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const colors = [
+    "text-red-600", "text-orange-600", "text-amber-600", 
+    "text-green-600", "text-emerald-600", "text-teal-600", 
+    "text-cyan-600", "text-blue-600", "text-indigo-600", 
+    "text-violet-600", "text-purple-600", "text-fuchsia-600", 
+    "text-pink-600", "text-rose-600"
+  ];
+  return colors[Math.abs(hash) % colors.length];
+};
+
 const AudioPlayer = ({ src }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = React.useRef(null);
@@ -107,40 +123,53 @@ export default function MessageBubble({
 
   return (
     <div className={`flex gap-3 mb-4 group ${isOwn ? "justify-end" : "justify-start"}`}>
+      {/* Avatar dos Outros (Esquerda) */}
       {!isOwn && (
-        <Avatar className="w-8 h-8 border-2 border-gray-200 mt-1">
+        <Avatar className="w-12 h-12 border-2 border-white shadow-sm mt-1 flex-shrink-0">
           <AvatarImage src={sender?.profile_picture} />
-          <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-xs">
+          <AvatarFallback className="bg-gradient-to-br from-gray-100 to-gray-200 text-gray-600 font-bold">
             {getInitials(sender?.display_name || message.sender_name)}
           </AvatarFallback>
         </Avatar>
       )}
 
       <div className={`flex flex-col max-w-[70%] ${isOwn ? "items-end" : "items-start"}`}>
-        {/* Sender Name (Group Chat) */}
-        {!isOwn && (
-          <span className="text-xs text-gray-500 ml-1 mb-1">
-            {sender?.display_name || message.sender_name}
-          </span>
-        )}
-
+        
         {/* Reply Context */}
         {message.reply_to_content && (
-          <div className={`text-xs mb-1 p-2 rounded-lg border-l-4 border-blue-500 bg-gray-50 opacity-80 w-full cursor-pointer hover:opacity-100 transition-opacity`}>
+          <div className={`text-xs mb-1 p-2 rounded-lg border-l-4 border-blue-500 bg-gray-50 opacity-90 w-full cursor-pointer hover:opacity-100 transition-opacity shadow-sm`}>
             <p className="font-bold text-blue-600">{message.reply_to_content.sender_name}</p>
-            <p className="truncate">{message.reply_to_content.message}</p>
+            <p className="truncate text-gray-600">{message.reply_to_content.message}</p>
           </div>
         )}
 
         <div className="relative">
-          {/* Message Content */}
+          {/* Message Bubble */}
           <div
-            className={`rounded-2xl px-4 py-2 shadow-sm relative ${
+            className={`rounded-xl px-4 py-2 shadow-sm relative border ${
               isOwn
-                ? "bg-blue-600 text-white rounded-tr-none"
-                : "bg-white border rounded-tl-none"
+                ? "bg-[#d9fdd3] border-[#d9fdd3] text-gray-900 rounded-tr-none" // WhatsApp-like Green for Own
+                : "bg-white border-gray-100 text-gray-900 rounded-tl-none" // White for others
             }`}
           >
+            {/* Sender Name inside bubble for others, or colored above */}
+            {!isOwn && (
+              <p className={`text-sm font-bold mb-1 ${stringToColor(sender?.display_name || message.sender_name)}`}>
+                {sender?.display_name || message.sender_name}
+              </p>
+            )}
+
+            {/* Media Content */}
+            {message.message_type === 'image' && (
+              <div className="mb-2 rounded-lg overflow-hidden max-w-sm border border-black/5">
+                <img 
+                  src={message.attachment_url} 
+                  alt="Attached image" 
+                  className="w-full h-auto object-cover"
+                  loading="lazy"
+                />
+              </div>
+            )}
             {/* Media Content */}
             {message.message_type === 'image' && (
               <div className="mb-2 rounded-lg overflow-hidden max-w-sm">
@@ -223,8 +252,8 @@ export default function MessageBubble({
           <div className={`absolute top-0 ${isOwn ? "-left-8" : "-right-8"} opacity-0 group-hover:opacity-100 transition-opacity flex flex-col gap-1`}>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-6 w-6 rounded-full bg-gray-100 hover:bg-gray-200 shadow-sm">
-                  <MoreVertical className="w-3 h-3 text-gray-600" />
+                <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full bg-white/90 hover:bg-white shadow-sm border">
+                  <MoreVertical className="w-4 h-4 text-gray-600" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align={isOwn ? "end" : "start"}>
@@ -271,6 +300,16 @@ export default function MessageBubble({
           )}
         </div>
       </div>
+
+      {/* Avatar Próprio (Direita) - Nova adição */}
+      {isOwn && (
+        <Avatar className="w-12 h-12 border-2 border-white shadow-sm mt-1 flex-shrink-0">
+          <AvatarImage src={sender?.profile_picture} />
+          <AvatarFallback className="bg-gradient-to-br from-green-500 to-emerald-600 text-white font-bold">
+            {getInitials(sender?.display_name || message.sender_name)}
+          </AvatarFallback>
+        </Avatar>
+      )}
     </div>
   );
 }
