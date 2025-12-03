@@ -30,9 +30,16 @@ import {
   Archive,
   ArchiveRestore,
   Bell,
-  Settings // New import
+  Settings,
+  Download,
+  MoreVertical,
+  Reply,
+  Smile,
+  Edit2
 } from "lucide-react";
 import GroupSettingsModal from "@/components/chat/GroupSettingsModal";
+import ChatInputArea from "@/components/chat/ChatInputArea";
+import MessageBubble from "@/components/chat/MessageBubble";
 import { useToast } from "@/components/ui/use-toast";
 import { format, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -160,12 +167,10 @@ export default function Chat() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [conversationToDelete, setConversationToDelete] = useState(null);
   const [isTyping, setIsTyping] = useState(false);
-  // const [typingUsers, setTypingUsers] = useState(new Set()); // Replaced by hook
   const [showArchived, setShowArchived] = useState(false);
+  const [replyTo, setReplyTo] = useState(null); // State for reply
   const scrollRef = useRef(null);
-  const inputRef = useRef(null);
-  const typingTimeoutRef = useRef(null);
-
+  
   const [notificationPermission, setNotificationPermission] = useState(
     typeof Notification !== 'undefined' ? Notification.permission : 'denied'
   );
@@ -629,151 +634,126 @@ export default function Chat() {
     return mentions;
   };
 
-  const handleSendMessage = async (attachmentUrl = null, attachmentName = null) => {
-    if (!newMessage.trim() && !attachmentUrl) return;
+  // Função genérica de envio que adapta para o novo componente ChatInputArea
+  const handleSendMessage = async ({ type, content, attachmentUrl, attachmentName }) => {
     if (!selectedConversation) return;
 
-    // Clear typing indicator
-    setIsTyping(false);
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
-      typingTimeoutRef.current = null;
-    }
-
-    const mentions = extractMentions(newMessage);
-    
     const messageData = {
       conversation_id: selectedConversation.id,
       sender_email: currentUser.email,
       sender_name: getUserDisplayName(currentUser),
-      message: newMessage.trim() || "(Arquivo anexado)",
-      read_by: [currentUser.email]
+      message: content || (attachmentUrl ? attachmentName : ""),
+      message_type: type || 'text',
+      read_by: [currentUser.email],
+      attachment_url: attachmentUrl,
+      attachment_name: attachmentName
     };
 
-    if (attachmentUrl) {
-      messageData.attachment_url = attachmentUrl;
-      messageData.attachment_name = attachmentName;
+    if (replyTo) {
+      messageData.reply_to_id = replyTo.id;
+      messageData.reply_to_content = {
+        sender_name: replyTo.sender_name,
+        message: replyTo.message,
+        type: replyTo.message_type
+      };
     }
 
-    // OTIMIZAÇÃO: Adicionar mensagem localmente IMEDIATAMENTE (optimistic update)
+    // Optimistic update
     const tempId = `temp-${Date.now()}`;
     const optimisticMessage = {
       ...messageData,
       id: tempId,
-      created_date: new Date().toISOString(),
-      sender_email: currentUser.email,
-      sender_name: getUserDisplayName(currentUser)
+      created_date: new Date().toISOString()
     };
-    
+
     setMessages(prev => [...prev, optimisticMessage]);
-    setNewMessage(""); // Limpar input imediatamente
+    setReplyTo(null);
 
     try {
-      // Salvar mensagem no banco
       const createdMessage = await ChatMessage.create(messageData);
-
-      // Atualizar com a mensagem real (substituir a temporária)
       setMessages(prev => prev.map(m => m.id === tempId ? createdMessage : m));
 
-      // Atualizar conversa
-      try {
-        const allConversations = await ChatConversation.list();
-        const conversationExists = allConversations.find(c => c.id === selectedConversation.id);
-        
-        if (!conversationExists) {
-          console.warn("[Chat] Conversa não encontrada, recarregando lista...");
-          toast({
-            title: "Aviso",
-            description: "Esta conversa foi removida. Recarregando...",
-            variant: "destructive"
-          });
-          
-          queryClient.invalidateQueries({ queryKey: ['conversations'] });
-          setSelectedConversation(null);
-          setMessages([]);
-          return;
-        }
-
-        await ChatConversation.update(selectedConversation.id, {
-          last_message: messageData.message,
-          last_message_date: new Date().toISOString(),
-          last_message_by: currentUser.email
-        });
-      } catch (updateError) {
-        if (updateError?.response?.status === 404) {
-          console.warn("[Chat] Conversa foi deletada, recarregando...");
-          toast({
-            title: "Conversa removida",
-            description: "Esta conversa foi excluída. Suas mensagens foram salvas mas a conversa não está mais disponível.",
-          });
-          
-          queryClient.invalidateQueries({ queryKey: ['conversations'] });
-          setSelectedConversation(null);
-          setMessages([]);
-          return;
-        }
-        
-        console.error("[Chat] Erro ao atualizar última mensagem da conversa:", updateError);
-      }
-
-      // Enviar notificações
-      const otherParticipants = selectedConversation.participants?.filter(
-        p => p !== currentUser.email
-      ) || [];
-
+      // Atualizar conversa (Last message)
+      const lastMsgText = type === 'text' ? content : `[${type === 'image' ? 'Imagem' : type === 'audio' ? 'Áudio' : 'Arquivo'}]`;
+      
+      await ChatConversation.update(selectedConversation.id, {
+        last_message: lastMsgText,
+        last_message_date: new Date().toISOString(),
+        last_message_by: currentUser.email
+      });
+      
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      
+      // Notificações (Lógica simplificada para não repetir código - ideal seria uma função separada)
+      const otherParticipants = selectedConversation.participants?.filter(p => p !== currentUser.email) || [];
       for (const participantEmail of otherParticipants) {
-        await NotificationEntity.create({
+        // Evitar notificar se estiver online na mesma conversa (otimização futura)
+        NotificationEntity.create({
           user_email: participantEmail,
-          title: "Nova mensagem",
-          message: `${getUserDisplayName(currentUser)}: ${messageData.message.substring(0, 50)}${messageData.message.length > 50 ? '...' : ''}`,
+          title: getUserDisplayName(currentUser),
+          message: lastMsgText,
           type: "interaction",
           action_by: currentUser.email,
           action_by_name: getUserDisplayName(currentUser),
           read: false
-        });
+        }).catch(console.error);
       }
 
-      for (const mention of mentions) {
-        if (mention.email !== currentUser.email) {
-          await NotificationEntity.create({
-            user_email: mention.email,
-            title: "Você foi mencionado",
-            message: `${getUserDisplayName(currentUser)} mencionou você: ${messageData.message.substring(0, 100)}`,
-            type: "interaction",
-            action_by: currentUser.email,
-            action_by_name: getUserDisplayName(currentUser),
-            read: false
-          });
-        }
-      }
-
-      // Atualizar lista de conversas em background
-      queryClient.invalidateQueries({ queryKey: ['conversations'] });
     } catch (error) {
-      console.error("[Chat] Erro ao enviar mensagem:", error);
-      
-      // Remover mensagem otimista em caso de erro
+      console.error("Erro ao enviar:", error);
+      toast({ title: "Erro", description: "Falha ao enviar mensagem", variant: "destructive" });
       setMessages(prev => prev.filter(m => m.id !== tempId));
-      setNewMessage(messageData.message); // Restaurar texto
-      
-      if (error?.response?.status === 404) {
-        toast({
-          title: "Conversa não encontrada",
-          description: "Esta conversa foi excluída. Recarregando...",
-          variant: "destructive"
-        });
-        queryClient.invalidateQueries({ queryKey: ['conversations'] });
-        setSelectedConversation(null);
-        setMessages([]);
-      } else {
-        toast({
-          title: "Erro",
-          description: "Erro ao enviar mensagem.",
-          variant: "destructive"
-        });
-      }
     }
   };
+
+  // Actions for Messages
+  const handleReply = (message) => {
+    setReplyTo(message);
+  };
+
+  const handleDeleteMessage = async (message, forAll) => {
+    try {
+      if (forAll) {
+        await ChatMessage.update(message.id, { is_deleted_for_all: true });
+      } else {
+        const deletedFor = [...(message.deleted_for || []), currentUser.email];
+        await ChatMessage.update(message.id, { deleted_for: deletedFor });
+      }
+      loadMessages(selectedConversation.id); // Refresh
+    } catch (error) {
+      toast({ title: "Erro", description: "Falha ao apagar mensagem", variant: "destructive" });
+    }
+  };
+
+  const handleReact = async (message, emoji) => {
+    try {
+      const currentReactions = message.reactions || {};
+      const usersReacted = currentReactions[emoji] || [];
+      
+      let newUsersReacted;
+      if (usersReacted.includes(currentUser.email)) {
+        newUsersReacted = usersReacted.filter(e => e !== currentUser.email);
+      } else {
+        newUsersReacted = [...usersReacted, currentUser.email];
+      }
+      
+      const newReactions = {
+        ...currentReactions,
+        [emoji]: newUsersReacted
+      };
+      
+      // Clean empty arrays
+      if (newUsersReacted.length === 0) delete newReactions[emoji];
+
+      // Optimistic UI update
+      setMessages(prev => prev.map(m => m.id === message.id ? { ...m, reactions: newReactions } : m));
+      
+      await ChatMessage.update(message.id, { reactions: newReactions });
+    } catch (error) {
+      console.error("Reaction failed", error);
+    }
+  };
+
 
   const handleFileUpload = async (event) => {
     const file = event.target.files[0];
@@ -1574,167 +1554,48 @@ export default function Chat() {
               </div>
             </div>
 
-            <ScrollArea className="flex-1 p-4 bg-gray-50">
-              <div className="space-y-4">
-                {messages.map((msg, index) => {
-                  const isOwn = msg.sender_email === currentUser?.email;
-                  const showSender = index === 0 || messages[index - 1].sender_email !== msg.sender_email || isOwn !== (messages[index-1].sender_email === currentUser?.email);
-                  const sender = users.find(u => u.email === msg.sender_email);
-                  const readStatus = isMessageReadByOthers(msg);
-
-                  return (
-                    <div
-                      key={msg.id}
-                      className={`flex gap-3 ${isOwn ? "justify-end" : "justify-start"}`}
-                    >
-                      {!isOwn && (
-                        <div className="flex-shrink-0">
-                          {showSender ? (
-                            <Avatar className="w-8 h-8 border-2 border-gray-200">
-                              <AvatarImage src={sender?.profile_picture} alt={msg.sender_name} />
-                              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-xs">
-                                {getInitials(msg.sender_name)}
-                              </AvatarFallback>
-                            </Avatar>
-                          ) : (
-                            <div className="w-8 h-8" />
-                          )}
-                        </div>
-                      )}
-                      
-                      <div className={`max-w-md ${isOwn ? "items-end" : "items-start"}`}>
-                        {showSender && (
-                          <p className={`text-xs mb-1 px-3 ${isOwn ? 'text-blue-600 font-semibold' : 'text-gray-500'}`}>
-                            {msg.sender_name}
-                          </p>
-                        )}
-                        <div
-                          className={`rounded-2xl px-4 py-2 ${
-                            isOwn
-                              ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white"
-                              : "bg-white border"
-                          }`}
-                        >
-                          <div className="text-sm">{renderMessageText(msg.message)}</div>
-                          {msg.attachment_url && (
-                            <a
-                              href={msg.attachment_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className={`flex items-center gap-2 mt-2 text-xs ${
-                                isOwn ? "text-blue-100" : "text-blue-600"
-                              }`}
-                            >
-                              <File className="w-3 h-3" />
-                              {msg.attachment_name}
-                            </a>
-                          )}
-                          <div className={`flex items-center gap-1 mt-1 text-xs ${isOwn ? "text-blue-100 justify-end" : "text-gray-400"}`}>
-                            <span>{formatMessageTime(msg.created_date)}</span>
-                            {isOwn && selectedConversation.participants.length > 1 && (
-                              <>
-                                {readStatus.isRead ? (
-                                  <div className="flex items-center gap-0.5" title={`Lido por ${readStatus.readCount} de ${readStatus.totalCount}`}>
-                                    <CheckCheck className={`w-4 h-4 ${readStatus.isReadByAll ? 'text-blue-200' : 'text-blue-300'}`} />
-                                  </div>
-                                ) : (
-                                  <Check className="w-4 h-4 text-blue-300" title="Enviado" />
-                                )}
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
+            <ScrollArea 
+              className="flex-1 p-4 bg-gray-50"
+              onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+              onDrop={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                const files = e.dataTransfer.files;
+                if (files && files.length > 0) {
+                   // Handle drag & drop upload via ChatInputArea Logic 
+                   // (We will just rely on the component being updated to handle this logic, 
+                   // or we can trigger the upload function directly if we had ref access, 
+                   // but for now lets keep it simple and add a toast hint)
+                   toast({ title: "Upload", description: "Arraste para o campo de input para enviar." });
+                }
+              }}
+            >
+              <div className="space-y-1">
+                {messages
+                  .filter(msg => !(msg.deleted_for || []).includes(currentUser.email))
+                  .map((msg) => (
+                  <MessageBubble 
+                    key={msg.id}
+                    message={msg}
+                    isOwn={msg.sender_email === currentUser?.email}
+                    sender={users.find(u => u.email === msg.sender_email)}
+                    readStatus={isMessageReadByOthers(msg)}
+                    onReply={handleReply}
+                    onDelete={handleDeleteMessage}
+                    onReact={handleReact}
+                    onEdit={(m) => toast({ title: "Em breve", description: "Edição de mensagens será implementada na próxima atualização." })}
+                  />
+                ))}
                 <div ref={scrollRef} />
               </div>
             </ScrollArea>
 
-            <div className="bg-white border-t p-4">
-              <div className="flex items-center gap-2 relative">
-                <input
-                  type="file"
-                  id="file-upload"
-                  className="hidden"
-                  onChange={handleFileUpload}
-                  disabled={uploadingFile}
-                />
-                <label htmlFor="file-upload">
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    disabled={uploadingFile}
-                    asChild
-                  >
-                    <span>
-                      <Paperclip className="w-4 h-4" />
-                    </span>
-                  </Button>
-                </label>
-                
-                <div className="flex-1 relative">
-                  <Input
-                    ref={inputRef}
-                    placeholder="Digite @ para mencionar alguém..."
-                    value={newMessage}
-                    onChange={handleMessageChange}
-                    onKeyPress={(e) => {
-                      if (e.key === "Enter" && !e.shiftKey) {
-                        e.preventDefault();
-                        handleSendMessage();
-                      }
-                    }}
-                    className="flex-1"
-                  />
-                  
-                  {showMentionSuggestions && (
-                    <Card className="absolute bottom-full left-0 mb-2 w-full max-h-48 overflow-auto shadow-lg z-50">
-                      <div className="p-2">
-                        {mentionSuggestions.map(user => (
-                          <button
-                            key={user.id}
-                            onClick={() => handleMentionSelect(user)}
-                            className="w-full p-2 hover:bg-gray-100 rounded flex items-center gap-2 text-left"
-                          >
-                            <Avatar className="w-8 h-8">
-                              <AvatarImage src={user.profile_picture} />
-                              <AvatarFallback className="bg-blue-500 text-white text-xs">
-                                {getInitials(getUserDisplayName(user))}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <p className="text-sm font-medium">{getUserDisplayName(user)}</p>
-                              <p className="text-xs text-gray-500">{user.email}</p>
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    </Card>
-                  )}
-                </div>
-                
-                <Button
-                  onClick={() => handleSendMessage()}
-                  disabled={!newMessage.trim() && !uploadingFile}
-                  className="gap-2 bg-gradient-to-r from-blue-600 to-indigo-600"
-                >
-                  <Send className="w-4 h-4" />
-                  Enviar
-                </Button>
-              </div>
-              <div className="flex items-center justify-between mt-2">
-                <p className="text-xs text-gray-500">
-                  Digite @ seguido do nome para mencionar alguém
-                </p>
-                {isTyping && (
-                  <p className="text-xs text-blue-600 italic">
-                    Digitando...
-                  </p>
-                )}
-              </div>
-            </div>
+            <ChatInputArea 
+              onSendMessage={handleSendMessage}
+              onTyping={() => setTyping()}
+              replyTo={replyTo}
+              onCancelReply={() => setReplyTo(null)}
+            />
           </>
         ) : (
           <div className="flex-1 flex items-center justify-center">
