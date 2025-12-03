@@ -598,83 +598,11 @@ export default function Chat() {
   };
 
   const loadConversations = async (userEmail = currentUser?.email) => {
-    if (!userEmail) return;
-    
-    try {
-      const allConversations = await ChatConversation.list("-last_message_date");
-      
-      const userConversations = allConversations.filter(conv => {
-        if (conv.conversation_type === "group" && conv.is_public) return true;
-        if (conv.conversation_type === "department") return true;
-        return conv.participants?.includes(userEmail);
-      });
-      
-      // NOVO: Descobrir e adicionar usuários de todas as conversas ao cache
-      for (const conv of userConversations) {
-        if (conv.participants) {
-          for (const email of conv.participants) {
-            // Note: discoverAndAddUser here only adds a basic generated user if not found.
-            // The enrichment logic is primarily handled in loadInitialData for non-admins.
-            await discoverAndAddUser(email); 
-          }
-        }
-      }
-
-      console.warn("[Chat] Contagem de unread DESABILITADA para evitar rate limit");
-      setConversations(userConversations);
-      setConversationsWithUnread(userConversations.map(conv => ({ ...conv, unreadCount: 0 })));
-    } catch (error) {
-      if (error?.response?.status !== 429) {
-        console.error("Erro ao carregar conversas:", error);
-      }
-    }
+    queryClient.invalidateQueries({ queryKey: ['conversations'] });
   };
 
   const loadMessages = async (conversationId) => {
-    try {
-      const msgs = await ChatMessage.filter(
-        { conversation_id: conversationId },
-        "created_date"
-      );
-      
-      // Check for new messages and show notifications
-      if (messages.length > 0 && msgs.length > messages.length) {
-        const newMessages = msgs.slice(messages.length);
-        newMessages.forEach(msg => {
-          if (msg.sender_email !== currentUser?.email) {
-            const sender = users.find(u => u.email === msg.sender_email);
-            const senderName = getUserDisplayName(sender) || msg.sender_name;
-            const isMentioned = msg.message.includes(`@[${getUserDisplayName(currentUser)}]`);
-            
-            showDesktopNotification(
-              isMentioned ? `🔔 ${senderName} mencionou você` : `💬 Nova mensagem de ${senderName}`,
-              msg.message.substring(0, 100),
-              sender?.profile_picture
-            );
-          }
-        });
-      }
-
-      setMessages(msgs);
-      
-      const unreadMessages = msgs.filter(
-        msg => msg.sender_email !== currentUser?.email && 
-               !msg.read_by?.includes(currentUser?.email)
-      );
-      
-      for (const msg of unreadMessages) {
-        const updatedReadBy = [...(msg.read_by || []), currentUser.email];
-        await ChatMessage.update(msg.id, { read_by: updatedReadBy });
-      }
-      
-      // Atualizar conversas para remover o badge de não lidas
-      // Isso deve ser feito após marcar as mensagens como lidas
-      await loadConversations().catch(() => {});
-    } catch (error) {
-      if (error?.response?.status !== 429) {
-        console.error("Erro ao carregar mensagens:", error);
-      }
-    }
+    queryClient.invalidateQueries({ queryKey: ['messages', conversationId] });
   };
 
   const handleSelectConversation = (conversation) => {
