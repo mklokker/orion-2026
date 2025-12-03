@@ -1078,7 +1078,7 @@ export default function Chat() {
         description: isPinned ? "Conversa removida do topo" : "Conversa fixada no topo da lista",
       });
       
-      await loadConversations();
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
     } catch (error) {
       console.error("Erro ao fixar/desafixar conversa:", error);
       toast({
