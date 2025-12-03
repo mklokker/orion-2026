@@ -126,10 +126,11 @@ export default function Chat() {
   const [users, setUsers] = useState([]);
   const [departments, setDepartments] = useState([]);
   const queryClient = useQueryClient();
+  const [selectedConversation, setSelectedConversation] = useState(null);
+  
   const { data: conversations = [] } = useConversations(currentUser?.email);
   const { data: messagesData = [] } = useMessages(selectedConversation?.id);
   
-  const [selectedConversation, setSelectedConversation] = useState(null);
   const [messages, setMessages] = useState([]);
   
   useEffect(() => {
