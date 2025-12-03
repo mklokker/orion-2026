@@ -179,6 +179,16 @@ export default function Chat() {
 
   const isAdmin = currentUser?.role === 'admin';
 
+  // Check group permissions for current user
+  const groupPermissions = selectedConversation?.permissions || {};
+  const groupAdmins = selectedConversation?.admins || (selectedConversation?.created_by ? [selectedConversation.created_by] : []);
+  const isGroupAdmin = groupAdmins.includes(currentUser?.email) || selectedConversation?.created_by === currentUser?.email || isAdmin;
+
+  const canSendMessage = !selectedConversation || 
+                         selectedConversation.conversation_type === 'direct' || 
+                         !groupPermissions.only_admins_message || 
+                         isGroupAdmin;
+
   useEffect(() => {
     loadInitialData();
   }, []);
@@ -1132,12 +1142,17 @@ export default function Chat() {
       });
 
       const newConversation = await ChatConversation.create({
-        name: conversationName,
-        conversation_type: newChatType,
-        is_public: isPublicGroup && newChatType === "group",
-        participants: participants,
-        department_id: departmentId,
-        created_by: currentUser.email
+      name: conversationName,
+      conversation_type: newChatType,
+      is_public: isPublicGroup && newChatType === "group",
+      participants: participants,
+      department_id: departmentId,
+      created_by: currentUser.email,
+      admins: [currentUser.email], // Creator is first admin
+      permissions: {
+         only_admins_message: false,
+         only_admins_edit_info: false
+      }
       });
 
       console.log("[Chat] ✅ Conversa criada com sucesso! ID:", newConversation.id);
@@ -1189,10 +1204,10 @@ export default function Chat() {
         user: otherUser
       };
     }
-    
+
     return {
-      src: null,
-      initials: null,
+      src: conversation.group_image || null,
+      initials: getInitials(conversation.name || "Grupo"),
       isGroup: true,
       user: null
     };
@@ -1595,6 +1610,8 @@ export default function Chat() {
               onTyping={() => setTyping()}
               replyTo={replyTo}
               onCancelReply={() => setReplyTo(null)}
+              disabled={!canSendMessage}
+              placeholder={!canSendMessage ? "Somente administradores podem enviar mensagens" : "Digite uma mensagem..."}
             />
           </>
         ) : (

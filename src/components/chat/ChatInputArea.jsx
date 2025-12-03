@@ -14,7 +14,8 @@ export default function ChatInputArea({
   onTyping, 
   replyTo, 
   onCancelReply,
-  disabled 
+  disabled,
+  placeholder
 }) {
   const [message, setMessage] = useState("");
   const [isRecording, setIsRecording] = useState(false);
@@ -204,7 +205,7 @@ export default function ChatInputArea({
                 }}
                 onKeyDown={handleKeyDown}
                 onPaste={handlePaste}
-                placeholder="Digite uma mensagem..."
+                placeholder={placeholder || "Digite uma mensagem..."}
                 className="min-h-[40px] max-h-[120px] py-2 resize-none pr-10"
                 rows={1}
                 disabled={disabled || uploading}
