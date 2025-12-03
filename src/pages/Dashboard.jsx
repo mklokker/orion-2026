@@ -17,6 +17,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useQueryClient } from "@tanstack/react-query";
+import { useCurrentUser, useUsers, useDepartments, useTasks, useServices } from "@/hooks/useData";
 import TaskCard from "../components/dashboard/TaskCard";
 import TaskViewEditModal from "../components/tasks/TaskViewEditModal";
 import ServiceViewEditModal from "../components/services/ServiceViewEditModal";
@@ -83,11 +85,27 @@ const filterUniqueProtocolsByUser = (items) => {
 };
 
 export default function Dashboard() {
-  const [items, setItems] = useState([]);
-  const [departments, setDepartments] = useState([]);
-  const [currentUser, setCurrentUser] = useState(null);
-  const [users, setUsers] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
+  
+  // Hooks
+  const { data: currentUser, isLoading: isLoadingUser } = useCurrentUser();
+  const { data: users = [] } = useUsers();
+  const { data: departments = [] } = useDepartments();
+  
+  const isAdmin = currentUser?.role === 'admin';
+
+  // Always fetch all for dashboard to allow filtering by other users if needed, or stick to standard logic
+  // Actually dashboard loads everything usually to calculate global stats or stats for filters
+  // Let's use the hooks but maybe we need 'all' if we are admin or user wants to see other stuff?
+  // Original logic: Fetch all tasks/services always (it used Task.list() without params in previous code, well sort of)
+  // The hook useTasks uses Task.list() if admin, else filter.
+  // For Dashboard, let's assume we follow the same permission logic as GestaoTarefas
+  const { data: tasksData = [], isLoading: isLoadingTasks, refetch: refetchTasks } = useTasks(true, currentUser?.email); 
+  // Passing true to useTasks forces it to behave as "admin" (fetch all) which seems to be what Dashboard did (Task.list())
+  const { data: servicesData = [], isLoading: isLoadingServices, refetch: refetchServices } = useServices(true, currentUser?.email);
+
+  const isLoading = isLoadingUser || isLoadingTasks || isLoadingServices;
+
   const [activeTab, setActiveTab] = useState("ativas");
   const [searchQuery, setSearchQuery] = useState("");
   const [sortOldestFirst, setSortOldestFirst] = useState(true);
@@ -102,120 +120,25 @@ export default function Dashboard() {
   const [customEndDate, setCustomEndDate] = useState("");
   const [showOnlyMyItems, setShowOnlyMyItems] = useState(false);
 
-  const isAdmin = currentUser?.role === 'admin';
+  const items = React.useMemo(() => {
+    if (!tasksData || !servicesData) return [];
+    
+    const normalizedTasks = tasksData.map(t => ({...t, type: 'task'}));
+    const normalizedServices = servicesData.map(s => ({
+      ...s, 
+      type: 'service', 
+      protocol: s.service_name,
+      description: s.description
+    }));
+    const combinedItems = [...normalizedTasks, ...normalizedServices];
+    return filterUniqueProtocolsByUser(combinedItems);
+  }, [tasksData, servicesData]);
 
-  useEffect(() => {
-    loadData();
-  }, []);
-
-  const loadData = async () => {
-    setIsLoading(true);
-    try {
-      const userData = await User.me();
-      setCurrentUser(userData);
-
-      // Carregar tarefas/serviços/departamentos PRIMEIRO para permitir fallback de usuários
-      const [tasksData, servicesData, departmentsData] = await Promise.all([
-        Task.list("-end_date"),
-        Service.list("-end_date"),
-        Department.list(),
-      ]);
-
-      // 1) Tenta buscar usuários "oficiais"
-      let usersData = [];
-      try {
-        usersData = await User.list();
-        console.log("[Dashboard] User.list() retornou:", usersData.length, "usuários");
-      } catch (e) {
-        console.error("[Dashboard] ERRO ao carregar User.list():", e);
-        usersData = []; // Garante que seja um array vazio se houver erro
-      }
-
-      // 2) FALLBACK INTELIGENTE: Se voltou vazio ou só tem 1 usuário (suspeito de falha no backend ou permissões)
-      // O critério `usersData.length <= 1` é uma heurística: se só o usuário atual ou ninguém é retornado,
-      // a lista completa pode não ter sido carregada.
-      const looksInsufficient = !usersData || usersData.length <= 1;
-
-      if (looksInsufficient) {
-        console.warn("[Dashboard] User.list() insuficiente, usando FALLBACK via assigned_to");
-        
-        // Coleta todos os emails únicos que aparecem como responsáveis
-        const assignedEmails = new Set();
-        for (const t of tasksData) {
-          if (t?.assigned_to) assignedEmails.add(t.assigned_to);
-        }
-        for (const s of servicesData) {
-          if (s?.assigned_to) assignedEmails.add(s.assigned_to);
-        }
-        
-        // Garante que o usuário atual esteja incluído, mesmo que não seja responsável por nada
-        if (userData?.email) assignedEmails.add(userData.email);
-
-        // Cria objetos "User-like" mínimos com nomes mais amigáveis
-        const fallbackUsers = Array.from(assignedEmails).map((email, idx) => {
-          const displayName = generateDisplayNameFromEmail(email);
-          return {
-            id: `fallback-${idx}-${email}`, // ID único para usuários de fallback
-            email: email,
-            display_name: displayName, // Nome gerado do email como fallback
-            full_name: displayName,   // Nome gerado do email como fallback
-            // Atribui a role do usuário atual se for o email dele, caso contrário, "user"
-            role: email === userData?.email ? userData?.role : "user", 
-          };
-        });
-
-        // Se usersData tinha algo (ex: só o próprio user), faz merge pelo email
-        // Dando preferência aos dados oficiais quando disponíveis
-        const byEmail = new Map();
-        for (const u of usersData || []) {
-          if (u?.email) byEmail.set(u.email, u);
-        }
-        
-        // Mescla usuários oficiais com fallback, garantindo display_name
-        const merged = fallbackUsers.map(fu => {
-          const official = byEmail.get(fu.email);
-          if (official) {
-            // CORREÇÃO CRÍTICA: Usa dados oficiais e SEMPRE prioriza display_name/full_name real
-            return {
-              ...official,
-              // Prioridade: display_name > full_name > email
-              display_name: official.display_name || official.full_name || generateDisplayNameFromEmail(official.email)
-            };
-          }
-          return fu; // Se não houver dados oficiais, usa o usuário de fallback
-        });
-        
-        usersData = merged;
-        console.log("[Dashboard] FALLBACK ativado! Total de usuários disponíveis:", usersData.length);
-      } else {
-        // Se User.list() funcionou bem, garante que todos tenham display_name
-        usersData = usersData.map(u => ({
-          ...u,
-          display_name: u.display_name || u.full_name || generateDisplayNameFromEmail(u.email)
-        }));
-      }
-
-      setUsers(usersData);
-
-      const normalizedTasks = tasksData.map(t => ({...t, type: 'task'}));
-      const normalizedServices = servicesData.map(s => ({
-        ...s, 
-        type: 'service', 
-        protocol: s.service_name,
-        description: s.description
-      }));
-      const combinedItems = [...normalizedTasks, ...normalizedServices];
-      
-      // NOVA LÓGICA: Filtra protocolos duplicados por usuário, mantendo apenas o mais recente
-      const uniqueItems = filterUniqueProtocolsByUser(combinedItems);
-      console.log(`[Dashboard] Total de itens brutos: ${combinedItems.length}, Únicos após filtro: ${uniqueItems.length}`);
-      
-      setItems(uniqueItems);
-      setDepartments(departmentsData);
-    } catch (error) {
-      console.error("[Dashboard] Erro ao carregar dados:", error);
-    }
-    setIsLoading(false);
+  const loadData = () => {
+    refetchTasks();
+    refetchServices();
+    queryClient.invalidateQueries({ queryKey: ['tasks'] });
+    queryClient.invalidateQueries({ queryKey: ['services'] });
   };
 
   const handleItemClick = (item) => {

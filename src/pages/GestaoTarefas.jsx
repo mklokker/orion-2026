@@ -105,10 +105,18 @@ const filterUniqueProtocolsByUser = (items) => {
 
 export default function GestaoTarefas() {
   const { toast } = useToast();
-  const [items, setItems] = useState([]);
-  const [users, setUsers] = useState([]);
-  const [departments, setDepartments] = useState([]);
-  const [currentUser, setCurrentUser] = useState(null);
+  const queryClient = useQueryClient();
+  
+  // Using React Query Hooks
+  const { data: currentUser } = useCurrentUser();
+  const { data: users = [] } = useUsers();
+  const { data: departments = [] } = useDepartments();
+  
+  const isAdmin = currentUser?.role === 'admin';
+  
+  const { data: tasksData = [], refetch: refetchTasks } = useTasks(isAdmin, currentUser?.email);
+  const { data: servicesData = [], refetch: refetchServices } = useServices(isAdmin, currentUser?.email);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTasks, setSelectedTasks] = useState([]);
   const [showTasksModal, setShowTasksModal] = useState(false);
@@ -126,72 +134,34 @@ export default function GestaoTarefas() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
-  const isAdmin = currentUser?.role === 'admin';
+  // Process items using useMemo for efficiency
+  const items = React.useMemo(() => {
+    if (!tasksData || !servicesData) return [];
+    
+    const normalizedTasks = tasksData.map(t => ({...t, type: 'task', title: t.description || t.protocol}));
+    const normalizedServices = servicesData.map(s => ({
+      ...s, 
+      type: 'service', 
+      protocol: s.service_name,
+      title: s.description || s.service_name,
+      description: s.description || s.service_name
+    }));
+    
+    const combinedItems = [...normalizedTasks, ...normalizedServices].sort((a, b) => {
+      const dateA = new Date(b.created_date);
+      const dateB = new Date(a.created_date);
+      return dateA - dateB;
+    });
 
-  useEffect(() => {
-    loadData();
-  }, []);
+    return filterUniqueProtocolsByUser(combinedItems);
+  }, [tasksData, servicesData]);
 
-  const loadData = async () => {
-    try {
-      const userData = await User.me();
-      setCurrentUser(userData);
-
-      let tasksData = [];
-      let servicesData = [];
-      let usersData = [];
-
-      if (userData.role === 'admin') {
-        [tasksData, servicesData] = await Promise.all([
-            Task.list("-created_date"),
-            Service.list("-created_date")
-        ]);
-        try {
-          usersData = await User.list();
-        } catch (e) {
-          console.warn("[GestaoTarefas] Falha ao carregar lista de usuários. Mostrando apenas o usuário atual.", e);
-          usersData = [userData];
-        }
-      } else {
-        [tasksData, servicesData] = await Promise.all([
-            Task.filter({ assigned_to: userData.email }, "-created_date"),
-            Service.filter({ assigned_to: userData.email }, "-created_date")
-        ]);
-        usersData = [userData];
-      }
-      
-      const departmentsData = await Department.list();
-      
-      const normalizedTasks = tasksData.map(t => ({...t, type: 'task', title: t.description || t.protocol}));
-      const normalizedServices = servicesData.map(s => ({
-        ...s, 
-        type: 'service', 
-        protocol: s.service_name,
-        title: s.description || s.service_name,
-        description: s.description || s.service_name
-      }));
-      
-      const combinedItems = [...normalizedTasks, ...normalizedServices].sort((a, b) => {
-        const dateA = new Date(b.created_date);
-        const dateB = new Date(a.created_date);
-        return dateA - dateB;
-      });
-
-      const uniqueItems = filterUniqueProtocolsByUser(combinedItems);
-      console.log(`[GestaoTarefas] Total: ${combinedItems.length}, Únicos: ${uniqueItems.length}`);
-
-      setItems(uniqueItems);
-      setUsers(usersData);
-      setDepartments(departmentsData);
-      setCurrentPage(1);
-    } catch (error) {
-      console.error("[pages/GestaoTarefas.js] Erro ao carregar dados:", error);
-      toast({
-        title: "Erro",
-        description: "Erro ao carregar dados.",
-        variant: "destructive"
-      });
-    }
+  const loadData = () => {
+    // Refetch data using react-query
+    refetchTasks();
+    refetchServices();
+    queryClient.invalidateQueries({ queryKey: ['tasks'] });
+    queryClient.invalidateQueries({ queryKey: ['services'] });
   };
 
   const createTaskInteraction = async (taskId, type, message, metadata = {}) => {

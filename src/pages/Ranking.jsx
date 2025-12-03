@@ -11,6 +11,7 @@ import { Star, Trophy, Medal, Award, Calendar, Building2, ChevronDown, ChevronUp
 import { Button } from "@/components/ui/button";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useCurrentUser, useUsers, useDepartments, useStars } from "@/hooks/useData";
 
 const parseDateAsLocal = (dateString) => {
   if (!dateString) return null;
@@ -48,12 +49,15 @@ const normalizeText = (text) => {
 };
 
 export default function Ranking() {
-  const [stars, setStars] = useState([]);
-  const [users, setUsers] = useState([]);
-  const [departments, setDepartments] = useState([]);
-  const [currentUser, setCurrentUser] = useState(null);
+  // Use cached hooks
+  const { data: currentUser } = useCurrentUser();
+  const { data: users = [] } = useUsers();
+  const { data: departments = [] } = useDepartments();
+  const { data: stars = [], isLoading: isLoadingStars } = useStars();
+  
+  const isLoading = isLoadingStars;
+  
   const [rankingByDepartment, setRankingByDepartment] = useState({});
-  const [isLoading, setIsLoading] = useState(true);
   // Inicializa com o mês atual por padrão
   const [startDate, setStartDate] = useState(format(startOfMonth(new Date()), "yyyy-MM-dd"));
   const [endDate, setEndDate] = useState(format(endOfMonth(new Date()), "yyyy-MM-dd"));
@@ -63,90 +67,12 @@ export default function Ranking() {
   const isAdmin = currentUser?.role === 'admin';
 
   useEffect(() => {
-    loadData();
-  }, []);
-
-  useEffect(() => {
     if (stars.length > 0 && users.length > 0 && departments.length > 0) {
       calculateRankingByDepartment();
     }
   }, [stars, users, departments, startDate, endDate, searchQuery]);
 
-  const loadData = async () => {
-    setIsLoading(true);
-    try {
-      const userData = await User.me();
-      setCurrentUser(userData);
-
-      const [starsData, departmentsData] = await Promise.all([
-        UserStar.list("-earned_date"),
-        Department.list()
-      ]);
-      
-      setStars(starsData);
-      setDepartments(departmentsData);
-
-      // NOVA ESTRATÉGIA: Usar função backend como proxy público
-      let usersData = [];
-      
-      try {
-        // Tenta usar a função backend que usa service role
-        console.log("[Ranking] 🔄 Carregando usuários via função backend...");
-        const response = await getPublicUsers();
-        
-        if (response.data?.users) {
-          usersData = response.data.users;
-          console.log(`[Ranking] ✅ ${usersData.length} usuários carregados via backend function`);
-        } else {
-          throw new Error("Resposta inválida da função backend");
-        }
-      } catch (error) {
-        console.warn("[Ranking] ⚠️ Função backend falhou:", error.message);
-        
-        // FALLBACK: Descobre emails das estrelas e gera usuários básicos
-        console.log("[Ranking] 🔄 Usando fallback: gerando usuários dos emails...");
-        
-        const uniqueEmails = new Set();
-        uniqueEmails.add(userData.email);
-        
-        for (const star of starsData) {
-          if (star.user_email) {
-            uniqueEmails.add(star.user_email);
-          }
-        }
-        
-        console.log(`[Ranking] 🔍 ${uniqueEmails.size} emails únicos encontrados`);
-        
-        usersData = Array.from(uniqueEmails).map((email) => {
-          const displayName = generateDisplayNameFromEmail(email);
-          return {
-            id: `fallback-${email}`,
-            email: email,
-            display_name: displayName,
-            full_name: displayName,
-            role: email === userData.email ? userData.role : "user",
-            profile_picture: null,
-            department_id: null
-          };
-        });
-        
-        console.log(`[Ranking] ✅ Fallback: ${usersData.length} usuários gerados`);
-      }
-      
-      // Garantir que todos tenham display_name
-      usersData = usersData.map(u => ({
-        ...u,
-        display_name: u.display_name || u.full_name || generateDisplayNameFromEmail(u.email)
-      }));
-      
-      console.log(`[Ranking] 📊 Final: ${usersData.length} usuários, ${usersData.filter(u => u.profile_picture).length} com foto, ${usersData.filter(u => u.department_id).length} com departamento`);
-      
-      setUsers(usersData);
-    } catch (error) {
-      console.error("[Ranking] ❌ Erro ao carregar dados:", error);
-    }
-    setIsLoading(false);
-  };
+  // Removed manual loadData since we use hooks now
 
   const calculateRankingByDepartment = () => {
     let filteredStars = [...stars];

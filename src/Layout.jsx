@@ -46,6 +46,16 @@ import NotificationCenter from "./components/notifications/NotificationCenter";
 import TaskViewEditModal from "./components/tasks/TaskViewEditModal";
 import ServiceViewEditModal from "./components/services/ServiceViewEditModal";
 import { Toaster } from "./components/ui/toaster";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
 const getInitials = (name) => {
   if (!name) return "U";
@@ -269,6 +279,7 @@ export default function Layout({ children }) {
   };
 
   return (
+    <QueryClientProvider client={queryClient}>
     <SidebarProvider>
       {appSettings && (
         <style>{`
@@ -477,5 +488,6 @@ export default function Layout({ children }) {
       )}
       <Toaster />
     </SidebarProvider>
+    </QueryClientProvider>
   );
 }
