@@ -29,8 +29,10 @@ import {
   PinOff,
   Archive,
   ArchiveRestore,
-  Bell // New import
+  Bell,
+  Settings // New import
 } from "lucide-react";
+import GroupSettingsModal from "@/components/chat/GroupSettingsModal";
 import { useToast } from "@/components/ui/use-toast";
 import { format, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -168,6 +170,7 @@ export default function Chat() {
     typeof Notification !== 'undefined' ? Notification.permission : 'denied'
   );
   const [appSettings, setAppSettings] = useState(null);
+  const [showGroupSettings, setShowGroupSettings] = useState(false); // Group settings modal state
 
   const isAdmin = currentUser?.role === 'admin';
 
@@ -1543,19 +1546,31 @@ export default function Chat() {
                     );
                   })()}
                 </div>
-                {canDeleteConversation(selectedConversation) && (
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => {
-                      setConversationToDelete(selectedConversation);
-                      setShowDeleteDialog(true);
-                    }}
-                    title="Excluir Conversa"
-                  >
-                    <Trash2 className="w-4 h-4 text-red-500" />
-                  </Button>
-                )}
+                <div className="flex gap-1">
+                  {selectedConversation.conversation_type === 'group' && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setShowGroupSettings(true)}
+                      title="Configurações do Grupo"
+                    >
+                      <Settings className="w-4 h-4 text-gray-600" />
+                    </Button>
+                  )}
+                  {canDeleteConversation(selectedConversation) && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => {
+                        setConversationToDelete(selectedConversation);
+                        setShowDeleteDialog(true);
+                      }}
+                      title="Excluir Conversa"
+                    >
+                      <Trash2 className="w-4 h-4 text-red-500" />
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -1919,6 +1934,19 @@ export default function Chat() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {selectedConversation && (
+        <GroupSettingsModal
+          open={showGroupSettings}
+          onClose={() => setShowGroupSettings(false)}
+          conversation={selectedConversation}
+          currentUser={currentUser}
+          users={users}
+          onUpdate={() => {
+            queryClient.invalidateQueries({ queryKey: ['conversations'] });
+          }}
+        />
+      )}
     </div>
   );
 }
