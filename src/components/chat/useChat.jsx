@@ -136,3 +136,22 @@ export function useOnlineStatusUpdater(userEmail) {
     refetchInterval: ONLINE_STATUS_INTERVAL
   });
 }
+
+export function useUnreadChatCounts(userEmail) {
+  return useQuery({
+    queryKey: ['unreadChatCounts', userEmail],
+    queryFn: async () => {
+      if (!userEmail) return { totalUnread: 0, unreadByConversation: {}, latestMessageDate: null };
+      try {
+        const { base44 } = await import("@/api/base44Client");
+        const response = await base44.functions.invoke('getChatUnreadCounts');
+        return response.data;
+      } catch (error) {
+        console.error("Error fetching unread counts:", error);
+        return { totalUnread: 0, unreadByConversation: {}, latestMessageDate: null };
+      }
+    },
+    enabled: !!userEmail,
+    refetchInterval: 5000 // Poll every 5s
+  });
+}

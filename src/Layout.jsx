@@ -41,6 +41,7 @@ import { Service } from "@/entities/Service";
 import { AppSettings } from "@/entities/AppSettings";
 import { ChatMessage } from "@/entities/ChatMessage";
 import { ChatConversation } from "@/entities/ChatConversation";
+import { useUnreadChatCounts } from "@/components/chat/useChat";
 import UserProfileModal from "./components/profile/UserProfileModal";
 import NotificationCenter from "./components/notifications/NotificationCenter";
 import TaskViewEditModal from "./components/tasks/TaskViewEditModal";
@@ -120,7 +121,7 @@ export default function Layout({ children }) {
     { title: "Dashboard", url: createPageUrl("Dashboard"), icon: LayoutDashboard },
     { title: "Gestão de Tarefas", url: createPageUrl("GestaoTarefas"), icon: ClipboardList },
     { title: "Carga Diária", url: createPageUrl("CargaDiaria"), icon: FileText },
-    { title: "Chat", url: createPageUrl("Chat"), icon: MessageSquare },
+    { title: "Chat", url: createPageUrl("Chat"), icon: MessageSquare, badge: unreadChatCount },
     { title: "Acervo", url: createPageUrl("Acervo"), icon: Files },
     { title: "Cursos", url: createPageUrl("Cursos"), icon: GraduationCap },
     { title: "Removedor", url: createPageUrl("Removedor"), icon: Eraser },

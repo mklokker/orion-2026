@@ -71,7 +71,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { getPublicUsers } from "@/functions/getPublicUsers";
 import { useQueryClient } from "@tanstack/react-query";
-import { useConversations, useMessages, useTypingStatus, useOnlineStatusUpdater } from "@/components/chat/useChat";
+import { useConversations, useMessages, useTypingStatus, useOnlineStatusUpdater, useUnreadChatCounts } from "@/components/chat/useChat";
 
 // Função para converter para timezone de São Paulo (UTC-3)
 const toSaoPauloTime = (date) => {
@@ -138,6 +138,9 @@ export default function Chat() {
   const [selectedConversation, setSelectedConversation] = useState(null);
   
   const { data: conversations = [] } = useConversations(currentUser?.email);
+  const { data: chatData } = useUnreadChatCounts(currentUser?.email); // Use unread counts
+  const unreadByConversation = chatData?.unreadByConversation || {};
+
   const { data: messagesData = [] } = useMessages(selectedConversation?.id);
   
   const [messages, setMessages] = useState([]);
@@ -1214,8 +1217,7 @@ export default function Chat() {
   };
 
   const getUnreadCount = (conversationId) => {
-    const conv = conversations.find(c => c.id === conversationId);
-    return conv?.unreadCount || 0;
+    return unreadByConversation[conversationId] || 0;
   };
 
   const isMessageReadByOthers = (message) => {
