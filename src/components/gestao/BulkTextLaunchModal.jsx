@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -47,12 +48,18 @@ const parseDate = (dateStr) => {
 export default function BulkTextLaunchModal({ open, onClose, users, onCreateTasks, onCreateServices }) {
   const { toast } = useToast();
   const [text, setText] = useState("");
+  const [selectedUserEmail, setSelectedUserEmail] = useState("");
   const [parsedItems, setParsedItems] = useState([]);
   const [step, setStep] = useState("input"); // input | preview
 
   const handleProcess = () => {
+    if (!selectedUserEmail) {
+        toast({ title: "Erro", description: "Selecione um usuário antes de processar.", variant: "destructive" });
+        return;
+    }
+
+    const userObj = users.find(u => u.email === selectedUserEmail);
     const lines = text.split("\n").filter(l => l.trim());
-    let currentUser = null;
     const items = [];
     
     lines.forEach(line => {
@@ -69,14 +76,9 @@ export default function BulkTextLaunchModal({ open, onClose, users, onCreateTask
         const dateStr = match[2];
         
         // Separar identificador e descrição
-        // Se tiver traço, separa. Se não, é só identificador.
-        // Cuidado: S25... não tem traço. 339323-Busca... tem traço.
         let identifier = fullContent;
         let description = "";
         
-        // Se houver um traço, assumimos que separa ID e Descrição
-        // MAS, precisamos garantir que não quebre códigos que tenham traço (se houver)
-        // O exemplo mostra "339323-Busca para indisponibilidade"
         const dashIndex = fullContent.indexOf("-");
         if (dashIndex > 0) {
             identifier = fullContent.substring(0, dashIndex).trim();
@@ -89,8 +91,8 @@ export default function BulkTextLaunchModal({ open, onClose, users, onCreateTask
         
         items.push({
             type: isTask ? "task" : "service",
-            rawUser: currentUser ? currentUser.raw : "Sem usuário",
-            user: currentUser ? currentUser.user : null,
+            rawUser: userObj.full_name,
+            user: userObj,
             identifier,
             description,
             dateStr,
@@ -98,17 +100,13 @@ export default function BulkTextLaunchModal({ open, onClose, users, onCreateTask
             priority: "P3", // Default
             originalLine: line
         });
-      } else {
-        // Assumimos que é um cabeçalho de usuário
-        // Remove : do final se houver
-        const nameClean = trimmedLine.replace(/:$/, "");
-        const foundUser = findUser(nameClean, users);
-        currentUser = {
-            raw: nameClean,
-            user: foundUser
-        };
       }
     });
+    
+    if (items.length === 0) {
+        toast({ title: "Aviso", description: "Nenhum item válido encontrado no texto.", variant: "warning" });
+        return;
+    }
     
     setParsedItems(items);
     setStep("preview");
@@ -152,6 +150,7 @@ export default function BulkTextLaunchModal({ open, onClose, users, onCreateTask
     
     onClose();
     setText("");
+    setSelectedUserEmail("");
     setParsedItems([]);
     setStep("input");
   };
@@ -165,21 +164,37 @@ export default function BulkTextLaunchModal({ open, onClose, users, onCreateTask
         
         {step === "input" ? (
             <div className="flex-1 flex flex-col gap-4 min-h-[300px]">
-                <p className="text-sm text-gray-500">
-                    Cole o texto abaixo. Use o formato: <br/>
-                    <span className="font-mono text-xs">Nome do Usuário:<br/>Identificador-Descrição-Data (dd/mm)<br/>Identificador Data (dd/mm)</span>
-                </p>
-                <Textarea 
-                    value={text}
-                    onChange={(e) => setText(e.target.value)}
-                    className="flex-1 font-mono text-sm"
-                    placeholder={`Márcia:
-S25110760575D-02/12
-339323-Busca para indisponibilidade-03/12
+                <div className="space-y-2">
+                    <label className="text-sm font-medium">Selecione o Usuário</label>
+                    <Select value={selectedUserEmail} onValueChange={setSelectedUserEmail}>
+                        <SelectTrigger>
+                            <SelectValue placeholder="Selecione quem receberá as tarefas/serviços..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {users.map(u => (
+                                <SelectItem key={u.email} value={u.email}>
+                                    {u.display_name || u.full_name || u.email}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
 
-Marcos:
-123.456 12/12`}
-                />
+                <div className="flex-1 flex flex-col gap-2">
+                    <label className="text-sm font-medium">Cole a lista de itens</label>
+                    <p className="text-xs text-gray-500">
+                        Formato aceito: <span className="font-mono">Identificador-Descrição-Data (dd/mm)</span> ou <span className="font-mono">Identificador Data (dd/mm)</span>
+                    </p>
+                    <Textarea 
+                        value={text}
+                        onChange={(e) => setText(e.target.value)}
+                        className="flex-1 font-mono text-sm"
+                        placeholder={`S25110760575D-02/12
+339323-Busca para indisponibilidade-03/12
+123.456 12/12
+51046-03/12`}
+                    />
+                </div>
             </div>
         ) : (
             <div className="flex-1 overflow-hidden flex flex-col min-h-[300px]">
