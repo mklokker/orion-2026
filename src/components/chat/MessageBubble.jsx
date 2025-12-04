@@ -20,6 +20,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import ImageViewerModal from "./ImageViewerModal";
 
 const REACTIONS = ["👍", "❤️", "😂", "😮", "😢", "😡"];
 
@@ -84,6 +85,7 @@ export default function MessageBubble({
   readStatus 
 }) {
   const [showReactions, setShowReactions] = useState(false);
+  const [showImageModal, setShowImageModal] = useState(false);
 
   if (message.message_type === 'system') {
     return (
@@ -162,14 +164,25 @@ export default function MessageBubble({
 
             {/* Media Content */}
             {message.message_type === 'image' && (
-              <div className="mb-2 rounded-lg overflow-hidden max-w-sm border border-black/5">
-                <img 
-                  src={message.attachment_url} 
-                  alt="Attached image" 
-                  className="w-full h-auto object-cover"
-                  loading="lazy"
+              <>
+                <div 
+                  className="mb-2 rounded-lg overflow-hidden max-w-sm border border-black/5 cursor-zoom-in hover:opacity-95 transition-opacity shadow-sm"
+                  onClick={() => setShowImageModal(true)}
+                >
+                  <img 
+                    src={message.attachment_url} 
+                    alt="Attached image" 
+                    className="w-full h-auto object-cover"
+                    loading="lazy"
+                  />
+                </div>
+                <ImageViewerModal 
+                  isOpen={showImageModal}
+                  onClose={() => setShowImageModal(false)}
+                  imageUrl={message.attachment_url}
+                  altText="Imagem enviada"
                 />
-              </div>
+              </>
             )}
             {/* Media Content */}
             {message.message_type === 'image' && (
