@@ -35,7 +35,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { User } from "@/entities/User";
-import { Notification } from "@/entities/Notification";
+import { Notification as NotificationEntity } from "@/entities/Notification";
 import { Task } from "@/entities/Task";
 import { Service } from "@/entities/Service";
 import { AppSettings } from "@/entities/AppSettings";
@@ -335,7 +335,7 @@ export default function Layout({ children }) {
     try {
       if (!user?.email) return;
       
-      const notifications = await Notification.filter({
+      const notifications = await NotificationEntity.filter({
         user_email: user.email,
         read: false
       });
