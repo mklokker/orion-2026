@@ -107,6 +107,9 @@ export default function Layout({ children }) {
   const [appSettings, setAppSettings] = React.useState(null);
   const [showNotifications, setShowNotifications] = React.useState(false);
   const [unreadCount, setUnreadCount] = React.useState(0);
+  const [notificationPermission, setNotificationPermission] = React.useState(
+    typeof Notification !== 'undefined' ? Notification.permission : 'denied'
+  );
   
   const { data: chatData } = useUnreadChatCounts(user?.email);
   const unreadChatCount = chatData?.totalUnread || 0;
@@ -168,22 +171,25 @@ export default function Layout({ children }) {
     if (typeof Notification === 'undefined') return;
     
     if (Notification.permission === "granted") {
-      // Don't show if window is focused (optional preference, but user asked for background notifications)
-      // Actually user said "mesmo que não estivesse com a aba do sistema", implying background.
-      // Standard behavior is to show if hidden.
+      // Modo intrusivo: Notifica SEMPRE, independente de foco ou visibilidade
+      const senderName = senderEmail.split('@')[0]; 
       
-      if (document.visibilityState === 'hidden') {
-        const senderName = senderEmail.split('@')[0]; // Simple name extraction if user object not available fully
-        const notification = new Notification("Nova mensagem", {
-          body: `Você recebeu uma nova mensagem de ${senderName}`,
+      try {
+        const notification = new Notification(`Nova mensagem de ${senderName}`, {
+          body: `Você recebeu uma nova mensagem! Clique para ver.`,
           icon: '/favicon.ico',
-          tag: 'chat-message' // Replace existing to avoid stacking too many
+          requireInteraction: true, // Notificação persiste até o usuário fechar
+          vibrate: [200, 100, 200, 100, 200], // Padrão de vibração forte
+          silent: false,
+          // Tag removida para permitir empilhamento de notificações (spam) se desejado
         });
         
         notification.onclick = () => {
           window.focus();
           notification.close();
         };
+      } catch (e) {
+        console.error("Erro ao disparar notificação desktop:", e);
       }
     }
   };
@@ -503,6 +509,24 @@ export default function Layout({ children }) {
           <SidebarFooter className="border-t border-gray-200 p-4">
             {user && (
               <div className="space-y-3">
+                {notificationPermission !== 'granted' && (
+                  <Button
+                    variant="destructive"
+                    className="w-full justify-start gap-2 animate-pulse font-bold"
+                    onClick={() => {
+                      Notification.requestPermission().then(perm => {
+                        setNotificationPermission(perm);
+                        if (perm === 'granted') {
+                          new Notification("Notificações Ativadas!", { body: "Você receberá alertas intrusivos agora." });
+                        }
+                      });
+                    }}
+                  >
+                    <Bell className="w-4 h-4" />
+                    ATIVAR ALERTAS
+                  </Button>
+                )}
+
                 <Button
                   variant="outline"
                   className="w-full justify-start gap-2 relative"
