@@ -44,8 +44,8 @@ export default function DocumentEditor({ docId, onClose, currentUser }) {
           title: "Novo Documento",
           document_type: "text",
           collaborators: [],
-          uploaded_by: currentUser.email,
-          uploaded_by_name: currentUser.full_name
+          uploaded_by: currentUser?.email || '',
+          uploaded_by_name: currentUser?.full_name || 'Usuário'
         });
         return;
       }
@@ -158,7 +158,14 @@ export default function DocumentEditor({ docId, onClose, currentUser }) {
     }
   };
 
-  if (!document) return <div className="p-8 text-center">Carregando...</div>;
+  if (!document) return (
+    <div className="fixed inset-0 z-50 bg-white flex items-center justify-center">
+      <div className="text-center">
+        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+        <p className="text-gray-500">Carregando editor...</p>
+      </div>
+    </div>
+  );
 
   const filteredUsers = users.filter(u => 
     u.email !== currentUser.email && 
