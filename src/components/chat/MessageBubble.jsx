@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { 
   MoreVertical, Reply, Trash2, Edit2, Smile, 
-  Check, CheckCheck, FileText, Download, Play, Pause 
+  Check, CheckCheck, FileText, Download, Play, Pause, ExternalLink
 } from "lucide-react";
+import { Link } from "react-router-dom";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -186,6 +187,28 @@ export default function MessageBubble({
               <div className="mb-2">
                 <AudioPlayer src={message.attachment_url} />
               </div>
+            )}
+
+            {message.message_type === 'document' && (
+              <Link 
+                to="/Acervo" // Ideally pass ID if Acervo handled query param
+                className={`block mb-2 p-3 rounded-lg border transition-colors group/doc ${
+                  isOwn ? "bg-[#c6e9c1] border-[#b5dab0] hover:bg-[#b5dab0]" : "bg-gray-50 border-gray-200 hover:bg-gray-100"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="bg-blue-100 p-2 rounded-lg text-blue-600">
+                    <FileText className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <p className="font-bold text-sm text-gray-900">{message.attachment_name || "Documento"}</p>
+                    <p className="text-xs text-gray-500 flex items-center gap-1">
+                      Documento Colaborativo
+                      <ExternalLink className="w-3 h-3" />
+                    </p>
+                  </div>
+                </div>
+              </Link>
             )}
 
             {/* Text Content */}

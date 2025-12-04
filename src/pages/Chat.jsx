@@ -674,7 +674,7 @@ export default function Chat() {
   };
 
   // Função genérica de envio que adapta para o novo componente ChatInputArea
-  const handleSendMessage = async ({ type, content, attachmentUrl, attachmentName }) => {
+  const handleSendMessage = async ({ type, content, attachmentUrl, attachmentName, documentId }) => {
     if (!selectedConversation) return;
 
     const messageData = {
@@ -685,7 +685,8 @@ export default function Chat() {
       message_type: type || 'text',
       read_by: [currentUser.email],
       attachment_url: attachmentUrl,
-      attachment_name: attachmentName
+      attachment_name: attachmentName,
+      document_id: documentId
     };
 
     if (replyTo) {

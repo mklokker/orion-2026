@@ -6,8 +6,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Card } from "@/components/ui/card";
 import { 
   Send, Paperclip, Mic, X, Smile, Image as ImageIcon, 
-  File as FileIcon, StopCircle, Loader2 
+  File as FileIcon, StopCircle, Loader2, FileText 
 } from "lucide-react";
+import DocumentSelector from "@/components/chat/DocumentSelector";
 
 export default function ChatInputArea({ 
   onSendMessage, 
@@ -21,6 +22,7 @@ export default function ChatInputArea({
   const [isRecording, setIsRecording] = useState(false);
   const [recordingTime, setRecordingTime] = useState(0);
   const [uploading, setUploading] = useState(false);
+  const [showDocSelector, setShowDocSelector] = useState(false);
   
   const fileInputRef = useRef(null);
   const mediaRecorderRef = useRef(null);
@@ -83,6 +85,17 @@ export default function ChatInputArea({
     } finally {
       setUploading(false);
     }
+  };
+
+  const handleDocumentSelect = (doc) => {
+    onSendMessage({
+      type: 'document',
+      content: doc.title,
+      attachmentName: doc.title,
+      attachmentUrl: `/Acervo`, // Link placeholder, logic handles ID via separate field ideally or encoded
+      documentId: doc.id 
+    });
+    setShowDocSelector(false);
   };
 
   const startRecording = async () => {
@@ -181,6 +194,17 @@ export default function ChatInputArea({
           <Paperclip className="w-5 h-5" />
         </Button>
 
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="text-gray-500"
+          onClick={() => setShowDocSelector(true)}
+          disabled={disabled || uploading || isRecording}
+          title="Anexar Documento do Acervo"
+        >
+          <FileText className="w-5 h-5" />
+        </Button>
+
         {isRecording ? (
           <div className="flex-1 flex items-center gap-3 bg-red-50 px-4 py-2 rounded-full border border-red-100">
             <div className="w-3 h-3 rounded-full bg-red-500 animate-pulse" />
@@ -237,6 +261,12 @@ export default function ChatInputArea({
       <div className="text-xs text-gray-400 mt-1 text-center">
         Tip: Cole imagens (Ctrl+V) ou arraste arquivos para enviar
       </div>
+
+      <DocumentSelector 
+        open={showDocSelector} 
+        onClose={() => setShowDocSelector(false)} 
+        onSelect={handleDocumentSelect}
+      />
     </div>
   );
 }
