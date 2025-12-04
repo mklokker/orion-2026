@@ -4,9 +4,12 @@ import { Input } from "@/components/ui/input";
 import { User } from "@/entities/User";
 import { Document } from "@/entities/Document";
 import { DocumentVersion } from "@/entities/DocumentVersion";
+import { DocumentPermission } from "@/entities/DocumentPermission";
+import { DocumentPermissionLog } from "@/entities/DocumentPermissionLog";
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
-import { ArrowLeft, Save, Share2, History, Users, Lock, RefreshCw } from 'lucide-react';
+import { ArrowLeft, Save, Share2, History, Users, Lock, RefreshCw, Shield, Trash2, Eye, MessageSquare, Edit3 } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import {
   Dialog,
@@ -28,9 +31,14 @@ export default function DocumentEditor({ docId, onClose, currentUser }) {
   const [isSaving, setIsSaving] = useState(false);
   const [users, setUsers] = useState([]);
   const [versions, setVersions] = useState([]);
+  const [permissions, setPermissions] = useState([]);
+  const [currentUserPermission, setCurrentUserPermission] = useState(null);
   const [showShareModal, setShowShareModal] = useState(false);
   const [showVersionsModal, setShowVersionsModal] = useState(false);
+  const [showPermissionsLog, setShowPermissionsLog] = useState(false);
+  const [permissionLogs, setPermissionLogs] = useState([]);
   const [searchUser, setSearchUser] = useState("");
+  const [selectedAccessLevel, setSelectedAccessLevel] = useState("read");
 
   useEffect(() => {
     loadDocument();
@@ -60,6 +68,14 @@ export default function DocumentEditor({ docId, onClose, currentUser }) {
         // Load versions
         const vs = await DocumentVersion.filter({ document_id: doc.id }, '-version_number');
         setVersions(vs);
+
+        // Load Permissions
+        const perms = await DocumentPermission.filter({ document_id: doc.id });
+        setPermissions(perms);
+        
+        const myPerm = perms.find(p => p.user_email === currentUser.email);
+        setCurrentUserPermission(myPerm?.access_level || (doc.uploaded_by === currentUser.email ? 'owner' : null));
+
       }
     } catch (error) {
       console.error("Error loading document", error);
@@ -82,6 +98,12 @@ export default function DocumentEditor({ docId, onClose, currentUser }) {
       return;
     }
 
+    // Check permission
+    if (docId !== 'new' && currentUserPermission !== 'owner' && currentUserPermission !== 'edit') {
+      toast({ title: "Acesso Negado", description: "Você não tem permissão para editar este documento.", variant: "destructive" });
+      return;
+    }
+
     setIsSaving(true);
     try {
       let savedDoc;
@@ -95,8 +117,15 @@ export default function DocumentEditor({ docId, onClose, currentUser }) {
           collaborators: [currentUser.email], // Creator is collaborator
           last_edited_by: currentUser.email
         });
+        // Create owner permission
+        await DocumentPermission.create({
+          document_id: savedDoc.id,
+          user_email: currentUser.email,
+          access_level: 'owner',
+          granted_by: currentUser.email
+        });
+
         toast({ title: "Criado", description: "Documento criado com sucesso" });
-        // Could redirect or update ID, for now we might rely on parent reloading or handling
         onClose(savedDoc);
       } else {
         // Create version before update
@@ -134,29 +163,99 @@ export default function DocumentEditor({ docId, onClose, currentUser }) {
        return;
     }
 
-    try {
-      const currentCollaborators = document.collaborators || [];
-      if (currentCollaborators.includes(email)) return;
+    // Check if already has permission
+    const existing = permissions.find(p => p.user_email === email);
+    if (existing) {
+      toast({ title: "Aviso", description: "Usuário já possui acesso." });
+      return;
+    }
 
-      const newCollaborators = [...currentCollaborators, email];
-      await Document.update(document.id, { collaborators: newCollaborators });
-      setDocument(prev => ({ ...prev, collaborators: newCollaborators }));
-      toast({ title: "Compartilhado", description: "Usuário adicionado aos colaboradores" });
+    try {
+      await DocumentPermission.create({
+        document_id: document.id,
+        user_email: email,
+        access_level: selectedAccessLevel,
+        granted_by: currentUser.email
+      });
+
+      await DocumentPermissionLog.create({
+        document_id: document.id,
+        target_user_email: email,
+        action: 'granted',
+        new_level: selectedAccessLevel,
+        performed_by: currentUser.email,
+        timestamp: new Date().toISOString()
+      });
+
+      // Refresh permissions
+      const perms = await DocumentPermission.filter({ document_id: document.id });
+      setPermissions(perms);
+
+      toast({ title: "Compartilhado", description: `Acesso de ${selectedAccessLevel === 'read' ? 'leitura' : selectedAccessLevel === 'comment' ? 'comentário' : 'edição'} concedido.` });
     } catch (error) {
+      console.error(error);
       toast({ title: "Erro", description: "Falha ao compartilhar" });
     }
   };
 
-  const handleRemoveCollaborator = async (email) => {
+  const handleUpdatePermission = async (permId, email, newLevel) => {
+    try {
+      const oldPerm = permissions.find(p => p.id === permId);
+      
+      await DocumentPermission.update(permId, { access_level: newLevel });
+      
+      await DocumentPermissionLog.create({
+        document_id: document.id,
+        target_user_email: email,
+        action: 'updated',
+        previous_level: oldPerm?.access_level,
+        new_level: newLevel,
+        performed_by: currentUser.email,
+        timestamp: new Date().toISOString()
+      });
+
+      const perms = await DocumentPermission.filter({ document_id: document.id });
+      setPermissions(perms);
+      
+      toast({ title: "Atualizado", description: "Permissão atualizada." });
+    } catch (error) {
+      toast({ title: "Erro", description: "Falha ao atualizar permissão" });
+    }
+  };
+
+  const handleRemoveCollaborator = async (permId, email) => {
      try {
-      const newCollaborators = (document.collaborators || []).filter(e => e !== email);
-      await Document.update(document.id, { collaborators: newCollaborators });
-      setDocument(prev => ({ ...prev, collaborators: newCollaborators }));
-      toast({ title: "Removido", description: "Colaborador removido" });
+      const oldPerm = permissions.find(p => p.id === permId);
+
+      await DocumentPermission.delete(permId);
+      
+      await DocumentPermissionLog.create({
+        document_id: document.id,
+        target_user_email: email,
+        action: 'revoked',
+        previous_level: oldPerm?.access_level,
+        performed_by: currentUser.email,
+        timestamp: new Date().toISOString()
+      });
+
+      setPermissions(prev => prev.filter(p => p.id !== permId));
+      toast({ title: "Removido", description: "Acesso revogado." });
     } catch (error) {
       toast({ title: "Erro", description: "Falha ao remover colaborador" });
     }
   };
+
+  const loadLogs = async () => {
+    try {
+      const logs = await DocumentPermissionLog.filter({ document_id: document.id }, '-timestamp');
+      setPermissionLogs(logs);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  const isOwner = currentUserPermission === 'owner';
+  const canEdit = isOwner || currentUserPermission === 'edit';
 
   if (!document) return (
     <div className="fixed inset-0 z-50 bg-white flex items-center justify-center">
@@ -169,7 +268,7 @@ export default function DocumentEditor({ docId, onClose, currentUser }) {
 
   const filteredUsers = users.filter(u => 
     u.email !== currentUser.email && 
-    !document.collaborators?.includes(u.email) &&
+    !permissions.some(p => p.user_email === u.email) &&
     (u.display_name?.toLowerCase().includes(searchUser.toLowerCase()) || u.email.toLowerCase().includes(searchUser.toLowerCase()))
   );
 
@@ -206,7 +305,7 @@ export default function DocumentEditor({ docId, onClose, currentUser }) {
                   <DialogTrigger asChild>
                     <Button variant="ghost" title="Histórico de Versões">
                       <History className="w-4 h-4 mr-2" />
-                      Histórico
+                      Versões
                     </Button>
                   </DialogTrigger>
                   <DialogContent>
@@ -220,15 +319,49 @@ export default function DocumentEditor({ docId, onClose, currentUser }) {
                              <div>
                                <p className="font-medium">Versão {v.version_number}</p>
                                <p className="text-xs text-gray-500">Por {v.created_by_name}</p>
+                               <p className="text-[10px] text-gray-400">{format(new Date(v.created_date), "dd/MM/yyyy HH:mm")}</p>
                              </div>
-                             <Button variant="outline" size="sm" onClick={() => {
-                               setContent(v.text_content);
-                               toast({ title: "Versão restaurada", description: "Conteúdo carregado no editor. Salve para confirmar." });
-                               setShowVersionsModal(false);
-                             }}>Restaurar</Button>
+                             {canEdit && (
+                                 <Button variant="outline" size="sm" onClick={() => {
+                                   setContent(v.text_content);
+                                   toast({ title: "Versão restaurada", description: "Conteúdo carregado no editor. Salve para confirmar." });
+                                   setShowVersionsModal(false);
+                                 }}>Restaurar</Button>
+                             )}
                            </div>
                          ))}
                          {versions.length === 0 && <p className="text-center text-gray-500 py-4">Nenhuma versão anterior</p>}
+                      </div>
+                    </ScrollArea>
+                  </DialogContent>
+               </Dialog>
+
+               <Dialog open={showPermissionsLog} onOpenChange={setShowPermissionsLog}>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Log de Permissões</DialogTitle>
+                    </DialogHeader>
+                    <ScrollArea className="h-72">
+                      <div className="space-y-3">
+                         {permissionLogs.map(log => {
+                           const performer = users.find(u => u.email === log.performed_by)?.full_name || log.performed_by;
+                           const target = users.find(u => u.email === log.target_user_email)?.full_name || log.target_user_email;
+                           
+                           let message = "";
+                           if (log.action === 'granted') message = `concedeu acesso de ${log.new_level}`;
+                           if (log.action === 'revoked') message = `removeu o acesso`;
+                           if (log.action === 'updated') message = `alterou acesso de ${log.previous_level} para ${log.new_level}`;
+
+                           return (
+                             <div key={log.id} className="text-sm border-b pb-2 last:border-0">
+                               <p>
+                                 <span className="font-medium">{performer}</span> {message} para <span className="font-medium">{target}</span>
+                               </p>
+                               <p className="text-xs text-gray-400 mt-1">{format(new Date(log.timestamp), "dd/MM/yyyy HH:mm")}</p>
+                             </div>
+                           );
+                         })}
+                         {permissionLogs.length === 0 && <p className="text-center text-gray-500 py-4">Nenhum registro encontrado</p>}
                       </div>
                     </ScrollArea>
                   </DialogContent>
@@ -245,57 +378,139 @@ export default function DocumentEditor({ docId, onClose, currentUser }) {
                     <DialogHeader>
                       <DialogTitle>Compartilhar Documento</DialogTitle>
                     </DialogHeader>
-                    <div className="space-y-4">
-                      <div>
-                        <label className="text-sm font-medium mb-1 block">Adicionar Colaborador</label>
-                        <Input 
-                          placeholder="Buscar usuário..." 
-                          value={searchUser} 
-                          onChange={e => setSearchUser(e.target.value)} 
-                        />
-                        {searchUser && (
-                          <div className="mt-2 border rounded max-h-40 overflow-y-auto">
-                             {filteredUsers.map(u => (
-                               <div key={u.id} className="p-2 hover:bg-gray-50 flex justify-between items-center cursor-pointer" onClick={() => handleShare(u.email)}>
-                                 <div className="flex items-center gap-2">
-                                   <Avatar className="w-6 h-6">
-                                     <AvatarImage src={u.profile_picture} />
-                                     <AvatarFallback>U</AvatarFallback>
-                                   </Avatar>
-                                   <span className="text-sm">{u.display_name || u.full_name}</span>
-                                 </div>
-                                 <Badge variant="outline">Adicionar</Badge>
-                               </div>
-                             ))}
-                             {filteredUsers.length === 0 && <p className="p-2 text-xs text-gray-500">Nenhum usuário encontrado</p>}
+                    <div className="space-y-6">
+                      {/* Add New Collaborator */}
+                      {isOwner && (
+                        <div className="space-y-2 border-b pb-4">
+                          <label className="text-sm font-medium block">Adicionar Colaborador</label>
+                          <div className="flex gap-2">
+                            <div className="flex-1">
+                                <Input 
+                                  placeholder="Buscar usuário por nome ou email..." 
+                                  value={searchUser} 
+                                  onChange={e => setSearchUser(e.target.value)} 
+                                />
+                            </div>
+                            <Select value={selectedAccessLevel} onValueChange={setSelectedAccessLevel}>
+                                <SelectTrigger className="w-[130px]">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="read">Leitura</SelectItem>
+                                  <SelectItem value="comment">Comentário</SelectItem>
+                                  <SelectItem value="edit">Edição</SelectItem>
+                                </SelectContent>
+                            </Select>
                           </div>
-                        )}
-                      </div>
-                      
-                      <div>
-                        <label className="text-sm font-medium mb-2 block">Colaboradores Atuais</label>
-                        <div className="space-y-2">
-                          {document.collaborators?.map(email => {
-                             const u = users.find(user => user.email === email);
-                             return (
-                               <div key={email} className="flex justify-between items-center p-2 bg-gray-50 rounded">
-                                 <div className="flex items-center gap-2">
-                                   <Avatar className="w-6 h-6">
-                                      <AvatarImage src={u?.profile_picture} />
-                                      <AvatarFallback>{email[0].toUpperCase()}</AvatarFallback>
-                                   </Avatar>
-                                   <span className="text-sm">{u?.display_name || u?.full_name || email}</span>
+                          
+                          {searchUser && (
+                            <div className="mt-2 border rounded-md max-h-40 overflow-y-auto bg-white shadow-sm">
+                               {filteredUsers.map(u => (
+                                 <div key={u.id} className="p-2 hover:bg-gray-50 flex justify-between items-center cursor-pointer border-b last:border-0" onClick={() => handleShare(u.email)}>
+                                   <div className="flex items-center gap-2">
+                                     <Avatar className="w-6 h-6">
+                                       <AvatarImage src={u.profile_picture} />
+                                       <AvatarFallback className="text-[10px]">{u.email[0].toUpperCase()}</AvatarFallback>
+                                     </Avatar>
+                                     <div className="flex flex-col">
+                                         <span className="text-sm font-medium">{u.display_name || u.full_name}</span>
+                                         <span className="text-xs text-gray-500">{u.email}</span>
+                                     </div>
+                                   </div>
+                                   <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-200 border-0">Adicionar</Badge>
                                  </div>
-                                 {email !== document.uploaded_by && (
-                                   <Button variant="ghost" size="icon" className="h-6 w-6 text-red-500" onClick={() => handleRemoveCollaborator(email)}>
-                                     <Users className="w-3 h-3" />
-                                   </Button>
+                               ))}
+                               {filteredUsers.length === 0 && <p className="p-3 text-xs text-gray-500 text-center">Nenhum usuário encontrado</p>}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      
+                      {/* List Collaborators */}
+                      <div>
+                        <label className="text-sm font-medium mb-3 block">Quem tem acesso</label>
+                        <div className="space-y-3">
+                          {/* Owner (Uploaded By) */}
+                          <div className="flex justify-between items-center p-2 rounded hover:bg-gray-50">
+                             <div className="flex items-center gap-3">
+                               <Avatar className="w-8 h-8">
+                                  <AvatarImage src={users.find(u => u.email === document.uploaded_by)?.profile_picture} />
+                                  <AvatarFallback>{document.uploaded_by[0].toUpperCase()}</AvatarFallback>
+                               </Avatar>
+                               <div>
+                                   <p className="text-sm font-medium">{document.uploaded_by_name}</p>
+                                   <p className="text-xs text-gray-500">Proprietário</p>
+                               </div>
+                             </div>
+                             <Badge variant="secondary">Dono</Badge>
+                          </div>
+
+                          {/* Other Permissions */}
+                          {permissions.filter(p => p.user_email !== document.uploaded_by).map(perm => {
+                             const u = users.find(user => user.email === perm.user_email);
+                             const displayName = u?.display_name || u?.full_name || perm.user_email;
+                             
+                             return (
+                               <div key={perm.id} className="flex justify-between items-center p-2 rounded hover:bg-gray-50 border border-transparent hover:border-gray-200 transition-all">
+                                 <div className="flex items-center gap-3">
+                                   <Avatar className="w-8 h-8">
+                                      <AvatarImage src={u?.profile_picture} />
+                                      <AvatarFallback>{perm.user_email[0].toUpperCase()}</AvatarFallback>
+                                   </Avatar>
+                                   <div>
+                                       <p className="text-sm font-medium">{displayName}</p>
+                                       <p className="text-xs text-gray-500">{perm.user_email}</p>
+                                   </div>
+                                 </div>
+                                 
+                                 {isOwner ? (
+                                     <div className="flex items-center gap-2">
+                                         <Select 
+                                            value={perm.access_level} 
+                                            onValueChange={(val) => handleUpdatePermission(perm.id, perm.user_email, val)}
+                                         >
+                                            <SelectTrigger className="h-8 w-[110px] text-xs">
+                                              <SelectValue />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                              <SelectItem value="read">Leitura</SelectItem>
+                                              <SelectItem value="comment">Comentário</SelectItem>
+                                              <SelectItem value="edit">Edição</SelectItem>
+                                            </SelectContent>
+                                         </Select>
+                                         <Button 
+                                            variant="ghost" 
+                                            size="icon" 
+                                            className="h-8 w-8 text-gray-400 hover:text-red-600" 
+                                            onClick={() => handleRemoveCollaborator(perm.id, perm.user_email)}
+                                            title="Revogar acesso"
+                                         >
+                                           <Trash2 className="w-4 h-4" />
+                                         </Button>
+                                     </div>
+                                 ) : (
+                                     <Badge variant="outline" className="capitalize">
+                                         {perm.access_level === 'read' ? 'Leitura' : perm.access_level === 'comment' ? 'Comentário' : 'Edição'}
+                                     </Badge>
                                  )}
-                                 {email === document.uploaded_by && <Badge variant="secondary" className="text-xs">Dono</Badge>}
                                </div>
                              );
                           })}
                         </div>
+                      </div>
+
+                      {/* Audit Log Trigger */}
+                      <div className="pt-4 border-t flex justify-center">
+                          <Button 
+                            variant="link" 
+                            className="text-xs text-gray-500 h-auto p-0"
+                            onClick={() => {
+                                loadLogs();
+                                setShowPermissionsLog(true);
+                            }}
+                          >
+                            Ver histórico de compartilhamento
+                          </Button>
                       </div>
                     </div>
                   </DialogContent>
@@ -303,10 +518,12 @@ export default function DocumentEditor({ docId, onClose, currentUser }) {
              </>
            )}
            
-           <Button onClick={handleSave} disabled={isSaving} className="bg-blue-600 hover:bg-blue-700 gap-2">
-             {isSaving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-             Salvar
-           </Button>
+           {canEdit && (
+               <Button onClick={handleSave} disabled={isSaving} className="bg-blue-600 hover:bg-blue-700 gap-2">
+                 {isSaving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                 Salvar
+               </Button>
+           )}
         </div>
       </div>
 
@@ -314,19 +531,20 @@ export default function DocumentEditor({ docId, onClose, currentUser }) {
       <div className="flex-1 bg-gray-50 p-4 overflow-y-auto flex justify-center">
          <div className="w-full max-w-4xl bg-white shadow-lg rounded-lg min-h-[calc(100vh-8rem)] flex flex-col">
             <ReactQuill 
-              theme="snow" 
-              value={content} 
-              onChange={setContent} 
-              className="flex-1 flex flex-col"
-              modules={{
-                toolbar: [
-                  [{ 'header': [1, 2, 3, false] }],
-                  ['bold', 'italic', 'underline', 'strike'],
-                  [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-                  ['link', 'image'],
-                  ['clean']
-                ],
-              }}
+             theme="snow" 
+             value={content} 
+             onChange={setContent} 
+             readOnly={!canEdit}
+             className={`flex-1 flex flex-col ${!canEdit ? 'bg-gray-50 cursor-not-allowed' : ''}`}
+             modules={{
+               toolbar: canEdit ? [
+                 [{ 'header': [1, 2, 3, false] }],
+                 ['bold', 'italic', 'underline', 'strike'],
+                 [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                 ['link', 'image'],
+                 ['clean']
+               ] : false,
+             }}
             />
          </div>
       </div>
