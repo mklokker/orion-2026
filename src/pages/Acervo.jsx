@@ -38,6 +38,7 @@ import {
 import CreateDocumentModal from "../components/acervo/CreateDocumentModal";
 import DocumentViewer from "../components/acervo/DocumentViewer";
 import CategoryManager from "../components/acervo/CategoryManager";
+import DocumentEditor from "../components/acervo/DocumentEditor";
 
 const formatFileSize = (bytes) => {
   if (!bytes) return "0 B";
@@ -72,6 +73,8 @@ export default function Acervo() {
   const [viewingDocument, setViewingDocument] = useState(null);
   const [showViewer, setShowViewer] = useState(false);
   const [editingDocument, setEditingDocument] = useState(null);
+  const [showEditor, setShowEditor] = useState(false);
+  const [editorDocId, setEditorDocId] = useState(null);
 
   const isAdmin = currentUser?.role === 'admin';
 
@@ -151,9 +154,15 @@ export default function Acervo() {
   };
 
   const handleEdit = (doc) => {
-    setEditingDocument(doc);
-    setShowViewer(false); // Close viewer if open
-    setShowCreateModal(true); // Open create modal for editing
+    if (doc.document_type === 'text') {
+      setEditorDocId(doc.id);
+      setShowViewer(false);
+      setShowEditor(true);
+    } else {
+      setEditingDocument(doc);
+      setShowViewer(false); // Close viewer if open
+      setShowCreateModal(true); // Open create modal for editing
+    }
   };
 
   const handleDelete = async (doc) => {
@@ -298,6 +307,17 @@ export default function Acervo() {
               </Button>
             )}
             <Button
+              variant="outline"
+              onClick={() => {
+                setEditorDocId('new');
+                setShowEditor(true);
+              }}
+              className="gap-2"
+            >
+              <FileText className="w-4 h-4" />
+              Novo Texto Colaborativo
+            </Button>
+            <Button
               onClick={() => {
                 setEditingDocument(null); // Ensure no document is being edited when opening for creation
                 setShowCreateModal(true);
@@ -305,7 +325,7 @@ export default function Acervo() {
               className="gap-2 bg-gradient-to-r from-blue-600 to-indigo-600"
             >
               <Plus className="w-4 h-4" />
-              Novo Documento
+              Upload Arquivo
             </Button>
           </div>
         </div>
