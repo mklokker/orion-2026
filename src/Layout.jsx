@@ -13,6 +13,7 @@ import {
   Star,
   Bell,
   MessageSquare,
+  MessageCircle,
   Files,
   GraduationCap,
   Eraser,
