@@ -280,6 +280,7 @@ export default function Layout({ children }) {
     { title: "Gestão de Tarefas", url: createPageUrl("GestaoTarefas"), icon: ClipboardList },
     { title: "Carga Diária", url: createPageUrl("CargaDiaria"), icon: FileText },
     { title: "Chat", url: createPageUrl("Chat"), icon: MessageSquare, badge: unreadChatCount },
+    { title: "WhatsApp", url: createPageUrl("Whatsapp"), icon: MessageCircle },
     { title: "Acervo", url: createPageUrl("Acervo"), icon: Files },
     { title: "Cursos", url: createPageUrl("Cursos"), icon: GraduationCap },
     { title: "Removedor", url: createPageUrl("Removedor"), icon: Eraser },

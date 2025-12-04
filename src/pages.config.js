@@ -9,6 +9,7 @@ import Chat from './pages/Chat';
 import Acervo from './pages/Acervo';
 import Cursos from './pages/Cursos';
 import Removedor from './pages/Removedor';
+import Whatsapp from './pages/Whatsapp';
 import __Layout from './Layout.jsx';
 
 
@@ -24,6 +25,7 @@ export const PAGES = {
     "Acervo": Acervo,
     "Cursos": Cursos,
     "Removedor": Removedor,
+    "Whatsapp": Whatsapp,
 }
 
 export const pagesConfig = {
