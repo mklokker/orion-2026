@@ -38,6 +38,7 @@ import {
   Edit2
 } from "lucide-react";
 import GroupSettingsModal from "@/components/chat/GroupSettingsModal";
+import ChatSettingsModal from "@/components/chat/ChatSettingsModal";
 import ChatInputArea from "@/components/chat/ChatInputArea";
 import MessageBubble from "@/components/chat/MessageBubble";
 import { useToast } from "@/components/ui/use-toast";
@@ -179,6 +180,7 @@ export default function Chat() {
   );
   const [appSettings, setAppSettings] = useState(null);
   const [showGroupSettings, setShowGroupSettings] = useState(false); // Group settings modal state
+  const [showChatSettings, setShowChatSettings] = useState(false); // User chat settings
 
   const isAdmin = currentUser?.role === 'admin';
 
@@ -627,9 +629,33 @@ export default function Chat() {
     queryClient.invalidateQueries({ queryKey: ['messages', conversationId] });
   };
 
-  const handleSelectConversation = (conversation) => {
+  const handleSelectConversation = async (conversation) => {
     setSelectedConversation(conversation);
-    // Messages will load via hook
+    
+    // Optimistically mark as read in UI
+    const unreadCount = unreadByConversation[conversation.id] || 0;
+    if (unreadCount > 0) {
+      // Update cache optimistically
+      queryClient.setQueryData(['unreadChatCounts', currentUser?.email], (old) => {
+        if (!old) return old;
+        const newUnreadByConv = { ...old.unreadByConversation };
+        delete newUnreadByConv[conversation.id]; // Remove unread count for this conv
+        
+        return {
+          ...old,
+          totalUnread: Math.max(0, old.totalUnread - unreadCount),
+          unreadByConversation: newUnreadByConv
+        };
+      });
+
+      // Trigger backend update
+      try {
+        const { base44 } = await import("@/api/base44Client");
+        await base44.functions.invoke('markConversationAsRead', { conversation_id: conversation.id });
+      } catch (error) {
+        console.error("Failed to mark messages as read", error);
+      }
+    }
   };
 
   const extractMentions = (text) => {
@@ -1338,6 +1364,14 @@ export default function Chat() {
               )}
               <Button
                 size="icon"
+                variant="outline"
+                onClick={() => setShowChatSettings(true)}
+                title="Configurações de Notificação"
+              >
+                <Settings className="w-4 h-4" />
+              </Button>
+              <Button
+                size="icon"
                 onClick={() => {
                   setShowNewChatDialog(true);
                   setSearchQuery("");
@@ -1824,6 +1858,18 @@ export default function Chat() {
           users={users}
           onUpdate={() => {
             queryClient.invalidateQueries({ queryKey: ['conversations'] });
+          }}
+        />
+      )}
+
+      {currentUser && (
+        <ChatSettingsModal 
+          open={showChatSettings}
+          onClose={() => setShowChatSettings(false)}
+          currentUser={currentUser}
+          onUpdate={() => {
+            // Refresh user data to apply new settings
+            loadInitialData();
           }}
         />
       )}

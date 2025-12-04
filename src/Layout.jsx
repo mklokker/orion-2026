@@ -112,23 +112,55 @@ export default function Layout({ children }) {
   const unreadChatCount = chatData?.totalUnread || 0;
   const latestMessageDate = chatData?.latestMessageDate;
   const latestMessageBy = chatData?.latestMessageBy;
+  const latestMessageType = chatData?.latestMessageType;
 
   // Sound Notification Logic
   const lastSoundPlayedRef = React.useRef(null);
+  const lastSenderRef = React.useRef(null);
+  const lastSoundTimeRef = React.useRef(0);
 
   React.useEffect(() => {
     if (latestMessageDate && latestMessageBy && user) {
-      // Check if the message is new (newer than last sound played)
       const isNewMessage = !lastSoundPlayedRef.current || new Date(latestMessageDate) > new Date(lastSoundPlayedRef.current);
-      // Check if message is NOT from current user
       const isNotFromMe = latestMessageBy !== user.email;
 
       if (isNewMessage && isNotFromMe) {
+        // Check User Preferences
+        const prefs = user.chat_preferences || {};
+        
+        // 1. Check Do Not Disturb
+        if (prefs.dnd_until && new Date(prefs.dnd_until) > new Date()) {
+          return;
+        }
+
+        // 2. Check Conversation Type Permissions
+        // Assuming defaults to true if not set
+        const notifyDirect = prefs.notify_direct !== false;
+        const notifyGroup = prefs.notify_group !== false;
+
+        if (latestMessageType === 'direct' && !notifyDirect) return;
+        if ((latestMessageType === 'group' || latestMessageType === 'department') && !notifyGroup) return;
+
+        // 3. Grouping/Debounce Logic
+        const now = Date.now();
+        const timeDiff = now - lastSoundTimeRef.current;
+        const sameSender = lastSenderRef.current === latestMessageBy;
+
+        // If same sender within 10 seconds, skip sound (grouped notification)
+        if (sameSender && timeDiff < 10000) {
+          lastSoundPlayedRef.current = latestMessageDate;
+          return;
+        }
+
         playNotificationSound();
+        
+        // Update refs
         lastSoundPlayedRef.current = latestMessageDate;
+        lastSenderRef.current = latestMessageBy;
+        lastSoundTimeRef.current = now;
       }
     }
-  }, [latestMessageDate, latestMessageBy, user]);
+  }, [latestMessageDate, latestMessageBy, user, latestMessageType]);
 
   const playNotificationSound = () => {
     if (!appSettings || appSettings.notification_sound === 'none') return;

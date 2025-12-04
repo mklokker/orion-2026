@@ -22,9 +22,9 @@ Deno.serve(async (req) => {
         const unreadByConversation = {};
         let latestMessageDate = null;
         let latestMessageBy = null;
+        let latestMessageType = null; // direct, group, department
 
         // Check unread for each conversation
-        // We run this in parallel for speed
         await Promise.all(myConversations.map(async (conv) => {
             // Check global latest message for sound notification
             if (conv.last_message_date) {
@@ -33,12 +33,10 @@ Deno.serve(async (req) => {
                 if (convDate > currentLatest) {
                     latestMessageDate = conv.last_message_date;
                     latestMessageBy = conv.last_message_by;
+                    latestMessageType = conv.conversation_type;
                 }
             }
 
-            // Optimization: Check if last message was sent by me, if so, likely no unread (unless others spoke after)
-            // But to be sure, we fetch messages.
-            // Fetch latest 20 messages
             const messages = await base44.entities.ChatMessage.filter(
                 { conversation_id: conv.id },
                 '-created_date',
@@ -50,8 +48,6 @@ Deno.serve(async (req) => {
                 if (msg.sender_email !== user.email && !msg.read_by?.includes(user.email)) {
                     convUnread++;
                 } else {
-                    // Once we hit a message read by us or sent by us, older ones are likely read too
-                    // (Assuming linear reading)
                     break; 
                 }
             }
@@ -66,7 +62,8 @@ Deno.serve(async (req) => {
             totalUnread,
             unreadByConversation,
             latestMessageDate,
-            latestMessageBy
+            latestMessageBy,
+            latestMessageType
         });
 
     } catch (error) {
