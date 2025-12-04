@@ -55,6 +55,7 @@ export default function DocumentEditor({ docId, onClose, currentUser }) {
           uploaded_by: currentUser?.email || '',
           uploaded_by_name: currentUser?.full_name || 'Usuário'
         });
+        setCurrentUserPermission('owner');
         return;
       }
 
@@ -73,8 +74,8 @@ export default function DocumentEditor({ docId, onClose, currentUser }) {
         const perms = await DocumentPermission.filter({ document_id: doc.id });
         setPermissions(perms);
         
-        const myPerm = perms.find(p => p.user_email === currentUser.email);
-        setCurrentUserPermission(myPerm?.access_level || (doc.uploaded_by === currentUser.email ? 'owner' : null));
+        const myPerm = perms.find(p => p.user_email === currentUser?.email);
+        setCurrentUserPermission(myPerm?.access_level || (doc.uploaded_by === currentUser?.email ? 'owner' : null));
 
       }
     } catch (error) {
@@ -267,7 +268,7 @@ export default function DocumentEditor({ docId, onClose, currentUser }) {
   );
 
   const filteredUsers = users.filter(u => 
-    u.email !== currentUser.email && 
+    u.email !== currentUser?.email && 
     !permissions.some(p => p.user_email === u.email) &&
     (u.display_name?.toLowerCase().includes(searchUser.toLowerCase()) || u.email.toLowerCase().includes(searchUser.toLowerCase()))
   );
