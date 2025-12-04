@@ -32,6 +32,7 @@ import AutoStatusUpdater from "../components/gestao/AutoStatusUpdater";
 import TaskViewEditModal from "../components/tasks/TaskViewEditModal";
 import ServiceViewEditModal from "../components/services/ServiceViewEditModal";
 import BulkActionsModal from "../components/gestao/BulkActionsModal";
+import BulkTextLaunchModal from "../components/gestao/BulkTextLaunchModal";
 import { TaskInteraction } from "@/entities/TaskInteraction";
 import { ServiceInteraction } from "@/entities/ServiceInteraction";
 import { useQueryClient } from "@tanstack/react-query";
@@ -128,6 +129,7 @@ export default function GestaoTarefas() {
   const [showServiceModalView, setShowServiceModalView] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [showBulkActionsModal, setShowBulkActionsModal] = useState(false);
+  const [showBulkTextModal, setShowBulkTextModal] = useState(false);
   const [activeTab, setActiveTab] = useState("ativas");
   
   // Novos filtros
@@ -535,6 +537,14 @@ export default function GestaoTarefas() {
               <>
                 <Button
                   variant="outline"
+                  onClick={() => setShowBulkTextModal(true)}
+                  className="gap-2 bg-white"
+                >
+                  <FileText className="w-4 h-4" />
+                  Lançar em Lote (Texto)
+                </Button>
+                <Button
+                  variant="outline"
                   onClick={() => setShowServiceModal(true)}
                   className="gap-2 bg-white"
                 >
@@ -848,6 +858,14 @@ export default function GestaoTarefas() {
         departments={departments}
         onAction={handleBulkAction}
         isAdmin={isAdmin}
+      />
+
+      <BulkTextLaunchModal
+        open={showBulkTextModal}
+        onClose={() => setShowBulkTextModal(false)}
+        users={users}
+        onCreateTasks={handleCreateTasks}
+        onCreateServices={handleCreateServices}
       />
     </div>
   );
