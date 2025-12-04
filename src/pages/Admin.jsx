@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Trash2, Building2, Users, Upload, MessageCircle } from "lucide-react";
+import { Plus, Trash2, Building2, Users, Upload, MessageCircle, QrCode } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useToast } from "@/components/ui/use-toast";
 import { Badge } from "@/components/ui/badge";
@@ -409,15 +409,17 @@ export default function Admin() {
                     O "Assistente Virtual" responderá automaticamente às dúvidas e poderá ser utilizado por toda a equipe.
                   </p>
                   
-                  <div className="bg-green-50 p-4 rounded-lg border border-green-100">
-                    <h4 className="font-medium text-green-800 mb-1">Status da Conexão</h4>
-                    <p className="text-xs text-green-600 mb-3">
-                      Clique abaixo para escanear o QR Code e conectar o número do escritório.
+                  <div className="bg-white p-6 rounded-xl border-2 border-dashed border-green-200 flex flex-col items-center text-center hover:bg-green-50/30 transition-colors">
+                    <div className="mb-4 p-4 bg-green-100 rounded-full">
+                        <QrCode className="w-8 h-8 text-green-700" />
+                    </div>
+                    <h4 className="font-semibold text-gray-900 mb-2">Conectar WhatsApp Web</h4>
+                    <p className="text-sm text-gray-600 mb-6 max-w-sm">
+                      Para usar o sistema como WhatsApp Web, clique no botão abaixo para gerar o QR Code e escaneie com seu celular em <strong>Configurações {'>'} Aparelhos conectados</strong>.
                     </p>
                     
                     <Button
-                      variant="outline"
-                      className="w-full gap-2 border-green-200 hover:bg-green-100 text-green-700 bg-white"
+                      className="w-full max-w-xs gap-2 bg-[#00a884] hover:bg-[#008f6f] text-white font-semibold shadow-md h-12 rounded-full"
                       asChild
                     >
                       <a
@@ -425,10 +427,13 @@ export default function Admin() {
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        <MessageCircle className="w-4 h-4" />
-                        Conectar WhatsApp do Sistema
+                        <QrCode className="w-5 h-5" />
+                        Gerar QR Code de Conexão
                       </a>
                     </Button>
+                    <p className="text-xs text-gray-400 mt-4">
+                      Após conectar, acesse a aba <strong>WhatsApp</strong> no menu para conversar.
+                    </p>
                   </div>
                 </div>
               </CardContent>
