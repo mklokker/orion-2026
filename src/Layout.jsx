@@ -107,7 +107,57 @@ export default function Layout({ children }) {
   const [appSettings, setAppSettings] = React.useState(null);
   const [showNotifications, setShowNotifications] = React.useState(false);
   const [unreadCount, setUnreadCount] = React.useState(0);
-  const [unreadChatCount, setUnreadChatCount] = React.useState(0); // Kept for now, but not used in navItems
+  
+  const { data: chatData } = useUnreadChatCounts(user?.email);
+  const unreadChatCount = chatData?.totalUnread || 0;
+  const latestMessageDate = chatData?.latestMessageDate;
+  const latestMessageBy = chatData?.latestMessageBy;
+
+  // Sound Notification Logic
+  const lastSoundPlayedRef = React.useRef(null);
+
+  React.useEffect(() => {
+    if (latestMessageDate && latestMessageBy && user) {
+      // Check if the message is new (newer than last sound played)
+      const isNewMessage = !lastSoundPlayedRef.current || new Date(latestMessageDate) > new Date(lastSoundPlayedRef.current);
+      // Check if message is NOT from current user
+      const isNotFromMe = latestMessageBy !== user.email;
+
+      if (isNewMessage && isNotFromMe) {
+        playNotificationSound();
+        lastSoundPlayedRef.current = latestMessageDate;
+      }
+    }
+  }, [latestMessageDate, latestMessageBy, user]);
+
+  const playNotificationSound = () => {
+    if (!appSettings || appSettings.notification_sound === 'none') return;
+    
+    try {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) return;
+      
+      const audioContext = new AudioContext();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.start(audioContext.currentTime);
+      
+      const soundType = appSettings.notification_sound || 'default';
+      
+      // Simple sound logic (can be same as in Chat.js)
+      oscillator.frequency.value = 440;
+      oscillator.type = 'sine';
+      gainNode.gain.setValueAtTime(0.1, audioContext.currentTime); // Lower volume for background
+      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+      oscillator.stop(audioContext.currentTime + 0.5);
+    } catch (e) {
+      console.error("Audio play failed", e);
+    }
+  };
   
   const [selectedItem, setSelectedItem] = React.useState(null);
   const [showTaskModal, setShowTaskModal] = React.useState(false);
