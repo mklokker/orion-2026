@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Department } from "@/entities/Department";
 import { User } from "@/entities/User";
@@ -8,7 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Trash2, Building2, Users, Upload } from "lucide-react";
+import { Plus, Trash2, Building2, Users, Upload, MessageCircle } from "lucide-react";
+import { base44 } from "@/api/base44Client";
 import { useToast } from "@/components/ui/use-toast";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -392,7 +392,48 @@ export default function Admin() {
         </Card>
 
         {/* New Appearance Settings Card */}
-        <AppearanceSettings />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <AppearanceSettings />
+
+            <Card className="shadow-lg border-0 h-fit">
+              <CardHeader className="border-b bg-gradient-to-r from-green-50 to-emerald-50">
+                <CardTitle className="flex items-center gap-2">
+                  <MessageCircle className="w-5 h-5 text-green-600" />
+                  Integração WhatsApp
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <div className="flex flex-col gap-4">
+                  <p className="text-sm text-gray-600">
+                    Conecte uma conta de WhatsApp para oferecer um canal único de comunicação para todos os usuários.
+                    O "Assistente Virtual" responderá automaticamente às dúvidas e poderá ser utilizado por toda a equipe.
+                  </p>
+                  
+                  <div className="bg-green-50 p-4 rounded-lg border border-green-100">
+                    <h4 className="font-medium text-green-800 mb-1">Status da Conexão</h4>
+                    <p className="text-xs text-green-600 mb-3">
+                      Clique abaixo para escanear o QR Code e conectar o número do escritório.
+                    </p>
+                    
+                    <Button
+                      variant="outline"
+                      className="w-full gap-2 border-green-200 hover:bg-green-100 text-green-700 bg-white"
+                      asChild
+                    >
+                      <a
+                        href={base44.agents.getWhatsAppConnectURL('system_assistant')}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <MessageCircle className="w-4 h-4" />
+                        Conectar WhatsApp do Sistema
+                      </a>
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+        </div>
 
       </div>
 
