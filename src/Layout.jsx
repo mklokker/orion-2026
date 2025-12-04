@@ -152,7 +152,9 @@ export default function Layout({ children }) {
           return;
         }
 
+        // Trigger Sound & Desktop Notification
         playNotificationSound();
+        showDesktopNotification(latestMessageBy);
         
         // Update refs
         lastSoundPlayedRef.current = latestMessageDate;
@@ -162,8 +164,45 @@ export default function Layout({ children }) {
     }
   }, [latestMessageDate, latestMessageBy, user, latestMessageType]);
 
+  const showDesktopNotification = (senderEmail) => {
+    if (typeof Notification === 'undefined') return;
+    
+    if (Notification.permission === "granted") {
+      // Don't show if window is focused (optional preference, but user asked for background notifications)
+      // Actually user said "mesmo que não estivesse com a aba do sistema", implying background.
+      // Standard behavior is to show if hidden.
+      
+      if (document.visibilityState === 'hidden') {
+        const senderName = senderEmail.split('@')[0]; // Simple name extraction if user object not available fully
+        const notification = new Notification("Nova mensagem", {
+          body: `Você recebeu uma nova mensagem de ${senderName}`,
+          icon: '/favicon.ico',
+          tag: 'chat-message' // Replace existing to avoid stacking too many
+        });
+        
+        notification.onclick = () => {
+          window.focus();
+          notification.close();
+        };
+      }
+    }
+  };
+
   const playNotificationSound = () => {
-    if (!appSettings || appSettings.notification_sound === 'none') return;
+    // Priority: User Preference > App Settings > Default
+    const userSound = user?.chat_preferences?.notification_sound;
+    const appSound = appSettings?.notification_sound;
+    
+    // If explicit 'none' in app settings, we might respect it, 
+    // BUT user pref should probably override. 
+    // If user hasn't set anything (undefined), fallback to app.
+    
+    // Let's assume user preference 'default' means "use app setting or standard beep"
+    // If user specifically sets a sound, use it.
+    
+    const soundType = (userSound && userSound !== 'default') ? userSound : (appSound || 'default');
+    
+    if (soundType === 'none') return;
     
     try {
       const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -178,18 +217,49 @@ export default function Layout({ children }) {
       
       oscillator.start(audioContext.currentTime);
       
-      const soundType = appSettings.notification_sound || 'default';
-      
-      // Simple sound logic (can be same as in Chat.js)
-      oscillator.frequency.value = 440;
-      oscillator.type = 'sine';
-      gainNode.gain.setValueAtTime(0.1, audioContext.currentTime); // Lower volume for background
-      gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
-      oscillator.stop(audioContext.currentTime + 0.5);
+      switch(soundType) {
+        case 'chime':
+          oscillator.frequency.value = 800;
+          oscillator.type = 'sine';
+          gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+          oscillator.stop(audioContext.currentTime + 0.5);
+          break;
+        case 'bell':
+          oscillator.frequency.value = 1000;
+          oscillator.type = 'sine';
+          gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.8);
+          oscillator.stop(audioContext.currentTime + 0.8);
+          break;
+        case 'pop':
+          oscillator.frequency.value = 600;
+          oscillator.type = 'square';
+          gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+          oscillator.stop(audioContext.currentTime + 0.15);
+          break;
+        case 'ding':
+          oscillator.frequency.value = 1200;
+          oscillator.type = 'triangle';
+          gainNode.gain.setValueAtTime(0.25, audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+          oscillator.stop(audioContext.currentTime + 0.4);
+          break;
+        default:
+          oscillator.frequency.value = 440;
+          oscillator.type = 'sine';
+          gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+          oscillator.stop(audioContext.currentTime + 0.3);
+          break;
+      }
     } catch (e) {
       console.error("Audio play failed", e);
     }
   };
+
+
   
   const [selectedItem, setSelectedItem] = React.useState(null);
   const [showTaskModal, setShowTaskModal] = React.useState(false);

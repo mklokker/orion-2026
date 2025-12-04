@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Bell, Moon, MessageSquare, Users, AtSign } from "lucide-react";
+import { Bell, Moon, MessageSquare, Users, AtSign, Volume2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { User } from "@/entities/User";
 
@@ -19,10 +19,72 @@ export default function ChatSettingsModal({ open, onClose, currentUser, onUpdate
     notify_direct: true,
     notify_group: true,
     notify_mentions: true,
-    dnd_until: null
+    dnd_until: null,
+    notification_sound: "default"
   });
 
   const [dndDuration, setDndDuration] = useState("none");
+
+  const playSoundPreview = (soundType) => {
+    try {
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      if (!AudioContext) return;
+      
+      const audioContext = new AudioContext();
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.start(audioContext.currentTime);
+      
+      switch(soundType) {
+        case 'chime':
+          oscillator.frequency.value = 800;
+          oscillator.type = 'sine';
+          gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+          oscillator.stop(audioContext.currentTime + 0.5);
+          break;
+        case 'bell':
+          oscillator.frequency.value = 1000;
+          oscillator.type = 'sine';
+          gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.8);
+          oscillator.stop(audioContext.currentTime + 0.8);
+          break;
+        case 'pop':
+          oscillator.frequency.value = 600;
+          oscillator.type = 'square';
+          gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+          oscillator.stop(audioContext.currentTime + 0.15);
+          break;
+        case 'ding':
+          oscillator.frequency.value = 1200;
+          oscillator.type = 'triangle';
+          gainNode.gain.setValueAtTime(0.25, audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
+          oscillator.stop(audioContext.currentTime + 0.4);
+          break;
+        default: // default
+          oscillator.frequency.value = 440;
+          oscillator.type = 'sine';
+          gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+          gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+          oscillator.stop(audioContext.currentTime + 0.3);
+          break;
+      }
+    } catch (e) {
+      console.error("Audio preview failed", e);
+    }
+  };
+
+  const handleSoundChange = (value) => {
+    setPreferences(prev => ({ ...prev, notification_sound: value }));
+    playSoundPreview(value);
+  };
 
   const handleToggle = (key) => {
     setPreferences(prev => ({ ...prev, [key]: !prev[key] }));
@@ -99,6 +161,30 @@ export default function ChatSettingsModal({ open, onClose, currentUser, onUpdate
               </SelectContent>
             </Select>
             <p className="text-xs text-slate-500">Silencia sons e popups de notificação durante o período.</p>
+          </div>
+
+          {/* Sound Settings */}
+          <div className="bg-white p-4 rounded-lg border space-y-3">
+            <div className="flex items-center gap-2">
+              <Volume2 className="w-5 h-5 text-slate-500" />
+              <Label className="font-medium text-base">Som de Notificação</Label>
+            </div>
+            
+            <Select 
+              value={preferences.notification_sound || "default"} 
+              onValueChange={handleSoundChange}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o som" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="default">Padrão (Bip)</SelectItem>
+                <SelectItem value="chime">Carrilhão (Suave)</SelectItem>
+                <SelectItem value="bell">Sino (Claro)</SelectItem>
+                <SelectItem value="pop">Pop (Curto)</SelectItem>
+                <SelectItem value="ding">Ding (Agudo)</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Notification Types */}
