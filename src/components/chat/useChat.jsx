@@ -9,10 +9,10 @@ import { useState, useEffect } from "react";
 const getPollingIntervals = () => {
   const isHidden = typeof document !== 'undefined' && document.hidden;
   return {
-    messages: isHidden ? 5000 : 1500,      // 5s background, 1.5s ativo
-    conversations: isHidden ? 8000 : 3000,  // 8s background, 3s ativo
-    typing: isHidden ? 5000 : 2000,         // 5s background, 2s ativo
-    unread: isHidden ? 8000 : 3000,         // 8s background, 3s ativo
+    messages: isHidden ? 8000 : 4000,       // 8s background, 4s ativo
+    conversations: isHidden ? 15000 : 8000, // 15s background, 8s ativo
+    typing: isHidden ? 8000 : 3000,         // 8s background, 3s ativo
+    unread: isHidden ? 15000 : 8000,        // 15s background, 8s ativo
     onlineStatus: 30000                     // sempre 30s
   };
 };
