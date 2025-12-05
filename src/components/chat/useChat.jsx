@@ -3,13 +3,59 @@ import { ChatConversation } from "@/entities/ChatConversation";
 import { ChatMessage } from "@/entities/ChatMessage";
 import { ChatTyping } from "@/entities/ChatTyping";
 import { User } from "@/entities/User";
+import { useState, useEffect } from "react";
 
-const MESSAGES_POLL_INTERVAL = 2000;
-const CONVERSATIONS_POLL_INTERVAL = 4000;
-const TYPING_POLL_INTERVAL = 2000;
-const ONLINE_STATUS_INTERVAL = 30000;
+// Polling inteligente baseado na visibilidade da página
+const getPollingIntervals = () => {
+  const isHidden = typeof document !== 'undefined' && document.hidden;
+  return {
+    messages: isHidden ? 5000 : 1500,      // 5s background, 1.5s ativo
+    conversations: isHidden ? 8000 : 3000,  // 8s background, 3s ativo
+    typing: isHidden ? 5000 : 2000,         // 5s background, 2s ativo
+    unread: isHidden ? 8000 : 3000,         // 8s background, 3s ativo
+    onlineStatus: 30000                     // sempre 30s
+  };
+};
+
+// Hook para detectar visibilidade da página
+export function usePageVisibility() {
+  const [isVisible, setIsVisible] = useState(
+    typeof document !== 'undefined' ? !document.hidden : true
+  );
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsVisible(!document.hidden);
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
+
+  return isVisible;
+}
+
+// Hook para atualizar o título da página com contador de mensagens
+export function useDocumentTitleBadge(unreadCount) {
+  useEffect(() => {
+    const originalTitle = "Orion";
+    
+    if (unreadCount > 0) {
+      document.title = `(${unreadCount > 99 ? '99+' : unreadCount}) ${originalTitle}`;
+    } else {
+      document.title = originalTitle;
+    }
+
+    return () => {
+      document.title = originalTitle;
+    };
+  }, [unreadCount]);
+}
 
 export function useConversations(userEmail) {
+  const isVisible = usePageVisibility();
+  const intervals = getPollingIntervals();
+
   return useQuery({
     queryKey: ['conversations', userEmail],
     queryFn: async () => {
@@ -27,11 +73,14 @@ export function useConversations(userEmail) {
       }
     },
     enabled: !!userEmail,
-    refetchInterval: CONVERSATIONS_POLL_INTERVAL
+    refetchInterval: intervals.conversations
   });
 }
 
 export function useMessages(conversationId) {
+  const isVisible = usePageVisibility();
+  const intervals = getPollingIntervals();
+
   return useQuery({
     queryKey: ['messages', conversationId],
     queryFn: async () => {
@@ -47,7 +96,7 @@ export function useMessages(conversationId) {
       }
     },
     enabled: !!conversationId,
-    refetchInterval: MESSAGES_POLL_INTERVAL
+    refetchInterval: intervals.messages
   });
 }
 
@@ -88,6 +137,8 @@ export function useTypingStatus(conversationId, userEmail) {
     }
   });
 
+  const intervals = getPollingIntervals();
+
   // Query to get who is typing
   const { data: typingUsers = [] } = useQuery({
     queryKey: ['typing', conversationId],
@@ -107,7 +158,7 @@ export function useTypingStatus(conversationId, userEmail) {
       return recent.map(r => r.user_email);
     },
     enabled: !!conversationId,
-    refetchInterval: TYPING_POLL_INTERVAL
+    refetchInterval: intervals.typing
   });
 
   return {
@@ -138,6 +189,9 @@ export function useOnlineStatusUpdater(userEmail) {
 }
 
 export function useUnreadChatCounts(userEmail) {
+  const isVisible = usePageVisibility();
+  const intervals = getPollingIntervals();
+
   return useQuery({
     queryKey: ['unreadChatCounts', userEmail],
     queryFn: async () => {
@@ -152,6 +206,6 @@ export function useUnreadChatCounts(userEmail) {
       }
     },
     enabled: !!userEmail,
-    refetchInterval: 5000 // Poll every 5s
+    refetchInterval: intervals.unread
   });
 }
