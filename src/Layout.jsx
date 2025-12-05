@@ -41,7 +41,7 @@ import { Service } from "@/entities/Service";
 import { AppSettings } from "@/entities/AppSettings";
 import { ChatMessage } from "@/entities/ChatMessage";
 import { ChatConversation } from "@/entities/ChatConversation";
-import { useUnreadChatCounts } from "@/components/chat/useChat";
+import { useUnreadChatCounts, useDocumentTitleBadge, usePageVisibility } from "@/components/chat/useChat";
 import UserProfileModal from "./components/profile/UserProfileModal";
 import NotificationCenter from "./components/notifications/NotificationCenter";
 import TaskViewEditModal from "./components/tasks/TaskViewEditModal";
@@ -117,6 +117,10 @@ export default function Layout({ children }) {
   const latestMessageBy = chatData?.latestMessageBy;
   const latestMessageType = chatData?.latestMessageType;
 
+  // Polling inteligente e badge no título
+  const isPageVisible = usePageVisibility();
+  useDocumentTitleBadge(unreadChatCount);
+
   // Sound Notification Logic
   const lastSoundPlayedRef = React.useRef(null);
   const lastSenderRef = React.useRef(null);
@@ -169,25 +173,30 @@ export default function Layout({ children }) {
 
   const showDesktopNotification = (senderEmail) => {
     if (typeof Notification === 'undefined') return;
-    
+
     if (Notification.permission === "granted") {
-      // Modo intrusivo: Notifica SEMPRE, independente de foco ou visibilidade
       const senderName = senderEmail.split('@')[0]; 
-      
+
       try {
+        // Notificação funciona mesmo com aba minimizada (desde que aberta)
         const notification = new Notification(`Nova mensagem de ${senderName}`, {
           body: `Você recebeu uma nova mensagem! Clique para ver.`,
           icon: '/favicon.ico',
-          requireInteraction: true, // Notificação persiste até o usuário fechar
-          vibrate: [200, 100, 200, 100, 200], // Padrão de vibração forte
+          requireInteraction: !isPageVisible, // Persiste se aba não está visível
+          vibrate: [200, 100, 200, 100, 200],
           silent: false,
-          // Tag removida para permitir empilhamento de notificações (spam) se desejado
+          tag: isPageVisible ? undefined : 'chat-notification' // Agrupa se em background
         });
-        
+
         notification.onclick = () => {
           window.focus();
           notification.close();
         };
+
+        // Auto-fechar após 8 segundos se a aba estiver visível
+        if (isPageVisible) {
+          setTimeout(() => notification.close(), 8000);
+        }
       } catch (e) {
         console.error("Erro ao disparar notificação desktop:", e);
       }
@@ -198,64 +207,66 @@ export default function Layout({ children }) {
     // Priority: User Preference > App Settings > Default
     const userSound = user?.chat_preferences?.notification_sound;
     const appSound = appSettings?.notification_sound;
-    
-    // If explicit 'none' in app settings, we might respect it, 
-    // BUT user pref should probably override. 
-    // If user hasn't set anything (undefined), fallback to app.
-    
-    // Let's assume user preference 'default' means "use app setting or standard beep"
-    // If user specifically sets a sound, use it.
-    
+
     const soundType = (userSound && userSound !== 'default') ? userSound : (appSound || 'default');
-    
+
     if (soundType === 'none') return;
-    
+
     try {
       const AudioContext = window.AudioContext || window.webkitAudioContext;
       if (!AudioContext) return;
-      
+
       const audioContext = new AudioContext();
+
+      // Resume AudioContext se suspenso (necessário para background)
+      if (audioContext.state === 'suspended') {
+        audioContext.resume();
+      }
+
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
-      
+
       oscillator.connect(gainNode);
       gainNode.connect(audioContext.destination);
-      
+
+      // Volume mais alto se aba minimizada
+      const volumeMultiplier = isPageVisible ? 1 : 1.3;
+
       oscillator.start(audioContext.currentTime);
-      
+
       switch(soundType) {
         case 'chime':
           oscillator.frequency.value = 800;
           oscillator.type = 'sine';
-          gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+          gainNode.gain.setValueAtTime(0.3 * volumeMultiplier, audioContext.currentTime);
           gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
           oscillator.stop(audioContext.currentTime + 0.5);
           break;
         case 'bell':
           oscillator.frequency.value = 1000;
           oscillator.type = 'sine';
-          gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+          gainNode.gain.setValueAtTime(0.3 * volumeMultiplier, audioContext.currentTime);
           gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.8);
           oscillator.stop(audioContext.currentTime + 0.8);
           break;
         case 'pop':
           oscillator.frequency.value = 600;
           oscillator.type = 'square';
-          gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+          gainNode.gain.setValueAtTime(0.2 * volumeMultiplier, audioContext.currentTime);
           gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
           oscillator.stop(audioContext.currentTime + 0.15);
           break;
         case 'ding':
           oscillator.frequency.value = 1200;
           oscillator.type = 'triangle';
-          gainNode.gain.setValueAtTime(0.25, audioContext.currentTime);
+          gainNode.gain.setValueAtTime(0.25 * volumeMultiplier, audioContext.currentTime);
           gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.4);
           oscillator.stop(audioContext.currentTime + 0.4);
           break;
         default:
           oscillator.frequency.value = 440;
           oscillator.type = 'sine';
-          gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+          gainNode.gain.setValueAtTime(0.3 * volumeMultiplier, audioContext.currentTime);
           gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
           oscillator.stop(audioContext.currentTime + 0.3);
           break;
