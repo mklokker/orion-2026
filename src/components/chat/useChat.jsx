@@ -168,6 +168,8 @@ export function useTypingStatus(conversationId, userEmail) {
 }
 
 export function useOnlineStatusUpdater(userEmail) {
+  const intervals = getPollingIntervals();
+  
   useQuery({
     queryKey: ['onlineStatusUpdate', userEmail],
     queryFn: async () => {
@@ -184,7 +186,7 @@ export function useOnlineStatusUpdater(userEmail) {
       }
     },
     enabled: !!userEmail,
-    refetchInterval: ONLINE_STATUS_INTERVAL
+    refetchInterval: intervals.onlineStatus
   });
 }
 
