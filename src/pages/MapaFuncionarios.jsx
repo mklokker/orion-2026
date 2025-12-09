@@ -277,6 +277,13 @@ export default function MapaFuncionarios() {
     setIsPanning(false);
   };
 
+  const handleWheel = (e) => {
+    e.preventDefault();
+    const delta = e.deltaY * -0.001;
+    const newZoom = Math.min(2, Math.max(0.5, zoom + delta));
+    setZoom(newZoom);
+  };
+
   const renderDeskPositions = (desk) => {
     const getUserAtPosition = (posIndex) => {
       const position = desk.positions?.find(p => p.position_index === posIndex);
@@ -564,9 +571,11 @@ export default function MapaFuncionarios() {
             handleMapMouseUp();
           }}
           onMouseDown={handleMapMouseDown}
+          onWheel={handleWheel}
           style={{
             transform: `scale(${zoom}) translate(${panOffset.x / zoom}px, ${panOffset.y / zoom}px)`,
             transformOrigin: '0 0',
+            transition: draggingDesk || isPanning ? 'none' : 'transform 0.1s ease-out',
             backgroundImage: 'radial-gradient(circle, #cbd5e1 1px, transparent 1px)',
             backgroundSize: '30px 30px',
             minWidth: '2000px',
@@ -583,12 +592,12 @@ export default function MapaFuncionarios() {
                 style={{
                   left: desk.position_x,
                   top: desk.position_y,
-                  cursor: isAdmin ? 'move' : 'default'
+                  cursor: isAdmin ? 'move' : 'pointer'
                 }}
                 onMouseDown={(e) => handleMouseDown(e, desk)}
               >
                 <Card 
-                  className="shadow-lg border-2 border-white transition-all hover:shadow-xl"
+                  className="shadow-lg border-2 border-white transition-all duration-200 hover:shadow-2xl hover:scale-105 hover:-translate-y-1 hover:border-yellow-300"
                   style={{
                     backgroundColor: desk.color || '#3B82F6',
                     width: desk.desk_type === 'single' ? '140px' : 
