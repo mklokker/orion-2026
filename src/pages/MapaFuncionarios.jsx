@@ -951,6 +951,7 @@ export default function MapaFuncionarios() {
         users={users}
         departments={departments}
         sectors={sectors}
+        desks={desks}
         onCreate={handleCreateDesk}
       />
 
@@ -974,6 +975,7 @@ export default function MapaFuncionarios() {
           users={users}
           departments={departments}
           sectors={sectors}
+          desks={desks}
           onUpdate={handleUpdateDesk}
         />
       )}

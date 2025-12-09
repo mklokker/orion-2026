@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-export default function CreateDeskModal({ open, onClose, users, departments, sectors, onCreate }) {
+export default function CreateDeskModal({ open, onClose, users, departments, sectors, desks, onCreate }) {
   const [deskData, setDeskData] = useState({
     name: "",
     desk_type: "single",
@@ -200,12 +200,19 @@ export default function CreateDeskModal({ open, onClose, users, departments, sec
             <Label>Funcionários ({deskData.capacity} posições)</Label>
             <div className="space-y-2 max-h-60 overflow-y-auto">
               {deskData.positions.map((pos, idx) => {
+                // Emails já selecionados nesta mesa
                 const selectedEmails = deskData.positions
                   .map(p => p.user_email)
                   .filter(email => email && email !== pos.user_email);
-                
+
+                // Emails já alocados em outras mesas
+                const allocatedEmails = desks?.flatMap(desk => 
+                  desk.positions?.map(p => p.user_email).filter(Boolean) || []
+                ) || [];
+
                 const availableUsers = users.filter(user => 
-                  !selectedEmails.includes(user.email)
+                  !selectedEmails.includes(user.email) &&
+                  !allocatedEmails.includes(user.email)
                 );
                 
                 return (
