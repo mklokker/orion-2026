@@ -31,6 +31,14 @@ export default function CreateDeskModal({ open, onClose, users, departments, sec
     color: "#3B82F6",
     rotation: 0
   });
+  const [employeeSearch, setEmployeeSearch] = useState({});
+
+  const normalizeText = (text) => {
+    return text
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
+  };
 
   const handleTypeChange = (type) => {
     let capacity = 1;
@@ -210,30 +218,58 @@ export default function CreateDeskModal({ open, onClose, users, departments, sec
                   desk.positions?.map(p => p.user_email).filter(Boolean) || []
                 ) || [];
 
-                const availableUsers = users.filter(user => 
+                let availableUsers = users.filter(user => 
                   !selectedEmails.includes(user.email) &&
                   !allocatedEmails.includes(user.email)
                 );
-                
+
+                // Filtrar por busca
+                const searchTerm = employeeSearch[idx] || "";
+                if (searchTerm.trim()) {
+                  const normalizedSearch = normalizeText(searchTerm);
+                  availableUsers = availableUsers.filter(user => {
+                    const userName = user.display_name || user.full_name || user.email;
+                    return normalizeText(userName).includes(normalizedSearch);
+                  });
+                }
+
+                // Ordenar alfabeticamente
+                availableUsers.sort((a, b) => {
+                  const nameA = (a.display_name || a.full_name || a.email).toLowerCase();
+                  const nameB = (b.display_name || b.full_name || b.email).toLowerCase();
+                  return nameA.localeCompare(nameB);
+                });
+
                 return (
-                  <div key={idx} className="flex items-center gap-2">
-                    <span className="text-sm text-gray-500 w-20">Posição {idx + 1}:</span>
-                    <Select 
-                      value={pos.user_email} 
-                      onValueChange={(value) => handleUserChange(idx, value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione um funcionário" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value={null}>Vazio</SelectItem>
-                        {availableUsers.map(user => (
-                          <SelectItem key={user.id} value={user.email}>
-                            {user.display_name || user.full_name || user.email}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  <div key={idx} className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-gray-500 w-20">Posição {idx + 1}:</span>
+                      <Input
+                        placeholder="Buscar funcionário..."
+                        value={employeeSearch[idx] || ""}
+                        onChange={(e) => setEmployeeSearch({...employeeSearch, [idx]: e.target.value})}
+                        className="text-xs h-8"
+                      />
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-20"></span>
+                      <Select 
+                        value={pos.user_email} 
+                        onValueChange={(value) => handleUserChange(idx, value)}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione um funcionário" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value={null}>Vazio</SelectItem>
+                          {availableUsers.map(user => (
+                            <SelectItem key={user.id} value={user.email}>
+                              {user.display_name || user.full_name || user.email}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 );
               })}
