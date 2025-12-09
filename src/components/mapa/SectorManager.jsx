@@ -29,7 +29,8 @@ export default function SectorManager({ open, onClose, sectors, onCreateSector, 
   const [sectorData, setSectorData] = useState({
     name: "",
     description: "",
-    color: "#3B82F6"
+    color: "#3B82F6",
+    floor: 1
   });
 
   const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#06B6D4', '#84CC16'];
@@ -40,7 +41,7 @@ export default function SectorManager({ open, onClose, sectors, onCreateSector, 
       return;
     }
     onCreateSector(sectorData);
-    setSectorData({ name: "", description: "", color: "#3B82F6" });
+    setSectorData({ name: "", description: "", color: "#3B82F6", floor: 1 });
     setShowCreateForm(false);
   };
 
@@ -49,7 +50,8 @@ export default function SectorManager({ open, onClose, sectors, onCreateSector, 
     setSectorData({
       name: sector.name,
       description: sector.description || "",
-      color: sector.color || "#3B82F6"
+      color: sector.color || "#3B82F6",
+      floor: sector.floor || 1
     });
   };
 
@@ -59,7 +61,7 @@ export default function SectorManager({ open, onClose, sectors, onCreateSector, 
       return;
     }
     onUpdateSector(editingSector.id, sectorData);
-    setSectorData({ name: "", description: "", color: "#3B82F6" });
+    setSectorData({ name: "", description: "", color: "#3B82F6", floor: 1 });
     setEditingSector(null);
   };
 
@@ -114,6 +116,7 @@ export default function SectorManager({ open, onClose, sectors, onCreateSector, 
                             {sector.description && (
                               <p className="text-xs text-gray-500">{sector.description}</p>
                             )}
+                            <p className="text-xs text-gray-400">{sector.floor === 1 ? '1º Piso' : '2º Piso'}</p>
                           </div>
                         </div>
                         <div className="flex gap-1">
@@ -160,6 +163,18 @@ export default function SectorManager({ open, onClose, sectors, onCreateSector, 
                 </div>
 
                 <div className="space-y-2">
+                  <Label>Andar</Label>
+                  <select
+                    value={sectorData.floor}
+                    onChange={(e) => setSectorData(prev => ({ ...prev, floor: parseInt(e.target.value) }))}
+                    className="w-full px-3 py-2 border rounded-lg"
+                  >
+                    <option value="1">1º Piso</option>
+                    <option value="2">2º Piso</option>
+                  </select>
+                </div>
+
+                <div className="space-y-2">
                   <Label>Cor do Setor</Label>
                   <div className="flex gap-2 flex-wrap">
                     {colors.map(color => (
@@ -182,7 +197,7 @@ export default function SectorManager({ open, onClose, sectors, onCreateSector, 
                     onClick={() => {
                       setShowCreateForm(false);
                       setEditingSector(null);
-                      setSectorData({ name: "", description: "", color: "#3B82F6" });
+                      setSectorData({ name: "", description: "", color: "#3B82F6", floor: 1 });
                     }}
                   >
                     Cancelar

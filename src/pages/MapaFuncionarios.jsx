@@ -60,6 +60,9 @@ export default function MapaFuncionarios() {
   const [desks, setDesks] = useState([]);
   const [sectors, setSectors] = useState([]);
   const [selectedSector, setSelectedSector] = useState("all");
+  const [selectedFloor, setSelectedFloor] = useState(1);
+  const [draggingSector, setDraggingSector] = useState(null);
+  const [sectorDragOffset, setSectorDragOffset] = useState({ x: 0, y: 0 });
   
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -218,9 +221,21 @@ export default function MapaFuncionarios() {
     }
   };
 
+  const handleSectorMouseDown = (e, sectorId) => {
+    if (!isAdmin || e.target.closest('.desk-card')) return;
+
+    e.stopPropagation();
+    const rect = mapRef.current.getBoundingClientRect();
+    setDraggingSector(sectorId);
+    setSectorDragOffset({
+      x: (e.clientX - rect.left) / zoom,
+      y: (e.clientY - rect.top) / zoom
+    });
+  };
+
   const handleMouseDown = (e, desk) => {
     if (!isAdmin) return;
-    
+
     e.stopPropagation();
     const rect = e.currentTarget.getBoundingClientRect();
     setDraggingDesk(desk);
@@ -231,11 +246,25 @@ export default function MapaFuncionarios() {
   };
 
   const handleMouseMove = (e) => {
-    if (draggingDesk && mapRef.current) {
+    if (draggingSector && mapRef.current) {
+      const rect = mapRef.current.getBoundingClientRect();
+      const currentX = (e.clientX - rect.left) / zoom;
+      const currentY = (e.clientY - rect.top) / zoom;
+      const deltaX = currentX - sectorDragOffset.x;
+      const deltaY = currentY - sectorDragOffset.y;
+
+      setDesks(prev => prev.map(d => 
+        d.sector_id === draggingSector
+          ? { ...d, position_x: Math.max(0, d.position_x + deltaX), position_y: Math.max(0, d.position_y + deltaY) }
+          : d
+      ));
+
+      setSectorDragOffset({ x: currentX, y: currentY });
+    } else if (draggingDesk && mapRef.current) {
       const rect = mapRef.current.getBoundingClientRect();
       const newX = (e.clientX - rect.left) / zoom - dragOffset.x;
       const newY = (e.clientY - rect.top) / zoom - dragOffset.y;
-      
+
       setDesks(prev => prev.map(d => 
         d.id === draggingDesk.id 
           ? { ...d, position_x: Math.max(0, newX), position_y: Math.max(0, newY) }
@@ -245,7 +274,20 @@ export default function MapaFuncionarios() {
   };
 
   const handleMouseUp = async () => {
-    if (draggingDesk) {
+    if (draggingSector) {
+      const sectorDesks = desks.filter(d => d.sector_id === draggingSector);
+      try {
+        await Promise.all(sectorDesks.map(desk => 
+          Desk.update(desk.id, {
+            position_x: desk.position_x,
+            position_y: desk.position_y
+          })
+        ));
+      } catch (error) {
+        console.error("Erro ao salvar posições do setor:", error);
+      }
+      setDraggingSector(null);
+    } else if (draggingDesk) {
       const updatedDesk = desks.find(d => d.id === draggingDesk.id);
       if (updatedDesk) {
         try {
@@ -433,9 +475,12 @@ export default function MapaFuncionarios() {
     return null;
   };
 
-  const filteredDesks = selectedSector === "all" 
-    ? desks 
-    : desks.filter(desk => desk.sector_id === selectedSector);
+  const filteredDesks = desks.filter(desk => {
+    const sector = sectors.find(s => s.id === desk.sector_id);
+    const floorMatch = !sector || sector.floor === selectedFloor;
+    const sectorMatch = selectedSector === "all" || desk.sector_id === selectedSector;
+    return floorMatch && sectorMatch;
+  });
 
   const currentSector = sectors.find(s => s.id === selectedSector);
 
@@ -569,6 +614,21 @@ export default function MapaFuncionarios() {
               )}
             </div>
             
+            <div className="flex items-center gap-2">
+              <select
+                value={selectedFloor}
+                onChange={(e) => {
+                  setSelectedFloor(parseInt(e.target.value));
+                  setSelectedSector("all");
+                  setSearchQuery("");
+                }}
+                className="w-full sm:w-auto px-2 md:px-3 py-1.5 border rounded-lg text-xs md:text-sm font-semibold bg-white hover:bg-gray-50 transition-colors border-indigo-300"
+              >
+                <option value="1">1º Piso</option>
+                <option value="2">2º Piso</option>
+              </select>
+            </div>
+
             {sectors.length > 0 && (
               <div className="flex items-center gap-2">
                 <Building2 className="w-4 h-4 text-gray-400 hidden sm:block" />
@@ -585,7 +645,7 @@ export default function MapaFuncionarios() {
                   }}
                 >
                   <option value="all">Todos os Setores</option>
-                  {sectors.map(sector => (
+                  {sectors.filter(s => s.floor === selectedFloor).map(sector => (
                     <option key={sector.id} value={sector.id}>
                       {sector.name}
                     </option>
@@ -689,15 +749,18 @@ export default function MapaFuncionarios() {
           {selectedSector === "all" && Object.entries(sectorBoundaries).map(([sectorId, boundary]) => (
             <div
               key={`boundary-${sectorId}`}
-              className="absolute border-2 border-dashed rounded-2xl pointer-events-none"
+              className="absolute border-2 border-dashed rounded-2xl transition-all"
               style={{
                 left: boundary.minX,
                 top: boundary.minY,
                 width: boundary.maxX - boundary.minX,
                 height: boundary.maxY - boundary.minY,
                 borderColor: boundary.sector?.color || '#94a3b8',
-                backgroundColor: `${boundary.sector?.color || '#94a3b8'}10`
+                backgroundColor: `${boundary.sector?.color || '#94a3b8'}10`,
+                cursor: isAdmin ? 'move' : 'default',
+                pointerEvents: isAdmin ? 'auto' : 'none'
               }}
+              onMouseDown={(e) => handleSectorMouseDown(e, sectorId)}
             >
               <div 
                 className="absolute -top-6 left-2 px-2 py-1 rounded text-xs font-semibold"
@@ -706,7 +769,7 @@ export default function MapaFuncionarios() {
                   color: 'white'
                 }}
               >
-                {boundary.sector?.name || 'Setor'}
+                {boundary.sector?.name || 'Setor'} {isAdmin && '(arraste para mover)'}
               </div>
             </div>
           ))}
@@ -817,7 +880,7 @@ export default function MapaFuncionarios() {
                 )}
 
                 <Card 
-                  className={`shadow-lg border-2 transition-all duration-200 hover:shadow-2xl hover:scale-105 hover:-translate-y-1 hover:border-yellow-300 ${
+                  className={`desk-card shadow-lg border-2 transition-all duration-200 hover:shadow-2xl hover:scale-105 hover:-translate-y-1 hover:border-yellow-300 ${
                     highlightedDeskId === desk.id 
                       ? 'border-yellow-400 animate-pulse ring-4 ring-yellow-300' 
                       : 'border-white'
