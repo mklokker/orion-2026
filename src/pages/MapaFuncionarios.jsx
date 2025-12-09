@@ -513,20 +513,51 @@ export default function MapaFuncionarios() {
     filteredDesks.forEach(desk => {
       if (!desk.sector_id) return;
       
+      // Get desk dimensions
+      const sizeMap = {
+        small_square: { width: 100, height: 100 },
+        medium_square: { width: 140, height: 140 },
+        large_square: { width: 180, height: 180 },
+        small_rectangle: { width: 160, height: 100 },
+        medium_rectangle: { width: 200, height: 120 },
+        large_rectangle: { width: 240, height: 140 },
+        small_round: { width: 100, height: 100 },
+        medium_round: { width: 140, height: 140 },
+        large_round: { width: 180, height: 180 }
+      };
+      const size = sizeMap[desk.desk_size] || sizeMap.medium_square;
+      
+      // Calculate rotated bounding box
+      const rotation = (desk.rotation || 0) * Math.PI / 180;
+      const cos = Math.abs(Math.cos(rotation));
+      const sin = Math.abs(Math.sin(rotation));
+      const rotatedWidth = size.width * cos + size.height * sin;
+      const rotatedHeight = size.width * sin + size.height * cos;
+      
+      // Center position
+      const centerX = desk.position_x + size.width / 2;
+      const centerY = desk.position_y + size.height / 2;
+      
+      // Calculate bounds considering rotation
+      const deskMinX = centerX - rotatedWidth / 2;
+      const deskMaxX = centerX + rotatedWidth / 2;
+      const deskMinY = centerY - rotatedHeight / 2;
+      const deskMaxY = centerY + rotatedHeight / 2;
+      
       if (!boundaries[desk.sector_id]) {
         boundaries[desk.sector_id] = {
-          minX: desk.position_x,
-          maxX: desk.position_x + 200,
-          minY: desk.position_y,
-          maxY: desk.position_y + 200,
+          minX: deskMinX,
+          maxX: deskMaxX,
+          minY: deskMinY,
+          maxY: deskMaxY,
           sector: sectors.find(s => s.id === desk.sector_id)
         };
       } else {
         const b = boundaries[desk.sector_id];
-        b.minX = Math.min(b.minX, desk.position_x);
-        b.maxX = Math.max(b.maxX, desk.position_x + 200);
-        b.minY = Math.min(b.minY, desk.position_y);
-        b.maxY = Math.max(b.maxY, desk.position_y + 200);
+        b.minX = Math.min(b.minX, deskMinX);
+        b.maxX = Math.max(b.maxX, deskMaxX);
+        b.minY = Math.min(b.minY, deskMinY);
+        b.maxY = Math.max(b.maxY, deskMaxY);
       }
     });
     
