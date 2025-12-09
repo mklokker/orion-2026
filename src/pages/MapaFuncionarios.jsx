@@ -528,6 +528,41 @@ export default function MapaFuncionarios() {
       </div>
 
       <div className="flex-1 overflow-hidden relative bg-gradient-to-br from-gray-100 to-gray-200">
+        {/* Controles flutuantes fixos na tela */}
+        <div className="fixed top-20 md:top-24 right-2 md:right-4 z-50 flex flex-col gap-1.5 md:gap-2 bg-white/95 backdrop-blur-sm p-1.5 md:p-2 rounded-lg shadow-lg border">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setZoom(z => Math.min(2, z + 0.1))}
+            title="Aumentar Zoom"
+            className="h-8 w-8 md:h-10 md:w-10 hover:bg-blue-50 hover:text-blue-600"
+          >
+            <ZoomIn className="w-3.5 h-3.5 md:w-4 md:h-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setZoom(1)}
+            title="Resetar Zoom"
+            className="h-8 w-8 md:h-10 md:w-10 hover:bg-blue-50 hover:text-blue-600"
+          >
+            <RotateCcw className="w-3.5 h-3.5 md:w-4 md:h-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setZoom(z => Math.max(0.5, z - 0.1))}
+            title="Diminuir Zoom"
+            className="h-8 w-8 md:h-10 md:w-10 hover:bg-blue-50 hover:text-blue-600"
+          >
+            <ZoomOut className="w-3.5 h-3.5 md:w-4 md:h-4" />
+          </Button>
+          <div className="border-t my-1" />
+          <div className="text-center text-xs text-gray-500 font-medium px-1">
+            {Math.round(zoom * 100)}%
+          </div>
+        </div>
+
         <div
           ref={mapRef}
           className="w-full h-full map-background relative cursor-move"
