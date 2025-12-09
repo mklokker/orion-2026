@@ -857,14 +857,14 @@ export default function MapaFuncionarios() {
                     ...((() => {
                       const sizeMap = {
                         small_square: { width: '100px', height: '100px' },
-                        medium_square: { width: '140px', height: '140px' },
-                        large_square: { width: '180px', height: '180px' },
+                        medium_square: { width: '150px', height: '150px' },
+                        large_square: { width: '260px', height: '260px' },
                         small_rectangle: { width: '160px', height: '100px' },
-                        medium_rectangle: { width: '200px', height: '120px' },
-                        large_rectangle: { width: '240px', height: '140px' },
+                        medium_rectangle: { width: '220px', height: '130px' },
+                        large_rectangle: { width: '340px', height: '200px' },
                         small_round: { width: '100px', height: '100px', borderRadius: '50%' },
-                        medium_round: { width: '140px', height: '140px', borderRadius: '50%' },
-                        large_round: { width: '180px', height: '180px', borderRadius: '50%' }
+                        medium_round: { width: '150px', height: '150px', borderRadius: '50%' },
+                        large_round: { width: '260px', height: '260px', borderRadius: '50%' }
                       };
                       return sizeMap[desk.desk_size] || sizeMap.medium_square;
                     })())
