@@ -870,7 +870,13 @@ export default function MapaFuncionarios() {
                     })())
                   }}
                 >
-                  <div className="p-2 h-full flex flex-col overflow-hidden">
+                  <div 
+                    className="p-2 h-full flex flex-col overflow-hidden"
+                    style={{
+                      transform: `rotate(-${rotation}deg)`,
+                      transformOrigin: 'center center'
+                    }}
+                  >
                     <div className="flex-shrink-0 mb-1">
                       <h3 className="text-xs font-bold text-white truncate leading-tight">{desk.name}</h3>
                       {dept && (
