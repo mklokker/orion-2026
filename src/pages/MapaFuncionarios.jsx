@@ -224,6 +224,7 @@ export default function MapaFuncionarios() {
   const handleSectorMouseDown = (e, sectorId) => {
     if (!isAdmin || e.target.closest('.desk-card')) return;
 
+    e.preventDefault();
     e.stopPropagation();
     const rect = mapRef.current.getBoundingClientRect();
     setDraggingSector(sectorId);
@@ -231,11 +232,13 @@ export default function MapaFuncionarios() {
       x: (e.clientX - rect.left) / zoom,
       y: (e.clientY - rect.top) / zoom
     });
+    setIsPanning(false);
   };
 
   const handleMouseDown = (e, desk) => {
     if (!isAdmin) return;
 
+    e.preventDefault();
     e.stopPropagation();
     const rect = e.currentTarget.getBoundingClientRect();
     setDraggingDesk(desk);
@@ -243,10 +246,12 @@ export default function MapaFuncionarios() {
       x: (e.clientX - rect.left) / zoom,
       y: (e.clientY - rect.top) / zoom
     });
+    setIsPanning(false);
   };
 
-  const handleMouseMove = (e) => {
+  const handleGlobalMouseMove = (e) => {
     if (draggingSector && mapRef.current) {
+      e.preventDefault();
       const rect = mapRef.current.getBoundingClientRect();
       const currentX = (e.clientX - rect.left) / zoom;
       const currentY = (e.clientY - rect.top) / zoom;
@@ -261,6 +266,7 @@ export default function MapaFuncionarios() {
 
       setSectorDragOffset({ x: currentX, y: currentY });
     } else if (draggingDesk && mapRef.current) {
+      e.preventDefault();
       const rect = mapRef.current.getBoundingClientRect();
       const newX = (e.clientX - rect.left) / zoom - dragOffset.x;
       const newY = (e.clientY - rect.top) / zoom - dragOffset.y;
@@ -270,10 +276,16 @@ export default function MapaFuncionarios() {
           ? { ...d, position_x: Math.max(0, newX), position_y: Math.max(0, newY) }
           : d
       ));
+    } else if (isPanning) {
+      e.preventDefault();
+      setPanOffset({
+        x: e.clientX - panStart.x,
+        y: e.clientY - panStart.y
+      });
     }
   };
 
-  const handleMouseUp = async () => {
+  const handleGlobalMouseUp = async () => {
     if (draggingSector) {
       const sectorDesks = desks.filter(d => d.sector_id === draggingSector);
       try {
@@ -301,27 +313,32 @@ export default function MapaFuncionarios() {
       }
       setDraggingDesk(null);
     }
+    setIsPanning(false);
   };
 
   const handleMapMouseDown = (e) => {
-    if (e.target === mapRef.current || e.target.classList.contains('map-background')) {
+    if (!draggingDesk && !draggingSector && 
+        (e.target === mapRef.current || e.target.classList.contains('map-background'))) {
+      e.preventDefault();
       setIsPanning(true);
       setPanStart({ x: e.clientX - panOffset.x, y: e.clientY - panOffset.y });
     }
   };
 
-  const handleMapMouseMove = (e) => {
-    if (isPanning) {
-      setPanOffset({
-        x: e.clientX - panStart.x,
-        y: e.clientY - panStart.y
-      });
-    }
-  };
+  React.useEffect(() => {
+    const handleMouseMove = (e) => handleGlobalMouseMove(e);
+    const handleMouseUp = () => handleGlobalMouseUp();
 
-  const handleMapMouseUp = () => {
-    setIsPanning(false);
-  };
+    if (draggingDesk || draggingSector || isPanning) {
+      window.addEventListener('mousemove', handleMouseMove);
+      window.addEventListener('mouseup', handleMouseUp);
+
+      return () => {
+        window.removeEventListener('mousemove', handleMouseMove);
+        window.removeEventListener('mouseup', handleMouseUp);
+      };
+    }
+  }, [draggingDesk, draggingSector, isPanning, dragOffset, sectorDragOffset, panStart, zoom]);
 
   const handleWheel = (e) => {
     e.preventDefault();
@@ -720,29 +737,18 @@ export default function MapaFuncionarios() {
 
         <div
           ref={mapRef}
-          className="w-full h-full map-background relative cursor-move"
-          onMouseMove={(e) => {
-            handleMouseMove(e);
-            handleMapMouseMove(e);
-          }}
-          onMouseUp={() => {
-            handleMouseUp();
-            handleMapMouseUp();
-          }}
-          onMouseLeave={() => {
-            handleMouseUp();
-            handleMapMouseUp();
-          }}
+          className="w-full h-full map-background relative"
           onMouseDown={handleMapMouseDown}
           onWheel={handleWheel}
           style={{
             transform: `scale(${zoom}) translate(${panOffset.x / zoom}px, ${panOffset.y / zoom}px)`,
             transformOrigin: '0 0',
-            transition: draggingDesk || isPanning ? 'none' : 'transform 0.1s ease-out',
+            transition: draggingDesk || draggingSector || isPanning ? 'none' : 'transform 0.1s ease-out',
             backgroundImage: 'radial-gradient(circle, #cbd5e1 1px, transparent 1px)',
             backgroundSize: '30px 30px',
             minWidth: '2000px',
-            minHeight: '2000px'
+            minHeight: '2000px',
+            cursor: isPanning ? 'grabbing' : draggingDesk || draggingSector ? 'grabbing' : 'grab'
           }}
         >
           {/* Sector boundaries */}
@@ -823,7 +829,7 @@ export default function MapaFuncionarios() {
                 style={{
                   left: desk.position_x,
                   top: desk.position_y,
-                  cursor: isAdmin ? 'move' : 'pointer',
+                  cursor: draggingDesk?.id === desk.id ? 'grabbing' : (isAdmin ? 'grab' : 'pointer'),
                   transform: `rotate(${rotation}deg)`,
                   transformOrigin: 'center center'
                 }}
