@@ -750,7 +750,13 @@ export default function MapaFuncionarios() {
                     })())
                   }}
                 >
-                  <div className="p-3 h-full flex flex-col">
+                  <div 
+                    className="p-3 h-full flex flex-col"
+                    style={{
+                      transform: `rotate(-${desk.rotation || 0}deg)`,
+                      transformOrigin: 'center center'
+                    }}
+                  >
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex-1 min-w-0">
                         <h3 className="text-sm font-bold text-white truncate">{desk.name}</h3>
