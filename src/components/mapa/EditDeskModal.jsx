@@ -21,6 +21,7 @@ export default function EditDeskModal({ open, onClose, desk, users, departments,
   const [deskData, setDeskData] = useState({
     name: "",
     desk_type: "single",
+    desk_size: "medium_square",
     capacity: 1,
     positions: [],
     department_id: "",
@@ -34,6 +35,7 @@ export default function EditDeskModal({ open, onClose, desk, users, departments,
       setDeskData({
         name: desk.name || "",
         desk_type: desk.desk_type || "single",
+        desk_size: desk.desk_size || "medium_square",
         capacity: desk.capacity || 1,
         positions: desk.positions || [],
         department_id: desk.department_id || "",
@@ -137,35 +139,60 @@ export default function EditDeskModal({ open, onClose, desk, users, departments,
             </Select>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-4">
             <div className="space-y-2">
-              <Label>Cor da Mesa</Label>
-              <div className="flex gap-2">
-                {['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'].map(color => (
-                  <button
-                    key={color}
-                    className="w-8 h-8 rounded-lg border-2 transition-all hover:scale-110"
-                    style={{ 
-                      backgroundColor: color,
-                      borderColor: deskData.color === color ? '#1F2937' : 'transparent'
-                    }}
-                    onClick={() => setDeskData(prev => ({ ...prev, color }))}
-                  />
-                ))}
-              </div>
+              <Label>Tamanho e Forma</Label>
+              <Select 
+                value={deskData.desk_size} 
+                onValueChange={(value) => setDeskData(prev => ({ ...prev, desk_size: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="small_square">Quadrado Pequeno</SelectItem>
+                  <SelectItem value="medium_square">Quadrado Médio</SelectItem>
+                  <SelectItem value="large_square">Quadrado Grande</SelectItem>
+                  <SelectItem value="small_rectangle">Retângulo Pequeno</SelectItem>
+                  <SelectItem value="medium_rectangle">Retângulo Médio</SelectItem>
+                  <SelectItem value="large_rectangle">Retângulo Grande</SelectItem>
+                  <SelectItem value="small_round">Redondo Pequeno</SelectItem>
+                  <SelectItem value="medium_round">Redondo Médio</SelectItem>
+                  <SelectItem value="large_round">Redondo Grande</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
-            <div className="space-y-2">
-              <Label>Rotação ({deskData.rotation}°)</Label>
-              <Input
-                type="range"
-                min="0"
-                max="360"
-                step="15"
-                value={deskData.rotation}
-                onChange={(e) => setDeskData(prev => ({ ...prev, rotation: parseInt(e.target.value) }))}
-                className="w-full"
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Cor da Mesa</Label>
+                <div className="flex gap-2 flex-wrap">
+                  {['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'].map(color => (
+                    <button
+                      key={color}
+                      className="w-8 h-8 rounded-lg border-2 transition-all hover:scale-110"
+                      style={{ 
+                        backgroundColor: color,
+                        borderColor: deskData.color === color ? '#1F2937' : 'transparent'
+                      }}
+                      onClick={() => setDeskData(prev => ({ ...prev, color }))}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Rotação ({deskData.rotation}°)</Label>
+                <Input
+                  type="range"
+                  min="0"
+                  max="360"
+                  step="15"
+                  value={deskData.rotation}
+                  onChange={(e) => setDeskData(prev => ({ ...prev, rotation: parseInt(e.target.value) }))}
+                  className="w-full"
+                />
+              </div>
             </div>
           </div>
 

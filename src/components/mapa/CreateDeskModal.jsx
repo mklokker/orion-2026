@@ -21,6 +21,7 @@ export default function CreateDeskModal({ open, onClose, users, departments, sec
   const [deskData, setDeskData] = useState({
     name: "",
     desk_type: "single",
+    desk_size: "medium_square",
     capacity: 1,
     positions: [],
     position_x: 100,
@@ -73,6 +74,7 @@ export default function CreateDeskModal({ open, onClose, users, departments, sec
     setDeskData({
       name: "",
       desk_type: "single",
+      desk_size: "medium_square",
       capacity: 1,
       positions: [],
       position_x: 100,
@@ -152,20 +154,45 @@ export default function CreateDeskModal({ open, onClose, users, departments, sec
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label>Cor da Mesa</Label>
-            <div className="flex gap-2">
-              {['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'].map(color => (
-                <button
-                  key={color}
-                  className="w-10 h-10 rounded-lg border-2 transition-all hover:scale-110"
-                  style={{ 
-                    backgroundColor: color,
-                    borderColor: deskData.color === color ? '#1F2937' : 'transparent'
-                  }}
-                  onClick={() => setDeskData(prev => ({ ...prev, color }))}
-                />
-              ))}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Tamanho e Forma</Label>
+              <Select 
+                value={deskData.desk_size} 
+                onValueChange={(value) => setDeskData(prev => ({ ...prev, desk_size: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="small_square">Quadrado Pequeno</SelectItem>
+                  <SelectItem value="medium_square">Quadrado Médio</SelectItem>
+                  <SelectItem value="large_square">Quadrado Grande</SelectItem>
+                  <SelectItem value="small_rectangle">Retângulo Pequeno</SelectItem>
+                  <SelectItem value="medium_rectangle">Retângulo Médio</SelectItem>
+                  <SelectItem value="large_rectangle">Retângulo Grande</SelectItem>
+                  <SelectItem value="small_round">Redondo Pequeno</SelectItem>
+                  <SelectItem value="medium_round">Redondo Médio</SelectItem>
+                  <SelectItem value="large_round">Redondo Grande</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Cor da Mesa</Label>
+              <div className="flex gap-2 flex-wrap">
+                {['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'].map(color => (
+                  <button
+                    key={color}
+                    className="w-8 h-8 rounded-lg border-2 transition-all hover:scale-110"
+                    style={{ 
+                      backgroundColor: color,
+                      borderColor: deskData.color === color ? '#1F2937' : 'transparent'
+                    }}
+                    onClick={() => setDeskData(prev => ({ ...prev, color }))}
+                  />
+                ))}
+              </div>
             </div>
           </div>
 

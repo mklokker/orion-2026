@@ -613,12 +613,20 @@ export default function MapaFuncionarios() {
                   className="shadow-lg border-2 border-white transition-all duration-200 hover:shadow-2xl hover:scale-105 hover:-translate-y-1 hover:border-yellow-300"
                   style={{
                     backgroundColor: desk.color || '#3B82F6',
-                    width: desk.desk_type === 'single' ? '140px' : 
-                           desk.desk_type === 'double' ? '200px' :
-                           desk.desk_type === 'facing_4' ? '220px' : '240px',
-                    height: desk.desk_type === 'single' ? '140px' :
-                            desk.desk_type === 'double' ? '140px' :
-                            desk.desk_type === 'facing_4' ? '200px' : '220px'
+                    ...((() => {
+                      const sizeMap = {
+                        small_square: { width: '100px', height: '100px' },
+                        medium_square: { width: '140px', height: '140px' },
+                        large_square: { width: '180px', height: '180px' },
+                        small_rectangle: { width: '160px', height: '100px' },
+                        medium_rectangle: { width: '200px', height: '120px' },
+                        large_rectangle: { width: '240px', height: '140px' },
+                        small_round: { width: '100px', height: '100px', borderRadius: '50%' },
+                        medium_round: { width: '140px', height: '140px', borderRadius: '50%' },
+                        large_round: { width: '180px', height: '180px', borderRadius: '50%' }
+                      };
+                      return sizeMap[desk.desk_size] || sizeMap.medium_square;
+                    })())
                   }}
                 >
                   <div className="p-3 h-full flex flex-col">
