@@ -502,34 +502,37 @@ export default function MapaFuncionarios() {
               </div>
             )}
             
-            {isAdmin && (
-              <div className="flex gap-2 sm:ml-auto">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowSectorManager(true)}
-                  className="gap-1.5 flex-1 sm:flex-initial text-xs md:text-sm h-9 md:h-10 px-3 md:px-4"
-                  size="sm"
-                >
-                  <Settings className="w-3 h-3 md:w-4 md:h-4" />
-                  <span className="hidden xs:inline">Setores</span>
-                </Button>
-                <Button
-                  onClick={() => setShowCreateModal(true)}
-                  className="gap-1.5 flex-1 sm:flex-initial bg-gradient-to-r from-blue-600 to-indigo-600 text-xs md:text-sm h-9 md:h-10 px-3 md:px-4"
-                  size="sm"
-                >
-                  <Plus className="w-3 h-3 md:w-4 md:h-4" />
-                  Nova Mesa
-                </Button>
-              </div>
-            )}
+
           </div>
         </div>
       </div>
 
       <div className="flex-1 overflow-hidden relative bg-gradient-to-br from-gray-100 to-gray-200">
-        {/* Controles flutuantes fixos na tela */}
-        <div className="fixed top-20 md:top-24 right-2 md:right-4 z-50 flex flex-col gap-1.5 md:gap-2 bg-white/95 backdrop-blur-sm p-1.5 md:p-2 rounded-lg shadow-lg border">
+        {/* Botões de ação fixos */}
+        {isAdmin && (
+          <div className="fixed top-16 md:top-20 right-2 md:right-4 z-50 flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setShowSectorManager(true)}
+              className="gap-1.5 bg-white/95 backdrop-blur-sm shadow-lg text-xs md:text-sm h-9 md:h-10 px-3 md:px-4"
+              size="sm"
+            >
+              <Settings className="w-3 h-3 md:w-4 md:h-4" />
+              <span>Setores</span>
+            </Button>
+            <Button
+              onClick={() => setShowCreateModal(true)}
+              className="gap-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 shadow-lg text-xs md:text-sm h-9 md:h-10 px-3 md:px-4"
+              size="sm"
+            >
+              <Plus className="w-3 h-3 md:w-4 md:h-4" />
+              Nova Mesa
+            </Button>
+          </div>
+        )}
+
+        {/* Controles de zoom fixos */}
+        <div className="fixed top-32 md:top-36 right-2 md:right-4 z-50 flex flex-col gap-1.5 md:gap-2 bg-white/95 backdrop-blur-sm p-1.5 md:p-2 rounded-lg shadow-lg border">
           <Button
             variant="ghost"
             size="icon"
