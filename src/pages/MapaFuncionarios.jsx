@@ -790,12 +790,22 @@ export default function MapaFuncionarios() {
                 style={{
                   left: desk.position_x,
                   top: desk.position_y,
-                  cursor: isAdmin ? 'move' : 'pointer',
-                  transform: `rotate(${rotation}deg)`,
-                  transformOrigin: 'center center'
+                  cursor: isAdmin ? 'move' : 'pointer'
                 }}
                 onMouseDown={(e) => handleMouseDown(e, desk)}
               >
+                {/* Nome e departamento sempre visíveis (não giram) */}
+                <div className="absolute -top-12 left-0 right-0 z-20 pointer-events-none">
+                  <div className="bg-white/95 backdrop-blur-sm rounded-lg px-2 py-1 shadow-md border border-gray-200 w-max">
+                    <h3 className="text-xs font-bold text-gray-900 whitespace-nowrap">{desk.name}</h3>
+                    {dept && (
+                      <Badge variant="secondary" className="text-[9px] mt-0.5 bg-gray-100 text-gray-700 border-0 px-1 py-0">
+                        {dept.name}
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+
                 {/* Botões de ação fixos fora da mesa */}
                 {isAdmin && (
                   <div 
@@ -854,6 +864,8 @@ export default function MapaFuncionarios() {
                   }`}
                   style={{
                     backgroundColor: desk.color || '#3B82F6',
+                    transform: `rotate(${rotation}deg)`,
+                    transformOrigin: 'center center',
                     ...((() => {
                       const sizeMap = {
                         small_square: { width: '100px', height: '100px' },
@@ -870,25 +882,8 @@ export default function MapaFuncionarios() {
                     })())
                   }}
                 >
-                  <div 
-                    className="p-2 h-full flex flex-col overflow-hidden"
-                    style={{
-                      transform: `rotate(-${rotation}deg)`,
-                      transformOrigin: 'center center'
-                    }}
-                  >
-                    <div className="flex-shrink-0 mb-1">
-                      <h3 className="text-xs font-bold text-white truncate leading-tight">{desk.name}</h3>
-                      {dept && (
-                        <Badge variant="secondary" className="text-[9px] mt-0.5 bg-white/20 text-white border-0 px-1 py-0">
-                          {dept.name}
-                        </Badge>
-                      )}
-                    </div>
-
-                    <div className="flex-1 min-h-0 flex items-center justify-center">
-                      {renderDeskPositions(desk)}
-                    </div>
+                  <div className="p-2 h-full flex items-center justify-center overflow-hidden">
+                    {renderDeskPositions(desk)}
                   </div>
                 </Card>
               </div>
