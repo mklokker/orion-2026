@@ -290,6 +290,7 @@ export default function Layout({ children }) {
     { title: "Dashboard", url: createPageUrl("Dashboard"), icon: LayoutDashboard },
     { title: "Gestão de Tarefas", url: createPageUrl("GestaoTarefas"), icon: ClipboardList },
     { title: "Carga Diária", url: createPageUrl("CargaDiaria"), icon: FileText },
+    { title: "Mapa de Funcionários", url: createPageUrl("MapaFuncionarios"), icon: Users },
     { title: "Chat", url: createPageUrl("Chat"), icon: MessageSquare, badge: unreadChatCount },
     { title: "Acervo", url: createPageUrl("Acervo"), icon: Files },
     { title: "Cursos", url: createPageUrl("Cursos"), icon: GraduationCap },
