@@ -744,6 +744,45 @@ export default function MapaFuncionarios() {
           {searchResults.map(desk => {
             const dept = departments.find(d => d.id === desk.department_id);
 
+            // Calcular dimensões da mesa
+            const sizeMap = {
+              small_square: { width: 100, height: 100 },
+              medium_square: { width: 140, height: 140 },
+              large_square: { width: 180, height: 180 },
+              small_rectangle: { width: 160, height: 100 },
+              medium_rectangle: { width: 200, height: 120 },
+              large_rectangle: { width: 240, height: 140 },
+              small_round: { width: 100, height: 100 },
+              medium_round: { width: 140, height: 140 },
+              large_round: { width: 180, height: 180 }
+            };
+            const size = sizeMap[desk.desk_size] || sizeMap.medium_square;
+            const rotation = desk.rotation || 0;
+
+            // Calcular posição dos botões baseado na rotação e tamanho
+            const getButtonPosition = () => {
+              const angle = rotation % 360;
+              const isRectangle = desk.desk_size?.includes('rectangle');
+
+              // Para retângulos, ajustar baseado na rotação
+              if (isRectangle) {
+                if (angle >= 45 && angle < 135) {
+                  // Rotação ~90°: botões embaixo
+                  return { bottom: '-45px', left: '50%', transform: `translateX(-50%)`, flexDirection: 'row' };
+                } else if (angle >= 135 && angle < 225) {
+                  // Rotação ~180°: botões à esquerda
+                  return { left: '-45px', top: '50%', transform: `translateY(-50%)`, flexDirection: 'column' };
+                } else if (angle >= 225 && angle < 315) {
+                  // Rotação ~270°: botões em cima
+                  return { top: '-45px', left: '50%', transform: `translateX(-50%)`, flexDirection: 'row' };
+                }
+              }
+              // Padrão: botões à direita
+              return { right: '-45px', top: '50%', transform: `translateY(-50%)`, flexDirection: 'column' };
+            };
+
+            const buttonPosition = getButtonPosition();
+
             return (
               <div
                 key={desk.id}
@@ -752,7 +791,7 @@ export default function MapaFuncionarios() {
                   left: desk.position_x,
                   top: desk.position_y,
                   cursor: isAdmin ? 'move' : 'pointer',
-                  transform: `rotate(${desk.rotation || 0}deg)`,
+                  transform: `rotate(${rotation}deg)`,
                   transformOrigin: 'center center'
                 }}
                 onMouseDown={(e) => handleMouseDown(e, desk)}
@@ -760,12 +799,10 @@ export default function MapaFuncionarios() {
                 {/* Botões de ação fixos fora da mesa */}
                 {isAdmin && (
                   <div 
-                    className="absolute opacity-0 group-hover:opacity-100 transition-opacity flex flex-col gap-1"
+                    className="absolute opacity-0 group-hover:opacity-100 transition-opacity flex gap-1 z-10"
                     style={{
-                      right: '-45px',
-                      top: '0',
-                      transform: `rotate(-${desk.rotation || 0}deg)`,
-                      transformOrigin: 'left center'
+                      ...buttonPosition,
+                      flexDirection: buttonPosition.flexDirection
                     }}
                   >
                     <Button
