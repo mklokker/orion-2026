@@ -17,13 +17,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-export default function EditDeskModal({ open, onClose, desk, users, departments, onUpdate }) {
+export default function EditDeskModal({ open, onClose, desk, users, departments, sectors, onUpdate }) {
   const [deskData, setDeskData] = useState({
     name: "",
     desk_type: "single",
     capacity: 1,
     positions: [],
     department_id: "",
+    sector_id: "",
     color: "#3B82F6"
   });
 
@@ -35,6 +36,7 @@ export default function EditDeskModal({ open, onClose, desk, users, departments,
         capacity: desk.capacity || 1,
         positions: desk.positions || [],
         department_id: desk.department_id || "",
+        sector_id: desk.sector_id || "",
         color: desk.color || "#3B82F6"
       });
     }
@@ -113,6 +115,24 @@ export default function EditDeskModal({ open, onClose, desk, users, departments,
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Setor (Localização Física)</Label>
+            <Select 
+              value={deskData.sector_id} 
+              onValueChange={(value) => setDeskData(prev => ({ ...prev, sector_id: value }))}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o setor (opcional)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={null}>Nenhum</SelectItem>
+                {sectors && sectors.map(sector => (
+                  <SelectItem key={sector.id} value={sector.id}>{sector.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">

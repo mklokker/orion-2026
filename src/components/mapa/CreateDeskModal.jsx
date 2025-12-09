@@ -17,7 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-export default function CreateDeskModal({ open, onClose, users, departments, onCreate }) {
+export default function CreateDeskModal({ open, onClose, users, departments, sectors, onCreate }) {
   const [deskData, setDeskData] = useState({
     name: "",
     desk_type: "single",
@@ -26,6 +26,7 @@ export default function CreateDeskModal({ open, onClose, users, departments, onC
     position_x: 100,
     position_y: 100,
     department_id: "",
+    sector_id: "",
     color: "#3B82F6"
   });
 
@@ -76,6 +77,7 @@ export default function CreateDeskModal({ open, onClose, users, departments, onC
       position_x: 100,
       position_y: 100,
       department_id: "",
+      sector_id: "",
       color: "#3B82F6"
     });
   };
@@ -129,6 +131,23 @@ export default function CreateDeskModal({ open, onClose, users, departments, onC
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Setor (Localização Física)</Label>
+            <Select 
+              value={deskData.sector_id} 
+              onValueChange={(value) => setDeskData(prev => ({ ...prev, sector_id: value }))}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o setor (opcional)" />
+              </SelectTrigger>
+              <SelectContent>
+                {sectors && sectors.map(sector => (
+                  <SelectItem key={sector.id} value={sector.id}>{sector.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">

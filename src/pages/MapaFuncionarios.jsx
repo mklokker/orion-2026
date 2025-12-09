@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { Desk } from "@/entities/Desk";
 import { User } from "@/entities/User";
 import { Department } from "@/entities/Department";
+import { Sector } from "@/entities/Sector";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -15,11 +16,14 @@ import {
   Maximize2,
   ZoomIn,
   ZoomOut,
-  RotateCcw
+  RotateCcw,
+  Building2,
+  Settings
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import CreateDeskModal from "@/components/mapa/CreateDeskModal";
 import EditDeskModal from "@/components/mapa/EditDeskModal";
+import SectorManager from "@/components/mapa/SectorManager";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -52,12 +56,15 @@ export default function MapaFuncionarios() {
   const [users, setUsers] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [desks, setDesks] = useState([]);
+  const [sectors, setSectors] = useState([]);
+  const [selectedSector, setSelectedSector] = useState("all");
   
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedDesk, setSelectedDesk] = useState(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deskToDelete, setDeskToDelete] = useState(null);
+  const [showSectorManager, setShowSectorManager] = useState(false);
   
   const [draggingDesk, setDraggingDesk] = useState(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -77,15 +84,17 @@ export default function MapaFuncionarios() {
       const userData = await User.me();
       setCurrentUser(userData);
 
-      const [usersData, departmentsData, desksData] = await Promise.all([
+      const [usersData, departmentsData, desksData, sectorsData] = await Promise.all([
         User.list(),
         Department.list(),
-        Desk.list()
+        Desk.list(),
+        Sector.list()
       ]);
 
       setUsers(usersData);
       setDepartments(departmentsData);
       setDesks(desksData);
+      setSectors(sectorsData);
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
       toast({
@@ -149,6 +158,57 @@ export default function MapaFuncionarios() {
       toast({
         title: "Erro",
         description: "Erro ao excluir mesa.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleCreateSector = async (sectorData) => {
+    try {
+      await Sector.create(sectorData);
+      toast({
+        title: "Sucesso!",
+        description: "Setor criado com sucesso.",
+      });
+      loadData();
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao criar setor.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleUpdateSector = async (sectorId, sectorData) => {
+    try {
+      await Sector.update(sectorId, sectorData);
+      toast({
+        title: "Sucesso!",
+        description: "Setor atualizado com sucesso.",
+      });
+      loadData();
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao atualizar setor.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleDeleteSector = async (sectorId) => {
+    try {
+      await Sector.delete(sectorId);
+      toast({
+        title: "Sucesso!",
+        description: "Setor excluído com sucesso.",
+      });
+      loadData();
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao excluir setor.",
         variant: "destructive"
       });
     }
@@ -392,12 +452,42 @@ export default function MapaFuncionarios() {
     return null;
   };
 
+  const filteredDesks = selectedSector === "all" 
+    ? desks 
+    : desks.filter(desk => desk.sector_id === selectedSector);
+
+  const currentSector = sectors.find(s => s.id === selectedSector);
+
   return (
     <div className="h-screen flex flex-col bg-gray-50">
       <div className="bg-white border-b p-4 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Mapa de Funcionários</h1>
-          <p className="text-sm text-gray-500">Organize e visualize as mesas de trabalho</p>
+        <div className="flex items-center gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Mapa de Funcionários</h1>
+            <p className="text-sm text-gray-500">Organize e visualize as mesas de trabalho</p>
+          </div>
+          
+          {sectors.length > 0 && (
+            <div className="flex items-center gap-2 pl-4 border-l">
+              <Building2 className="w-4 h-4 text-gray-400" />
+              <select
+                value={selectedSector}
+                onChange={(e) => setSelectedSector(e.target.value)}
+                className="px-3 py-1.5 border rounded-lg text-sm font-medium bg-white hover:bg-gray-50 transition-colors"
+                style={{
+                  borderColor: currentSector?.color || '#D1D5DB',
+                  color: currentSector?.color || '#374151'
+                }}
+              >
+                <option value="all">Todos os Setores</option>
+                {sectors.map(sector => (
+                  <option key={sector.id} value={sector.id}>
+                    {sector.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
         
         <div className="flex gap-2">
@@ -427,13 +517,23 @@ export default function MapaFuncionarios() {
           </Button>
           
           {isAdmin && (
-            <Button
-              onClick={() => setShowCreateModal(true)}
-              className="gap-2 bg-gradient-to-r from-blue-600 to-indigo-600"
-            >
-              <Plus className="w-4 h-4" />
-              Nova Mesa
-            </Button>
+            <>
+              <Button
+                variant="outline"
+                onClick={() => setShowSectorManager(true)}
+                className="gap-2"
+              >
+                <Settings className="w-4 h-4" />
+                Gerenciar Setores
+              </Button>
+              <Button
+                onClick={() => setShowCreateModal(true)}
+                className="gap-2 bg-gradient-to-r from-blue-600 to-indigo-600"
+              >
+                <Plus className="w-4 h-4" />
+                Nova Mesa
+              </Button>
+            </>
           )}
         </div>
       </div>
@@ -464,7 +564,7 @@ export default function MapaFuncionarios() {
             minHeight: '2000px'
           }}
         >
-          {desks.map(desk => {
+          {filteredDesks.map(desk => {
             const dept = departments.find(d => d.id === desk.department_id);
             
             return (
@@ -542,6 +642,16 @@ export default function MapaFuncionarios() {
         </div>
       </div>
 
+      {filteredDesks.length === 0 && desks.length > 0 && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="text-center text-gray-400">
+            <Building2 className="w-16 h-16 mx-auto mb-4 opacity-50" />
+            <p className="text-lg font-medium mb-2">Nenhuma mesa neste setor</p>
+            <p className="text-sm">Selecione outro setor ou adicione mesas aqui</p>
+          </div>
+        </div>
+      )}
+
       {desks.length === 0 && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <div className="text-center text-gray-400 pointer-events-auto">
@@ -559,7 +669,17 @@ export default function MapaFuncionarios() {
         onClose={() => setShowCreateModal(false)}
         users={users}
         departments={departments}
+        sectors={sectors}
         onCreate={handleCreateDesk}
+      />
+
+      <SectorManager
+        open={showSectorManager}
+        onClose={() => setShowSectorManager(false)}
+        sectors={sectors}
+        onCreateSector={handleCreateSector}
+        onUpdateSector={handleUpdateSector}
+        onDeleteSector={handleDeleteSector}
       />
 
       {selectedDesk && (
@@ -572,6 +692,7 @@ export default function MapaFuncionarios() {
           desk={selectedDesk}
           users={users}
           departments={departments}
+          sectors={sectors}
           onUpdate={handleUpdateDesk}
         />
       )}
