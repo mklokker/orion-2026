@@ -132,7 +132,13 @@ export default function MapaFuncionarios() {
 
   const handleUpdateDesk = async (deskId, deskData) => {
     try {
-      await Desk.update(deskId, deskData);
+      const currentDesk = desks.find(d => d.id === deskId);
+      const updateData = {
+        ...deskData,
+        position_x: currentDesk.position_x,
+        position_y: currentDesk.position_y
+      };
+      await Desk.update(deskId, updateData);
       toast({
         title: "Sucesso!",
         description: "Mesa atualizada com sucesso.",
@@ -144,6 +150,40 @@ export default function MapaFuncionarios() {
       toast({
         title: "Erro",
         description: "Erro ao atualizar mesa.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleAlignSector = async (sectorId) => {
+    const sectorDesks = desks.filter(d => d.sector_id === sectorId);
+    if (sectorDesks.length === 0) return;
+
+    const gridSpacing = 200;
+    const startX = 100;
+    const startY = 100;
+    const maxPerRow = 4;
+
+    try {
+      await Promise.all(sectorDesks.map((desk, index) => {
+        const row = Math.floor(index / maxPerRow);
+        const col = index % maxPerRow;
+
+        return Desk.update(desk.id, {
+          position_x: startX + (col * gridSpacing),
+          position_y: startY + (row * gridSpacing)
+        });
+      }));
+
+      toast({
+        title: "Sucesso!",
+        description: "Mesas alinhadas automaticamente.",
+      });
+      loadData();
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Erro ao alinhar mesas.",
         variant: "destructive"
       });
     }
@@ -755,7 +795,7 @@ export default function MapaFuncionarios() {
           {selectedSector === "all" && Object.entries(sectorBoundaries).map(([sectorId, boundary]) => (
             <div
               key={`boundary-${sectorId}`}
-              className="absolute border-2 border-dashed rounded-2xl transition-all"
+              className="absolute border-2 border-dashed rounded-2xl transition-all group"
               style={{
                 left: boundary.minX,
                 top: boundary.minY,
@@ -769,13 +809,25 @@ export default function MapaFuncionarios() {
               onMouseDown={(e) => handleSectorMouseDown(e, sectorId)}
             >
               <div 
-                className="absolute -top-6 left-2 px-2 py-1 rounded text-xs font-semibold"
+                className="absolute -top-6 left-2 px-2 py-1 rounded text-xs font-semibold flex items-center gap-2"
                 style={{
                   backgroundColor: boundary.sector?.color || '#94a3b8',
                   color: 'white'
                 }}
               >
-                {boundary.sector?.name || 'Setor'} {isAdmin && '(arraste para mover)'}
+                <span>{boundary.sector?.name || 'Setor'} {isAdmin && '(arraste para mover)'}</span>
+                {isAdmin && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAlignSector(sectorId);
+                    }}
+                    className="opacity-0 group-hover:opacity-100 bg-white/20 hover:bg-white/30 rounded px-2 py-0.5 text-xs transition-all"
+                    title="Alinhar mesas automaticamente"
+                  >
+                    ⚡ Alinhar
+                  </button>
+                )}
               </div>
             </div>
           ))}
