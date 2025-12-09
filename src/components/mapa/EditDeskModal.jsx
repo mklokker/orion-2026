@@ -135,27 +135,37 @@ export default function EditDeskModal({ open, onClose, desk, users, departments,
           <div className="space-y-2">
             <Label>Funcionários ({deskData.capacity} posições)</Label>
             <div className="space-y-2 max-h-60 overflow-y-auto">
-              {deskData.positions.map((pos, idx) => (
-                <div key={idx} className="flex items-center gap-2">
-                  <span className="text-sm text-gray-500 w-20">Posição {idx + 1}:</span>
-                  <Select 
-                    value={pos.user_email || ""} 
-                    onValueChange={(value) => handleUserChange(idx, value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione um funcionário" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={null}>Vazio</SelectItem>
-                      {users.map(user => (
-                        <SelectItem key={user.id} value={user.email}>
-                          {user.display_name || user.full_name || user.email}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              ))}
+              {deskData.positions.map((pos, idx) => {
+                const selectedEmails = deskData.positions
+                  .map(p => p.user_email)
+                  .filter(email => email && email !== pos.user_email);
+                
+                const availableUsers = users.filter(user => 
+                  !selectedEmails.includes(user.email)
+                );
+                
+                return (
+                  <div key={idx} className="flex items-center gap-2">
+                    <span className="text-sm text-gray-500 w-20">Posição {idx + 1}:</span>
+                    <Select 
+                      value={pos.user_email || ""} 
+                      onValueChange={(value) => handleUserChange(idx, value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione um funcionário" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={null}>Vazio</SelectItem>
+                        {availableUsers.map(user => (
+                          <SelectItem key={user.id} value={user.email}>
+                            {user.display_name || user.full_name || user.email}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>
