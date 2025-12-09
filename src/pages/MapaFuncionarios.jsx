@@ -743,7 +743,7 @@ export default function MapaFuncionarios() {
 
           {searchResults.map(desk => {
             const dept = departments.find(d => d.id === desk.department_id);
-            
+
             return (
               <div
                 key={desk.id}
@@ -757,6 +757,58 @@ export default function MapaFuncionarios() {
                 }}
                 onMouseDown={(e) => handleMouseDown(e, desk)}
               >
+                {/* Botões de ação fixos fora da mesa */}
+                {isAdmin && (
+                  <div 
+                    className="absolute opacity-0 group-hover:opacity-100 transition-opacity flex flex-col gap-1"
+                    style={{
+                      right: '-45px',
+                      top: '0',
+                      transform: `rotate(-${desk.rotation || 0}deg)`,
+                      transformOrigin: 'left center'
+                    }}
+                  >
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 bg-white hover:bg-gray-100 text-gray-700 shadow-md"
+                      onClick={async (e) => {
+                        e.stopPropagation();
+                        const newRotation = ((desk.rotation || 0) + 90) % 360;
+                        await Desk.update(desk.id, { rotation: newRotation });
+                        loadData();
+                      }}
+                      title="Girar 90°"
+                    >
+                      <RotateCw className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 bg-white hover:bg-gray-100 text-gray-700 shadow-md"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedDesk(desk);
+                        setShowEditModal(true);
+                      }}
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 bg-white hover:bg-red-50 text-red-600 shadow-md"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setDeskToDelete(desk);
+                        setShowDeleteDialog(true);
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                )}
+
                 <Card 
                   className={`shadow-lg border-2 transition-all duration-200 hover:shadow-2xl hover:scale-105 hover:-translate-y-1 hover:border-yellow-300 ${
                     highlightedDeskId === desk.id 
@@ -782,67 +834,22 @@ export default function MapaFuncionarios() {
                   }}
                 >
                   <div 
-                    className="p-3 h-full flex flex-col"
+                    className="p-2 h-full flex flex-col overflow-hidden"
                     style={{
                       transform: `rotate(-${desk.rotation || 0}deg)`,
                       transformOrigin: 'center center'
                     }}
                   >
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-sm font-bold text-white truncate">{desk.name}</h3>
-                        {dept && (
-                          <Badge variant="secondary" className="text-[10px] mt-1 bg-white/20 text-white border-0">
-                            {dept.name}
-                          </Badge>
-                        )}
-                      </div>
-                      
-                      {isAdmin && (
-                        <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7 bg-white/20 hover:bg-white/30 text-white"
-                            onClick={async (e) => {
-                              e.stopPropagation();
-                              const newRotation = ((desk.rotation || 0) + 90) % 360;
-                              await Desk.update(desk.id, { rotation: newRotation });
-                              loadData();
-                            }}
-                            title="Girar 90°"
-                          >
-                            <RotateCw className="w-3 h-3" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7 bg-white/20 hover:bg-white/30 text-white"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedDesk(desk);
-                              setShowEditModal(true);
-                            }}
-                          >
-                            <Edit2 className="w-3 h-3" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-7 w-7 bg-white/20 hover:bg-red-500 text-white"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setDeskToDelete(desk);
-                              setShowDeleteDialog(true);
-                            }}
-                          >
-                            <Trash2 className="w-3 h-3" />
-                          </Button>
-                        </div>
+                    <div className="flex-shrink-0 mb-1">
+                      <h3 className="text-xs font-bold text-white truncate leading-tight">{desk.name}</h3>
+                      {dept && (
+                        <Badge variant="secondary" className="text-[9px] mt-0.5 bg-white/20 text-white border-0 px-1 py-0">
+                          {dept.name}
+                        </Badge>
                       )}
                     </div>
-                    
-                    <div className="flex-1">
+
+                    <div className="flex-1 min-h-0 flex items-center justify-center">
                       {renderDeskPositions(desk)}
                     </div>
                   </div>
