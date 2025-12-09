@@ -406,51 +406,51 @@ export default function MapaFuncionarios() {
 
     if (desk.desk_type === 'facing_6') {
       return (
-        <div className="flex flex-col gap-2 items-center justify-center w-full h-full p-2">
-          <div className="flex gap-3">
+        <div className="flex flex-col gap-2 items-center justify-center w-full h-full p-3">
+          <div className="flex gap-4">
             {[0, 1, 2].map(idx => {
               const user = getUserAtPosition(idx);
               return (
                 <div key={idx} className="flex flex-col items-center gap-1">
                   {user ? (
                     <>
-                      <Avatar className="w-8 h-8 border-2 border-white shadow">
+                      <Avatar className="w-12 h-12 border-2 border-white shadow">
                         <AvatarImage src={user.profile_picture} />
-                        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-[10px]">
+                        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-xs">
                           {getInitials(getUserDisplayName(user))}
                         </AvatarFallback>
                       </Avatar>
-                      <span className="text-[8px] font-medium text-white truncate max-w-[40px]">
+                      <span className="text-[10px] font-medium text-white truncate max-w-[60px]">
                         {getUserDisplayName(user).split(' ')[0]}
                       </span>
                     </>
                   ) : (
-                    <div className="w-8 h-8 border-2 border-white/30 border-dashed rounded-full" />
+                    <div className="w-12 h-12 border-2 border-white/30 border-dashed rounded-full" />
                   )}
                 </div>
               );
             })}
           </div>
-          <div className="h-px w-28 bg-white/40" />
-          <div className="flex gap-3">
+          <div className="h-px w-40 bg-white/40" />
+          <div className="flex gap-4">
             {[3, 4, 5].map(idx => {
               const user = getUserAtPosition(idx);
               return (
                 <div key={idx} className="flex flex-col items-center gap-1">
                   {user ? (
                     <>
-                      <Avatar className="w-8 h-8 border-2 border-white shadow">
+                      <Avatar className="w-12 h-12 border-2 border-white shadow">
                         <AvatarImage src={user.profile_picture} />
-                        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-[10px]">
+                        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-xs">
                           {getInitials(getUserDisplayName(user))}
                         </AvatarFallback>
                       </Avatar>
-                      <span className="text-[8px] font-medium text-white truncate max-w-[40px]">
+                      <span className="text-[10px] font-medium text-white truncate max-w-[60px]">
                         {getUserDisplayName(user).split(' ')[0]}
                       </span>
                     </>
                   ) : (
-                    <div className="w-8 h-8 border-2 border-white/30 border-dashed rounded-full" />
+                    <div className="w-12 h-12 border-2 border-white/30 border-dashed rounded-full" />
                   )}
                 </div>
               );
@@ -509,21 +509,21 @@ export default function MapaFuncionarios() {
   // Group desks by sector for visual boundaries
   const sectorBoundaries = React.useMemo(() => {
     const boundaries = {};
-    
+
     filteredDesks.forEach(desk => {
       if (!desk.sector_id) return;
-      
+
       // Get desk dimensions
       const sizeMap = {
         small_square: { width: 100, height: 100 },
-        medium_square: { width: 140, height: 140 },
-        large_square: { width: 180, height: 180 },
+        medium_square: { width: 150, height: 150 },
+        large_square: { width: 260, height: 260 },
         small_rectangle: { width: 160, height: 100 },
-        medium_rectangle: { width: 200, height: 120 },
-        large_rectangle: { width: 240, height: 140 },
+        medium_rectangle: { width: 220, height: 130 },
+        large_rectangle: { width: 340, height: 200 },
         small_round: { width: 100, height: 100 },
-        medium_round: { width: 140, height: 140 },
-        large_round: { width: 180, height: 180 }
+        medium_round: { width: 150, height: 150 },
+        large_round: { width: 260, height: 260 }
       };
       const size = sizeMap[desk.desk_size] || sizeMap.medium_square;
       
