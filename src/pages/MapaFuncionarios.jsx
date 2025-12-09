@@ -747,14 +747,14 @@ export default function MapaFuncionarios() {
             // Calcular dimensões da mesa
             const sizeMap = {
               small_square: { width: 100, height: 100 },
-              medium_square: { width: 140, height: 140 },
-              large_square: { width: 180, height: 180 },
+              medium_square: { width: 150, height: 150 },
+              large_square: { width: 260, height: 260 },
               small_rectangle: { width: 160, height: 100 },
-              medium_rectangle: { width: 200, height: 120 },
-              large_rectangle: { width: 240, height: 140 },
+              medium_rectangle: { width: 220, height: 130 },
+              large_rectangle: { width: 340, height: 200 },
               small_round: { width: 100, height: 100 },
-              medium_round: { width: 140, height: 140 },
-              large_round: { width: 180, height: 180 }
+              medium_round: { width: 150, height: 150 },
+              large_round: { width: 260, height: 260 }
             };
             const size = sizeMap[desk.desk_size] || sizeMap.medium_square;
             const rotation = desk.rotation || 0;
