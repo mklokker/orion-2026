@@ -63,6 +63,7 @@ export default function MapaFuncionarios() {
   const [selectedFloor, setSelectedFloor] = useState(1);
   const [draggingSector, setDraggingSector] = useState(null);
   const [sectorDragOffset, setSectorDragOffset] = useState({ x: 0, y: 0 });
+  const [alignmentGuides, setAlignmentGuides] = useState([]);
   
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -308,8 +309,40 @@ export default function MapaFuncionarios() {
     } else if (draggingDesk && mapRef.current) {
       e.preventDefault();
       const rect = mapRef.current.getBoundingClientRect();
-      const newX = (e.clientX - rect.left) / zoom - dragOffset.x;
-      const newY = (e.clientY - rect.top) / zoom - dragOffset.y;
+      let newX = (e.clientX - rect.left) / zoom - dragOffset.x;
+      let newY = (e.clientY - rect.top) / zoom - dragOffset.y;
+
+      // Sistema de alinhamento
+      const snapThreshold = 15;
+      const guides = [];
+
+      // Buscar mesas do mesmo setor para alinhar
+      const sameSectorDesks = desks.filter(d => 
+        d.sector_id === draggingDesk.sector_id && 
+        d.id !== draggingDesk.id
+      );
+
+      let snappedX = null;
+      let snappedY = null;
+
+      sameSectorDesks.forEach(desk => {
+        // Alinhamento horizontal (eixo Y)
+        if (Math.abs(newY - desk.position_y) < snapThreshold) {
+          snappedY = desk.position_y;
+          guides.push({ type: 'horizontal', position: desk.position_y });
+        }
+
+        // Alinhamento vertical (eixo X)
+        if (Math.abs(newX - desk.position_x) < snapThreshold) {
+          snappedX = desk.position_x;
+          guides.push({ type: 'vertical', position: desk.position_x });
+        }
+      });
+
+      if (snappedX !== null) newX = snappedX;
+      if (snappedY !== null) newY = snappedY;
+
+      setAlignmentGuides(guides);
 
       setDesks(prev => prev.map(d => 
         d.id === draggingDesk.id 
@@ -353,6 +386,7 @@ export default function MapaFuncionarios() {
       }
       setDraggingDesk(null);
     }
+    setAlignmentGuides([]);
     setIsPanning(false);
   };
 
@@ -791,6 +825,35 @@ export default function MapaFuncionarios() {
             cursor: isPanning ? 'grabbing' : draggingDesk || draggingSector ? 'grabbing' : 'grab'
           }}
         >
+          {/* Alignment Guides */}
+          {alignmentGuides.map((guide, index) => (
+            <div
+              key={`guide-${index}`}
+              className="absolute pointer-events-none"
+              style={{
+                ...(guide.type === 'horizontal' 
+                  ? { 
+                      left: 0, 
+                      right: 0, 
+                      top: guide.position, 
+                      height: '2px',
+                      backgroundColor: '#3B82F6',
+                      boxShadow: '0 0 8px rgba(59, 130, 246, 0.8)'
+                    }
+                  : { 
+                      top: 0, 
+                      bottom: 0, 
+                      left: guide.position, 
+                      width: '2px',
+                      backgroundColor: '#3B82F6',
+                      boxShadow: '0 0 8px rgba(59, 130, 246, 0.8)'
+                    }
+                ),
+                zIndex: 1000
+              }}
+            />
+          ))}
+
           {/* Sector boundaries */}
           {selectedSector === "all" && Object.entries(sectorBoundaries).map(([sectorId, boundary]) => (
             <div
