@@ -294,24 +294,41 @@ export default function MapaFuncionarios() {
       return position ? users.find(u => u.email === position.user_email) : null;
     };
 
+    const renderChairWithUser = (user, position) => {
+      return (
+        <div className="relative flex items-center justify-center">
+          {/* Cadeira */}
+          <div className="absolute w-10 h-10 bg-white/20 border-2 border-white/40 rounded" 
+               style={{ 
+                 boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.2)' 
+               }} 
+          />
+          {/* Avatar na cadeira */}
+          {user ? (
+            <Avatar className="relative w-12 h-12 border-2 border-white shadow-lg z-10">
+              <AvatarImage src={user.profile_picture} />
+              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-xs">
+                {getInitials(getUserDisplayName(user))}
+              </AvatarFallback>
+            </Avatar>
+          ) : (
+            <div className="relative w-12 h-12 rounded-full border-2 border-white/30 border-dashed z-10 flex items-center justify-center">
+              <Users className="w-5 h-5 text-white/40" />
+            </div>
+          )}
+        </div>
+      );
+    };
+
     if (desk.desk_type === 'single') {
       const user = getUserAtPosition(0);
       return (
-        <div className="flex items-center justify-center w-full h-full">
-          {user ? (
-            <div className="flex flex-col items-center gap-1">
-              <Avatar className="w-12 h-12 border-2 border-white shadow">
-                <AvatarImage src={user.profile_picture} />
-                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
-                  {getInitials(getUserDisplayName(user))}
-                </AvatarFallback>
-              </Avatar>
-              <span className="text-xs font-medium text-white truncate max-w-[80px]">
-                {getUserDisplayName(user)}
-              </span>
-            </div>
-          ) : (
-            <div className="text-white/60 text-xs">Vazio</div>
+        <div className="flex flex-col items-center justify-center w-full h-full gap-2">
+          {renderChairWithUser(user, 0)}
+          {user && (
+            <span className="text-xs font-medium text-white truncate max-w-[80px]">
+              {getUserDisplayName(user).split(' ')[0]}
+            </span>
           )}
         </div>
       );
@@ -319,27 +336,16 @@ export default function MapaFuncionarios() {
 
     if (desk.desk_type === 'double') {
       return (
-        <div className="flex gap-4 items-center justify-center w-full h-full p-2">
+        <div className="flex gap-6 items-center justify-center w-full h-full p-2">
           {[0, 1].map(idx => {
             const user = getUserAtPosition(idx);
             return (
-              <div key={idx} className="flex flex-col items-center gap-1">
-                {user ? (
-                  <>
-                    <Avatar className="w-10 h-10 border-2 border-white shadow">
-                      <AvatarImage src={user.profile_picture} />
-                      <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-xs">
-                        {getInitials(getUserDisplayName(user))}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span className="text-[10px] font-medium text-white truncate max-w-[60px]">
-                      {getUserDisplayName(user).split(' ')[0]}
-                    </span>
-                  </>
-                ) : (
-                  <div className="w-10 h-10 border-2 border-white/30 border-dashed rounded-full flex items-center justify-center">
-                    <Users className="w-4 h-4 text-white/40" />
-                  </div>
+              <div key={idx} className="flex flex-col items-center gap-2">
+                {renderChairWithUser(user, idx)}
+                {user && (
+                  <span className="text-[10px] font-medium text-white truncate max-w-[60px]">
+                    {getUserDisplayName(user).split(' ')[0]}
+                  </span>
                 )}
               </div>
             );
@@ -350,51 +356,33 @@ export default function MapaFuncionarios() {
 
     if (desk.desk_type === 'facing_4') {
       return (
-        <div className="flex flex-col gap-2 items-center justify-center w-full h-full p-2">
-          <div className="flex gap-4">
+        <div className="flex flex-col gap-3 items-center justify-center w-full h-full p-2">
+          <div className="flex gap-6">
             {[0, 1].map(idx => {
               const user = getUserAtPosition(idx);
               return (
                 <div key={idx} className="flex flex-col items-center gap-1">
-                  {user ? (
-                    <>
-                      <Avatar className="w-9 h-9 border-2 border-white shadow">
-                        <AvatarImage src={user.profile_picture} />
-                        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-xs">
-                          {getInitials(getUserDisplayName(user))}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="text-[9px] font-medium text-white truncate max-w-[50px]">
-                        {getUserDisplayName(user).split(' ')[0]}
-                      </span>
-                    </>
-                  ) : (
-                    <div className="w-9 h-9 border-2 border-white/30 border-dashed rounded-full" />
+                  {renderChairWithUser(user, idx)}
+                  {user && (
+                    <span className="text-[9px] font-medium text-white truncate max-w-[50px]">
+                      {getUserDisplayName(user).split(' ')[0]}
+                    </span>
                   )}
                 </div>
               );
             })}
           </div>
-          <div className="h-px w-20 bg-white/40" />
-          <div className="flex gap-4">
+          <div className="h-px w-28 bg-white/40" />
+          <div className="flex gap-6">
             {[2, 3].map(idx => {
               const user = getUserAtPosition(idx);
               return (
                 <div key={idx} className="flex flex-col items-center gap-1">
-                  {user ? (
-                    <>
-                      <Avatar className="w-9 h-9 border-2 border-white shadow">
-                        <AvatarImage src={user.profile_picture} />
-                        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-xs">
-                          {getInitials(getUserDisplayName(user))}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="text-[9px] font-medium text-white truncate max-w-[50px]">
-                        {getUserDisplayName(user).split(' ')[0]}
-                      </span>
-                    </>
-                  ) : (
-                    <div className="w-9 h-9 border-2 border-white/30 border-dashed rounded-full" />
+                  {renderChairWithUser(user, idx)}
+                  {user && (
+                    <span className="text-[9px] font-medium text-white truncate max-w-[50px]">
+                      {getUserDisplayName(user).split(' ')[0]}
+                    </span>
                   )}
                 </div>
               );
@@ -406,51 +394,33 @@ export default function MapaFuncionarios() {
 
     if (desk.desk_type === 'facing_6') {
       return (
-        <div className="flex flex-col gap-2 items-center justify-center w-full h-full p-3">
-          <div className="flex gap-4">
+        <div className="flex flex-col gap-3 items-center justify-center w-full h-full p-3">
+          <div className="flex gap-5">
             {[0, 1, 2].map(idx => {
               const user = getUserAtPosition(idx);
               return (
                 <div key={idx} className="flex flex-col items-center gap-1">
-                  {user ? (
-                    <>
-                      <Avatar className="w-12 h-12 border-2 border-white shadow">
-                        <AvatarImage src={user.profile_picture} />
-                        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-xs">
-                          {getInitials(getUserDisplayName(user))}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="text-[10px] font-medium text-white truncate max-w-[60px]">
-                        {getUserDisplayName(user).split(' ')[0]}
-                      </span>
-                    </>
-                  ) : (
-                    <div className="w-12 h-12 border-2 border-white/30 border-dashed rounded-full" />
+                  {renderChairWithUser(user, idx)}
+                  {user && (
+                    <span className="text-[10px] font-medium text-white truncate max-w-[60px]">
+                      {getUserDisplayName(user).split(' ')[0]}
+                    </span>
                   )}
                 </div>
               );
             })}
           </div>
-          <div className="h-px w-40 bg-white/40" />
-          <div className="flex gap-4">
+          <div className="h-px w-48 bg-white/40" />
+          <div className="flex gap-5">
             {[3, 4, 5].map(idx => {
               const user = getUserAtPosition(idx);
               return (
                 <div key={idx} className="flex flex-col items-center gap-1">
-                  {user ? (
-                    <>
-                      <Avatar className="w-12 h-12 border-2 border-white shadow">
-                        <AvatarImage src={user.profile_picture} />
-                        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white text-xs">
-                          {getInitials(getUserDisplayName(user))}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="text-[10px] font-medium text-white truncate max-w-[60px]">
-                        {getUserDisplayName(user).split(' ')[0]}
-                      </span>
-                    </>
-                  ) : (
-                    <div className="w-12 h-12 border-2 border-white/30 border-dashed rounded-full" />
+                  {renderChairWithUser(user, idx)}
+                  {user && (
+                    <span className="text-[10px] font-medium text-white truncate max-w-[60px]">
+                      {getUserDisplayName(user).split(' ')[0]}
+                    </span>
                   )}
                 </div>
               );
