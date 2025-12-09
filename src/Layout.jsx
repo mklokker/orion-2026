@@ -16,6 +16,7 @@ import {
   Files,
   GraduationCap,
   Eraser,
+  Users,
 } from "lucide-react";
 import {
   Sidebar,
