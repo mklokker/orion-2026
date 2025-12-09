@@ -18,7 +18,8 @@ import {
   ZoomOut,
   RotateCcw,
   Building2,
-  Settings
+  Settings,
+  RotateCw
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import CreateDeskModal from "@/components/mapa/CreateDeskModal";
@@ -592,7 +593,9 @@ export default function MapaFuncionarios() {
                 style={{
                   left: desk.position_x,
                   top: desk.position_y,
-                  cursor: isAdmin ? 'move' : 'pointer'
+                  cursor: isAdmin ? 'move' : 'pointer',
+                  transform: `rotate(${desk.rotation || 0}deg)`,
+                  transformOrigin: 'center center'
                 }}
                 onMouseDown={(e) => handleMouseDown(e, desk)}
               >
@@ -621,6 +624,20 @@ export default function MapaFuncionarios() {
                       
                       {isAdmin && (
                         <div className="opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 bg-white/20 hover:bg-white/30 text-white"
+                            onClick={async (e) => {
+                              e.stopPropagation();
+                              const newRotation = ((desk.rotation || 0) + 90) % 360;
+                              await Desk.update(desk.id, { rotation: newRotation });
+                              loadData();
+                            }}
+                            title="Girar 90°"
+                          >
+                            <RotateCw className="w-3 h-3" />
+                          </Button>
                           <Button
                             variant="ghost"
                             size="icon"

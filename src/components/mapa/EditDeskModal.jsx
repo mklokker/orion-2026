@@ -25,7 +25,8 @@ export default function EditDeskModal({ open, onClose, desk, users, departments,
     positions: [],
     department_id: "",
     sector_id: "",
-    color: "#3B82F6"
+    color: "#3B82F6",
+    rotation: 0
   });
 
   useEffect(() => {
@@ -37,7 +38,8 @@ export default function EditDeskModal({ open, onClose, desk, users, departments,
         positions: desk.positions || [],
         department_id: desk.department_id || "",
         sector_id: desk.sector_id || "",
-        color: desk.color || "#3B82F6"
+        color: desk.color || "#3B82F6",
+        rotation: desk.rotation || 0
       });
     }
   }, [desk]);
@@ -135,20 +137,35 @@ export default function EditDeskModal({ open, onClose, desk, users, departments,
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label>Cor da Mesa</Label>
-            <div className="flex gap-2">
-              {['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'].map(color => (
-                <button
-                  key={color}
-                  className="w-10 h-10 rounded-lg border-2 transition-all hover:scale-110"
-                  style={{ 
-                    backgroundColor: color,
-                    borderColor: deskData.color === color ? '#1F2937' : 'transparent'
-                  }}
-                  onClick={() => setDeskData(prev => ({ ...prev, color }))}
-                />
-              ))}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Cor da Mesa</Label>
+              <div className="flex gap-2">
+                {['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'].map(color => (
+                  <button
+                    key={color}
+                    className="w-8 h-8 rounded-lg border-2 transition-all hover:scale-110"
+                    style={{ 
+                      backgroundColor: color,
+                      borderColor: deskData.color === color ? '#1F2937' : 'transparent'
+                    }}
+                    onClick={() => setDeskData(prev => ({ ...prev, color }))}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Rotação ({deskData.rotation}°)</Label>
+              <Input
+                type="range"
+                min="0"
+                max="360"
+                step="15"
+                value={deskData.rotation}
+                onChange={(e) => setDeskData(prev => ({ ...prev, rotation: parseInt(e.target.value) }))}
+                className="w-full"
+              />
             </div>
           </div>
 

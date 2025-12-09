@@ -27,7 +27,8 @@ export default function CreateDeskModal({ open, onClose, users, departments, sec
     position_y: 100,
     department_id: "",
     sector_id: "",
-    color: "#3B82F6"
+    color: "#3B82F6",
+    rotation: 0
   });
 
   const handleTypeChange = (type) => {
@@ -78,7 +79,8 @@ export default function CreateDeskModal({ open, onClose, users, departments, sec
       position_y: 100,
       department_id: "",
       sector_id: "",
-      color: "#3B82F6"
+      color: "#3B82F6",
+      rotation: 0
     });
   };
 
