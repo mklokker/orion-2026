@@ -795,8 +795,14 @@ export default function MapaFuncionarios() {
                 onMouseDown={(e) => handleMouseDown(e, desk)}
               >
                 {/* Nome e departamento sempre visíveis (não giram) */}
-                <div className="absolute -top-12 left-0 right-0 z-20 pointer-events-none">
-                  <div className="bg-white/95 backdrop-blur-sm rounded-lg px-2 py-1 shadow-md border border-gray-200 w-max">
+                <div 
+                  className="absolute z-20 pointer-events-none"
+                  style={{
+                    top: '-48px',
+                    left: '0'
+                  }}
+                >
+                  <div className="bg-white/95 backdrop-blur-sm rounded-lg px-2 py-1 shadow-md border border-gray-200">
                     <h3 className="text-xs font-bold text-gray-900 whitespace-nowrap">{desk.name}</h3>
                     {dept && (
                       <Badge variant="secondary" className="text-[9px] mt-0.5 bg-gray-100 text-gray-700 border-0 px-1 py-0">
@@ -882,7 +888,13 @@ export default function MapaFuncionarios() {
                     })())
                   }}
                 >
-                  <div className="p-2 h-full flex items-center justify-center overflow-hidden">
+                  <div 
+                    className="p-2 h-full flex items-center justify-center overflow-hidden"
+                    style={{
+                      transform: `rotate(-${rotation}deg)`,
+                      transformOrigin: 'center center'
+                    }}
+                  >
                     {renderDeskPositions(desk)}
                   </div>
                 </Card>
