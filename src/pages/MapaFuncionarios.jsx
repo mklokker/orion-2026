@@ -460,81 +460,90 @@ export default function MapaFuncionarios() {
 
   return (
     <div className="h-screen flex flex-col bg-gray-50">
-      <div className="bg-white border-b p-4 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">Mapa de Funcionários</h1>
-            <p className="text-sm text-gray-500">Organize e visualize as mesas de trabalho</p>
-          </div>
-          
-          {sectors.length > 0 && (
-            <div className="flex items-center gap-2 pl-4 border-l">
-              <Building2 className="w-4 h-4 text-gray-400" />
-              <select
-                value={selectedSector}
-                onChange={(e) => setSelectedSector(e.target.value)}
-                className="px-3 py-1.5 border rounded-lg text-sm font-medium bg-white hover:bg-gray-50 transition-colors"
-                style={{
-                  borderColor: currentSector?.color || '#D1D5DB',
-                  color: currentSector?.color || '#374151'
-                }}
-              >
-                <option value="all">Todos os Setores</option>
-                {sectors.map(sector => (
-                  <option key={sector.id} value={sector.id}>
-                    {sector.name}
-                  </option>
-                ))}
-              </select>
+      <div className="bg-white border-b p-3 md:p-4">
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-xl md:text-2xl font-bold text-gray-900 truncate">Mapa de Funcionários</h1>
+              <p className="text-xs md:text-sm text-gray-500">Organize e visualize as mesas</p>
             </div>
-          )}
-        </div>
-        
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setZoom(z => Math.max(0.5, z - 0.1))}
-            title="Diminuir Zoom"
-          >
-            <ZoomOut className="w-4 h-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setZoom(1)}
-            title="Resetar Zoom"
-          >
-            <RotateCcw className="w-4 h-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            onClick={() => setZoom(z => Math.min(2, z + 0.1))}
-            title="Aumentar Zoom"
-          >
-            <ZoomIn className="w-4 h-4" />
-          </Button>
-          
-          {isAdmin && (
-            <>
+            
+            <div className="flex gap-1.5 md:gap-2 ml-2">
               <Button
                 variant="outline"
-                onClick={() => setShowSectorManager(true)}
-                className="gap-2"
+                size="icon"
+                onClick={() => setZoom(z => Math.max(0.5, z - 0.1))}
+                title="Diminuir Zoom"
+                className="h-8 w-8 md:h-10 md:w-10 shrink-0"
               >
-                <Settings className="w-4 h-4" />
-                Gerenciar Setores
+                <ZoomOut className="w-3 h-3 md:w-4 md:h-4" />
               </Button>
               <Button
-                onClick={() => setShowCreateModal(true)}
-                className="gap-2 bg-gradient-to-r from-blue-600 to-indigo-600"
+                variant="outline"
+                size="icon"
+                onClick={() => setZoom(1)}
+                title="Resetar Zoom"
+                className="h-8 w-8 md:h-10 md:w-10 shrink-0"
               >
-                <Plus className="w-4 h-4" />
-                Nova Mesa
+                <RotateCcw className="w-3 h-3 md:w-4 md:h-4" />
               </Button>
-            </>
-          )}
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setZoom(z => Math.min(2, z + 0.1))}
+                title="Aumentar Zoom"
+                className="h-8 w-8 md:h-10 md:w-10 shrink-0"
+              >
+                <ZoomIn className="w-3 h-3 md:w-4 md:h-4" />
+              </Button>
+            </div>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
+            {sectors.length > 0 && (
+              <div className="flex items-center gap-2">
+                <Building2 className="w-4 h-4 text-gray-400 hidden sm:block" />
+                <select
+                  value={selectedSector}
+                  onChange={(e) => setSelectedSector(e.target.value)}
+                  className="w-full sm:w-auto px-2 md:px-3 py-1.5 border rounded-lg text-xs md:text-sm font-medium bg-white hover:bg-gray-50 transition-colors"
+                  style={{
+                    borderColor: currentSector?.color || '#D1D5DB',
+                    color: currentSector?.color || '#374151'
+                  }}
+                >
+                  <option value="all">Todos os Setores</option>
+                  {sectors.map(sector => (
+                    <option key={sector.id} value={sector.id}>
+                      {sector.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+            
+            {isAdmin && (
+              <div className="flex gap-2 sm:ml-auto">
+                <Button
+                  variant="outline"
+                  onClick={() => setShowSectorManager(true)}
+                  className="gap-1.5 flex-1 sm:flex-initial text-xs md:text-sm h-9 md:h-10 px-3 md:px-4"
+                  size="sm"
+                >
+                  <Settings className="w-3 h-3 md:w-4 md:h-4" />
+                  <span className="hidden xs:inline">Setores</span>
+                </Button>
+                <Button
+                  onClick={() => setShowCreateModal(true)}
+                  className="gap-1.5 flex-1 sm:flex-initial bg-gradient-to-r from-blue-600 to-indigo-600 text-xs md:text-sm h-9 md:h-10 px-3 md:px-4"
+                  size="sm"
+                >
+                  <Plus className="w-3 h-3 md:w-4 md:h-4" />
+                  Nova Mesa
+                </Button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
