@@ -73,6 +73,8 @@ export default function MapaFuncionarios() {
   const [isPanning, setIsPanning] = useState(false);
   const [panStart, setPanStart] = useState({ x: 0, y: 0 });
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
+  const [searchQuery, setSearchQuery] = useState("");
+  const [highlightedDeskId, setHighlightedDeskId] = useState(null);
 
   const isAdmin = currentUser?.role === 'admin';
 
@@ -466,26 +468,114 @@ export default function MapaFuncionarios() {
 
   const currentSector = sectors.find(s => s.id === selectedSector);
 
+  // Search functionality
+  const searchResults = React.useMemo(() => {
+    if (!searchQuery.trim()) return filteredDesks;
+    
+    const query = searchQuery.toLowerCase();
+    return filteredDesks.filter(desk => {
+      // Search by desk name
+      if (desk.name.toLowerCase().includes(query)) return true;
+      
+      // Search by employee name/email
+      const hasMatchingEmployee = desk.positions?.some(pos => {
+        if (!pos.user_email) return false;
+        const user = users.find(u => u.email === pos.user_email);
+        if (!user) return false;
+        const displayName = getUserDisplayName(user).toLowerCase();
+        return displayName.includes(query) || user.email.toLowerCase().includes(query);
+      });
+      
+      return hasMatchingEmployee;
+    });
+  }, [filteredDesks, searchQuery, users]);
+
+  const focusOnDesk = (desk) => {
+    setHighlightedDeskId(desk.id);
+    
+    // Calculate center position for the desk
+    const mapWidth = 2000;
+    const mapHeight = 2000;
+    const centerX = -desk.position_x + (window.innerWidth / 2 / zoom);
+    const centerY = -desk.position_y + (window.innerHeight / 2 / zoom);
+    
+    setPanOffset({ x: centerX * zoom, y: centerY * zoom });
+    
+    // Clear highlight after 3 seconds
+    setTimeout(() => setHighlightedDeskId(null), 3000);
+  };
+
+  // Group desks by sector for visual boundaries
+  const sectorBoundaries = React.useMemo(() => {
+    const boundaries = {};
+    
+    filteredDesks.forEach(desk => {
+      if (!desk.sector_id) return;
+      
+      if (!boundaries[desk.sector_id]) {
+        boundaries[desk.sector_id] = {
+          minX: desk.position_x,
+          maxX: desk.position_x + 200,
+          minY: desk.position_y,
+          maxY: desk.position_y + 200,
+          sector: sectors.find(s => s.id === desk.sector_id)
+        };
+      } else {
+        const b = boundaries[desk.sector_id];
+        b.minX = Math.min(b.minX, desk.position_x);
+        b.maxX = Math.max(b.maxX, desk.position_x + 200);
+        b.minY = Math.min(b.minY, desk.position_y);
+        b.maxY = Math.max(b.maxY, desk.position_y + 200);
+      }
+    });
+    
+    // Add padding
+    Object.values(boundaries).forEach(b => {
+      b.minX -= 30;
+      b.minY -= 30;
+      b.maxX += 30;
+      b.maxY += 30;
+    });
+    
+    return boundaries;
+  }, [filteredDesks, sectors]);
+
   return (
     <div className="h-screen flex flex-col bg-gray-50">
       <div className="bg-white border-b p-3 md:p-4">
         <div className="flex flex-col gap-3">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-3">
             <div className="flex-1 min-w-0">
               <h1 className="text-xl md:text-2xl font-bold text-gray-900 truncate">Mapa de Funcionários</h1>
               <p className="text-xs md:text-sm text-gray-500">Organize e visualize as mesas</p>
             </div>
-            
-
           </div>
           
           <div className="flex flex-col sm:flex-row gap-2 items-stretch sm:items-center">
+            <div className="relative flex-1 sm:max-w-xs">
+              <Input
+                placeholder="Buscar mesa ou funcionário..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-8 text-xs md:text-sm h-9 md:h-10"
+              />
+              <Users className="w-4 h-4 text-gray-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+              {searchQuery && (
+                <Badge variant="secondary" className="absolute right-2 top-1/2 -translate-y-1/2 text-xs">
+                  {searchResults.length}
+                </Badge>
+              )}
+            </div>
+            
             {sectors.length > 0 && (
               <div className="flex items-center gap-2">
                 <Building2 className="w-4 h-4 text-gray-400 hidden sm:block" />
                 <select
                   value={selectedSector}
-                  onChange={(e) => setSelectedSector(e.target.value)}
+                  onChange={(e) => {
+                    setSelectedSector(e.target.value);
+                    setSearchQuery("");
+                  }}
                   className="w-full sm:w-auto px-2 md:px-3 py-1.5 border rounded-lg text-xs md:text-sm font-medium bg-white hover:bg-gray-50 transition-colors"
                   style={{
                     borderColor: currentSector?.color || '#D1D5DB',
@@ -593,7 +683,33 @@ export default function MapaFuncionarios() {
             minHeight: '2000px'
           }}
         >
-          {filteredDesks.map(desk => {
+          {/* Sector boundaries */}
+          {selectedSector === "all" && Object.entries(sectorBoundaries).map(([sectorId, boundary]) => (
+            <div
+              key={`boundary-${sectorId}`}
+              className="absolute border-2 border-dashed rounded-2xl pointer-events-none"
+              style={{
+                left: boundary.minX,
+                top: boundary.minY,
+                width: boundary.maxX - boundary.minX,
+                height: boundary.maxY - boundary.minY,
+                borderColor: boundary.sector?.color || '#94a3b8',
+                backgroundColor: `${boundary.sector?.color || '#94a3b8'}10`
+              }}
+            >
+              <div 
+                className="absolute -top-6 left-2 px-2 py-1 rounded text-xs font-semibold"
+                style={{
+                  backgroundColor: boundary.sector?.color || '#94a3b8',
+                  color: 'white'
+                }}
+              >
+                {boundary.sector?.name || 'Setor'}
+              </div>
+            </div>
+          ))}
+
+          {searchResults.map(desk => {
             const dept = departments.find(d => d.id === desk.department_id);
             
             return (
@@ -610,7 +726,11 @@ export default function MapaFuncionarios() {
                 onMouseDown={(e) => handleMouseDown(e, desk)}
               >
                 <Card 
-                  className="shadow-lg border-2 border-white transition-all duration-200 hover:shadow-2xl hover:scale-105 hover:-translate-y-1 hover:border-yellow-300"
+                  className={`shadow-lg border-2 transition-all duration-200 hover:shadow-2xl hover:scale-105 hover:-translate-y-1 hover:border-yellow-300 ${
+                    highlightedDeskId === desk.id 
+                      ? 'border-yellow-400 animate-pulse ring-4 ring-yellow-300' 
+                      : 'border-white'
+                  }`}
                   style={{
                     backgroundColor: desk.color || '#3B82F6',
                     ...((() => {
@@ -693,7 +813,114 @@ export default function MapaFuncionarios() {
             );
           })}
         </div>
+
+        {/* Minimap */}
+        <div className="fixed bottom-4 right-2 md:right-4 z-50 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border p-2">
+          <div className="text-xs font-semibold text-gray-500 mb-1 px-1">Visão Geral</div>
+          <div 
+            className="relative bg-gradient-to-br from-gray-100 to-gray-200 rounded"
+            style={{
+              width: '150px',
+              height: '150px',
+              backgroundImage: 'radial-gradient(circle, #cbd5e1 1px, transparent 1px)',
+              backgroundSize: '10px 10px'
+            }}
+          >
+            {/* Sector boundaries in minimap */}
+            {selectedSector === "all" && Object.entries(sectorBoundaries).map(([sectorId, boundary]) => (
+              <div
+                key={`mini-boundary-${sectorId}`}
+                className="absolute border rounded opacity-50"
+                style={{
+                  left: `${(boundary.minX / 2000) * 100}%`,
+                  top: `${(boundary.minY / 2000) * 100}%`,
+                  width: `${((boundary.maxX - boundary.minX) / 2000) * 100}%`,
+                  height: `${((boundary.maxY - boundary.minY) / 2000) * 100}%`,
+                  borderColor: boundary.sector?.color || '#94a3b8',
+                  backgroundColor: `${boundary.sector?.color || '#94a3b8'}20`
+                }}
+              />
+            ))}
+            
+            {/* Desks in minimap */}
+            {searchResults.map(desk => (
+              <div
+                key={`mini-${desk.id}`}
+                className="absolute rounded-sm cursor-pointer hover:ring-2 hover:ring-yellow-400 transition-all"
+                style={{
+                  left: `${(desk.position_x / 2000) * 100}%`,
+                  top: `${(desk.position_y / 2000) * 100}%`,
+                  width: '4px',
+                  height: '4px',
+                  backgroundColor: highlightedDeskId === desk.id ? '#facc15' : (desk.color || '#3B82F6')
+                }}
+                onClick={() => focusOnDesk(desk)}
+                title={desk.name}
+              />
+            ))}
+            
+            {/* Viewport indicator */}
+            <div
+              className="absolute border-2 border-blue-600 bg-blue-600/20 pointer-events-none"
+              style={{
+                left: `${(-panOffset.x / zoom / 2000) * 100}%`,
+                top: `${(-panOffset.y / zoom / 2000) * 100}%`,
+                width: `${(window.innerWidth / zoom / 2000) * 100}%`,
+                height: `${(window.innerHeight / zoom / 2000) * 100}%`
+              }}
+            />
+          </div>
+        </div>
       </div>
+
+      {/* Search Results Panel */}
+      {searchQuery && searchResults.length > 0 && (
+        <div className="fixed top-52 md:top-56 left-2 md:left-4 z-50 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border p-3 max-w-xs max-h-96 overflow-y-auto">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-sm font-semibold text-gray-700">
+              Resultados ({searchResults.length})
+            </h3>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-6 w-6"
+              onClick={() => setSearchQuery("")}
+            >
+              ×
+            </Button>
+          </div>
+          <div className="space-y-1">
+            {searchResults.map(desk => {
+              const employees = desk.positions
+                ?.map(p => users.find(u => u.email === p.user_email))
+                .filter(Boolean);
+              
+              return (
+                <button
+                  key={desk.id}
+                  onClick={() => focusOnDesk(desk)}
+                  className="w-full text-left p-2 rounded hover:bg-blue-50 transition-colors"
+                >
+                  <div className="font-medium text-sm text-gray-900">{desk.name}</div>
+                  {employees && employees.length > 0 && (
+                    <div className="text-xs text-gray-500 truncate">
+                      {employees.map(e => getUserDisplayName(e)).join(', ')}
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {searchResults.length === 0 && searchQuery && (
+        <div className="fixed top-52 md:top-56 left-2 md:left-4 z-50 bg-white/95 backdrop-blur-sm rounded-lg shadow-lg border p-4 max-w-xs">
+          <p className="text-sm text-gray-500 text-center">
+            Nenhum resultado para "{searchQuery}"
+          </p>
+        </div>
+      )}
 
       {filteredDesks.length === 0 && desks.length > 0 && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
