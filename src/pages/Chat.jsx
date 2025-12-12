@@ -181,6 +181,8 @@ export default function Chat() {
   const [appSettings, setAppSettings] = useState(null);
   const [showGroupSettings, setShowGroupSettings] = useState(false); // Group settings modal state
   const [showChatSettings, setShowChatSettings] = useState(false); // User chat settings
+  const messagesEndRef = useRef(null);
+  const scrollAreaRef = useRef(null);
 
   const isAdmin = currentUser?.role === 'admin';
 
@@ -198,23 +200,25 @@ export default function Chat() {
     loadInitialData();
   }, []);
 
-  useEffect(() => {
-    if (scrollRef.current) {
-      // Pequeno delay para garantir que tudo foi renderizado
-      setTimeout(() => {
-        scrollRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-      }, 100);
+  // Função para rolar para o final
+  const scrollToBottom = (behavior = "smooth") => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior, block: "end" });
     }
+  };
+
+  // Scroll ao receber novas mensagens
+  useEffect(() => {
+    scrollToBottom("smooth");
   }, [messages]);
 
-  // Scroll inicial ao selecionar conversa
+  // Scroll imediato ao selecionar conversa (sem smooth para ser instantâneo)
   useEffect(() => {
-    if (selectedConversation && scrollRef.current) {
-      setTimeout(() => {
-        scrollRef.current?.scrollIntoView({ behavior: "auto", block: "end" });
-      }, 200);
+    if (selectedConversation) {
+      // Force immediate scroll without animation
+      setTimeout(() => scrollToBottom("auto"), 50);
     }
-  }, [selectedConversation]);
+  }, [selectedConversation?.id]);
 
   useEffect(() => {
     loadAppSettings();
@@ -1619,6 +1623,7 @@ export default function Chat() {
             </div>
 
             <ScrollArea 
+              ref={scrollAreaRef}
               className="flex-1 p-4 bg-gray-50"
               onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
               onDrop={(e) => {
@@ -1626,15 +1631,11 @@ export default function Chat() {
                 e.stopPropagation();
                 const files = e.dataTransfer.files;
                 if (files && files.length > 0) {
-                   // Handle drag & drop upload via ChatInputArea Logic 
-                   // (We will just rely on the component being updated to handle this logic, 
-                   // or we can trigger the upload function directly if we had ref access, 
-                   // but for now lets keep it simple and add a toast hint)
                    toast({ title: "Upload", description: "Arraste para o campo de input para enviar." });
                 }
               }}
             >
-              <div className="space-y-1">
+              <div className="space-y-1 pb-4">
                 {messages
                   .filter(msg => !(msg.deleted_for || []).includes(currentUser.email))
                   .map((msg) => (
@@ -1650,7 +1651,7 @@ export default function Chat() {
                     onEdit={(m) => toast({ title: "Em breve", description: "Edição de mensagens será implementada na próxima atualização." })}
                   />
                 ))}
-                <div ref={scrollRef} />
+                <div ref={messagesEndRef} style={{ height: 1 }} />
               </div>
             </ScrollArea>
 
