@@ -76,7 +76,7 @@ export default function ChatInputArea({
                    
       onSendMessage({ 
         type: type, 
-        content: type === 'image' ? '' : file.name,
+        content: type === 'image' ? 'Imagem' : file.name,
         attachmentUrl: file_url, 
         attachmentName: file.name 
       });
