@@ -96,7 +96,23 @@ const getUserDisplayName = (user) => {
 const formatMessageTime = (dateString) => {
   try {
     const date = new Date(dateString);
-    return format(toSaoPauloTime(date), "HH:mm", { locale: ptBR });
+    const spDate = toSaoPauloTime(date);
+    const now = toSaoPauloTime(new Date());
+    
+    // Se for hoje, mostrar apenas hora
+    if (format(spDate, "yyyy-MM-dd") === format(now, "yyyy-MM-dd")) {
+      return format(spDate, "HH:mm", { locale: ptBR });
+    }
+    
+    // Se for ontem
+    const yesterday = new Date(now);
+    yesterday.setDate(yesterday.getDate() - 1);
+    if (format(spDate, "yyyy-MM-dd") === format(yesterday, "yyyy-MM-dd")) {
+      return "Ontem " + format(spDate, "HH:mm", { locale: ptBR });
+    }
+    
+    // Senão, mostrar data completa
+    return format(spDate, "dd/MM/yyyy HH:mm", { locale: ptBR });
   } catch (error) {
     return "";
   }
@@ -121,12 +137,12 @@ const formatConversationTime = (dateString) => {
 };
 
 const formatLastSeen = (lastSeenStr) => {
-  if (!lastSeenStr) return "Nunca visto";
+  if (!lastSeenStr) return "offline";
   try {
     const lastSeen = new Date(lastSeenStr);
     return formatDistanceToNow(lastSeen, { addSuffix: true, locale: ptBR });
   } catch {
-    return "Nunca visto";
+    return "offline";
   }
 };
 
@@ -203,6 +219,15 @@ export default function Chat() {
       scrollRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages]);
+
+  // Scroll ao selecionar conversa
+  useEffect(() => {
+    if (selectedConversation && scrollRef.current) {
+      setTimeout(() => {
+        scrollRef.current?.scrollIntoView({ behavior: "auto" });
+      }, 100);
+    }
+  }, [selectedConversation?.id]);
 
   useEffect(() => {
     loadAppSettings();
@@ -681,13 +706,19 @@ export default function Chat() {
       conversation_id: selectedConversation.id,
       sender_email: currentUser.email,
       sender_name: getUserDisplayName(currentUser),
-      message: content || (attachmentUrl ? attachmentName : ""),
+      message: content || "",
       message_type: type || 'text',
-      read_by: [currentUser.email],
-      attachment_url: attachmentUrl,
-      attachment_name: attachmentName,
-      document_id: documentId
+      read_by: [currentUser.email]
     };
+
+    if (attachmentUrl) {
+      messageData.attachment_url = attachmentUrl;
+      messageData.attachment_name = attachmentName;
+    }
+
+    if (documentId) {
+      messageData.document_id = documentId;
+    }
 
     if (replyTo) {
       messageData.reply_to_id = replyTo.id;
@@ -1171,19 +1202,30 @@ export default function Chat() {
         created_by: currentUser.email
       });
 
-      const newConversation = await ChatConversation.create({
-      name: conversationName,
-      conversation_type: newChatType,
-      is_public: isPublicGroup && newChatType === "group",
-      participants: participants,
-      department_id: departmentId,
-      created_by: currentUser.email,
-      admins: [currentUser.email], // Creator is first admin
-      permissions: {
-         only_admins_message: false,
-         only_admins_edit_info: false
+      const conversationData = {
+        conversation_type: newChatType,
+        participants: participants,
+        created_by: currentUser.email,
+        admins: [currentUser.email],
+        permissions: {
+          only_admins_message: false,
+          only_admins_edit_info: false
+        }
+      };
+
+      if (conversationName) {
+        conversationData.name = conversationName;
       }
-      });
+
+      if (newChatType === "group" && isPublicGroup) {
+        conversationData.is_public = true;
+      }
+
+      if (departmentId) {
+        conversationData.department_id = departmentId;
+      }
+
+      const newConversation = await ChatConversation.create(conversationData);
 
       console.log("[Chat] ✅ Conversa criada com sucesso! ID:", newConversation.id);
 
