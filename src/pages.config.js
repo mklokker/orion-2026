@@ -1,31 +1,33 @@
+import Home from './pages/Home';
+import Acervo from './pages/Acervo';
+import Admin from './pages/Admin';
+import CargaDiaria from './pages/CargaDiaria';
+import Cursos from './pages/Cursos';
 import Dashboard from './pages/Dashboard';
 import GestaoTarefas from './pages/GestaoTarefas';
-import CargaDiaria from './pages/CargaDiaria';
-import Relatorios from './pages/Relatorios';
-import Admin from './pages/Admin';
+import MapaFuncionarios from './pages/MapaFuncionarios';
 import ProdutividadeGeral from './pages/ProdutividadeGeral';
 import Ranking from './pages/Ranking';
-import Chat from './pages/Chat';
-import Acervo from './pages/Acervo';
-import Cursos from './pages/Cursos';
+import Relatorios from './pages/Relatorios';
 import Removedor from './pages/Removedor';
-import MapaFuncionarios from './pages/MapaFuncionarios';
+import Chat from './pages/Chat';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
+    "Home": Home,
+    "Acervo": Acervo,
+    "Admin": Admin,
+    "CargaDiaria": CargaDiaria,
+    "Cursos": Cursos,
     "Dashboard": Dashboard,
     "GestaoTarefas": GestaoTarefas,
-    "CargaDiaria": CargaDiaria,
-    "Relatorios": Relatorios,
-    "Admin": Admin,
+    "MapaFuncionarios": MapaFuncionarios,
     "ProdutividadeGeral": ProdutividadeGeral,
     "Ranking": Ranking,
-    "Chat": Chat,
-    "Acervo": Acervo,
-    "Cursos": Cursos,
+    "Relatorios": Relatorios,
     "Removedor": Removedor,
-    "MapaFuncionarios": MapaFuncionarios,
+    "Chat": Chat,
 }
 
 export const pagesConfig = {

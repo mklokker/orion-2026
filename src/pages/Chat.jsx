@@ -200,9 +200,21 @@ export default function Chat() {
 
   useEffect(() => {
     if (scrollRef.current) {
-      scrollRef.current.scrollIntoView({ behavior: "smooth" });
+      // Pequeno delay para garantir que tudo foi renderizado
+      setTimeout(() => {
+        scrollRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+      }, 100);
     }
   }, [messages]);
+
+  // Scroll inicial ao selecionar conversa
+  useEffect(() => {
+    if (selectedConversation && scrollRef.current) {
+      setTimeout(() => {
+        scrollRef.current?.scrollIntoView({ behavior: "auto", block: "end" });
+      }, 200);
+    }
+  }, [selectedConversation]);
 
   useEffect(() => {
     loadAppSettings();
