@@ -124,8 +124,10 @@ const formatLastSeen = (lastSeenStr) => {
   if (!lastSeenStr) return "Nunca visto";
   try {
     const lastSeen = new Date(lastSeenStr);
-    return formatDistanceToNow(lastSeen, { addSuffix: true, locale: ptBR });
-  } catch {
+    const spTime = toSaoPauloTime(lastSeen);
+    return formatDistanceToNow(spTime, { addSuffix: true, locale: ptBR });
+  } catch (error) {
+    console.error("Error formatting last seen:", error, lastSeenStr);
     return "Nunca visto";
   }
 };
@@ -707,6 +709,21 @@ export default function Chat() {
 
   const handleSelectConversation = async (conversation) => {
     setSelectedConversation(conversation);
+    
+    // Refresh user data for direct conversations to get latest last_seen
+    if (conversation.conversation_type === 'direct') {
+      const otherUserEmail = conversation.participants?.find(p => p !== currentUser?.email);
+      if (otherUserEmail) {
+        try {
+          const enrichedUser = await enrichUserData(otherUserEmail, users.find(u => u.email === otherUserEmail));
+          if (enrichedUser) {
+            setUsers(prev => prev.map(u => u.email === otherUserEmail ? enrichedUser : u));
+          }
+        } catch (error) {
+          console.warn("Failed to refresh user data:", error);
+        }
+      }
+    }
     
     // Optimistically mark as read in UI
     const unreadCount = unreadByConversation[conversation.id] || 0;
@@ -1495,10 +1512,15 @@ export default function Chat() {
 
   const isUserOnline = (user) => {
     if (!user || !user.last_seen) return false;
-    const lastSeen = new Date(user.last_seen);
-    const now = new Date();
-    const diffMinutes = (now.getTime() - lastSeen.getTime()) / (1000 * 60);
-    return diffMinutes < 5; // Considera online se esteve ativo nos últimos 5 minutos
+    try {
+      const lastSeen = new Date(user.last_seen);
+      const now = new Date();
+      const diffMinutes = (now.getTime() - lastSeen.getTime()) / (1000 * 60);
+      return diffMinutes < 5; // Considera online se esteve ativo nos últimos 5 minutos
+    } catch (error) {
+      console.error("Error checking online status:", error);
+      return false;
+    }
   };
 
   return (
