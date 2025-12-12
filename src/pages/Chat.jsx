@@ -183,6 +183,9 @@ export default function Chat() {
   const [showChatSettings, setShowChatSettings] = useState(false); // User chat settings
   const messagesEndRef = useRef(null);
   const scrollAreaRef = useRef(null);
+  const [editingMessage, setEditingMessage] = useState(null);
+  const [editText, setEditText] = useState("");
+  const [showPinnedMessages, setShowPinnedMessages] = useState(false);
 
   const isAdmin = currentUser?.role === 'admin';
 
@@ -807,6 +810,106 @@ export default function Chat() {
       await ChatMessage.update(message.id, { reactions: newReactions });
     } catch (error) {
       console.error("Reaction failed", error);
+    }
+  };
+
+  const handleEditMessage = async () => {
+    if (!editingMessage || !editText.trim()) return;
+
+    try {
+      // Check for URLs and extract link preview
+      const urlRegex = /(https?:\/\/[^\s]+)/g;
+      const urls = editText.match(urlRegex);
+      let linkPreview = null;
+
+      if (urls && urls.length > 0) {
+        try {
+          const { base44 } = await import("@/api/base44Client");
+          const response = await base44.integrations.Core.InvokeLLM({
+            prompt: `Extract metadata from this URL: ${urls[0]}. Return JSON with: title, description, image (og:image or first image URL), site_name. If you can't access it, return null for unavailable fields.`,
+            response_json_schema: {
+              type: "object",
+              properties: {
+                title: { type: "string" },
+                description: { type: "string" },
+                image: { type: "string" },
+                site_name: { type: "string" }
+              }
+            }
+          });
+
+          if (response && (response.title || response.description)) {
+            linkPreview = {
+              url: urls[0],
+              ...response
+            };
+          }
+        } catch (error) {
+          console.warn("Failed to fetch link preview:", error);
+        }
+      }
+
+      const updateData = {
+        message: editText,
+        is_edited: true,
+        edited_at: new Date().toISOString()
+      };
+
+      if (linkPreview) {
+        updateData.link_preview = linkPreview;
+      }
+
+      await ChatMessage.update(editingMessage.id, updateData);
+      
+      setMessages(prev => prev.map(m => 
+        m.id === editingMessage.id ? { ...m, ...updateData } : m
+      ));
+      
+      setEditingMessage(null);
+      setEditText("");
+      
+      toast({
+        title: "Mensagem editada",
+        description: "Sua mensagem foi atualizada com sucesso.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível editar a mensagem.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handlePinMessage = async (message) => {
+    try {
+      const newPinnedState = !message.is_pinned;
+      
+      await ChatMessage.update(message.id, {
+        is_pinned: newPinnedState,
+        pinned_by: newPinnedState ? currentUser.email : null,
+        pinned_at: newPinnedState ? new Date().toISOString() : null
+      });
+      
+      setMessages(prev => prev.map(m => 
+        m.id === message.id ? { 
+          ...m, 
+          is_pinned: newPinnedState,
+          pinned_by: newPinnedState ? currentUser.email : null,
+          pinned_at: newPinnedState ? new Date().toISOString() : null
+        } : m
+      ));
+      
+      toast({
+        title: newPinnedState ? "Mensagem fixada" : "Mensagem desafixada",
+        description: newPinnedState ? "A mensagem foi fixada no topo da conversa." : "A mensagem foi desafixada.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível fixar/desafixar a mensagem.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -1635,6 +1738,37 @@ export default function Chat() {
                 }
               }}
             >
+              {/* Pinned Messages Banner */}
+              {messages.some(m => m.is_pinned) && (
+                <div className="mb-4 bg-amber-50 border-2 border-amber-200 rounded-lg p-3">
+                  <button
+                    onClick={() => setShowPinnedMessages(!showPinnedMessages)}
+                    className="flex items-center gap-2 text-amber-800 font-medium text-sm hover:text-amber-900 transition-colors"
+                  >
+                    <Pin className="w-4 h-4" />
+                    <span>{messages.filter(m => m.is_pinned).length} mensagem(ns) fixada(s)</span>
+                    <span className="ml-auto text-xs text-amber-600">
+                      {showPinnedMessages ? "Ocultar" : "Ver"}
+                    </span>
+                  </button>
+                  
+                  {showPinnedMessages && (
+                    <div className="mt-3 space-y-2 max-h-60 overflow-y-auto">
+                      {messages
+                        .filter(m => m.is_pinned)
+                        .map(msg => (
+                          <div key={msg.id} className="bg-white rounded-lg p-2 border border-amber-200">
+                            <p className="text-xs font-semibold text-amber-900 mb-1">
+                              {users.find(u => u.email === msg.sender_email)?.display_name || msg.sender_name}
+                            </p>
+                            <p className="text-sm text-gray-700 line-clamp-2">{msg.message}</p>
+                          </div>
+                        ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="space-y-1 pb-4">
                 {messages
                   .filter(msg => !(msg.deleted_for || []).includes(currentUser.email))
@@ -1645,15 +1779,58 @@ export default function Chat() {
                     isOwn={msg.sender_email === currentUser?.email}
                     sender={users.find(u => u.email === msg.sender_email)}
                     readStatus={isMessageReadByOthers(msg)}
+                    allParticipants={users.filter(u => selectedConversation?.participants?.includes(u.email))}
                     onReply={handleReply}
                     onDelete={handleDeleteMessage}
                     onReact={handleReact}
-                    onEdit={(m) => toast({ title: "Em breve", description: "Edição de mensagens será implementada na próxima atualização." })}
+                    onPin={handlePinMessage}
+                    onEdit={(m) => {
+                      setEditingMessage(m);
+                      setEditText(m.message);
+                    }}
                   />
                 ))}
                 <div ref={messagesEndRef} style={{ height: 1 }} />
               </div>
             </ScrollArea>
+
+            {/* Edit Message Bar */}
+            {editingMessage && (
+              <div className="bg-amber-50 border-t-2 border-amber-300 p-3">
+                <div className="flex items-center gap-2 text-sm text-amber-800 mb-2">
+                  <Edit2 className="w-4 h-4" />
+                  <span className="font-medium">Editando mensagem</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setEditingMessage(null);
+                      setEditText("");
+                    }}
+                    className="ml-auto h-6"
+                  >
+                    Cancelar
+                  </Button>
+                </div>
+                <div className="flex gap-2">
+                  <Input
+                    value={editText}
+                    onChange={(e) => setEditText(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        handleEditMessage();
+                      }
+                    }}
+                    placeholder="Editar mensagem..."
+                    className="flex-1"
+                  />
+                  <Button onClick={handleEditMessage} size="sm">
+                    Salvar
+                  </Button>
+                </div>
+              </div>
+            )}
 
             <ChatInputArea 
               onSendMessage={handleSendMessage}

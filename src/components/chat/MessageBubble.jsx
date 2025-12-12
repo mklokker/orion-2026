@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { 
   MoreVertical, Reply, Trash2, Edit2, Smile, 
-  Check, CheckCheck, FileText, Download, Play, Pause, ExternalLink
+  Check, CheckCheck, FileText, Download, Play, Pause, ExternalLink, Pin, Users
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
@@ -22,7 +22,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import ImageViewerModal from "./ImageViewerModal";
 
-const REACTIONS = ["👍", "❤️", "😂", "😮", "😢", "😡"];
+const REACTIONS = ["👍", "❤️", "😂", "😮", "😢", "😡", "🔥", "✅", "🎉", "👏", "🙏", "💯"];
 
 // Função para gerar cor consistente baseada no nome
 const stringToColor = (str) => {
@@ -82,10 +82,13 @@ export default function MessageBubble({
   onReact, 
   onDelete, 
   onEdit,
-  readStatus 
+  onPin,
+  readStatus,
+  allParticipants = []
 }) {
   const [showReactions, setShowReactions] = useState(false);
   const [showImageModal, setShowImageModal] = useState(false);
+  const [showReadBy, setShowReadBy] = useState(false);
 
   if (message.message_type === 'system') {
     return (
@@ -124,6 +127,14 @@ export default function MessageBubble({
     return acc;
   }, []);
 
+  // Calculate read status details
+  const readByUsers = allParticipants.filter(p => 
+    message.read_by?.includes(p.email) && p.email !== message.sender_email
+  );
+  const unreadUsers = allParticipants.filter(p => 
+    !message.read_by?.includes(p.email) && p.email !== message.sender_email
+  );
+
   return (
     <div className={`flex gap-3 mb-4 group ${isOwn ? "justify-end" : "justify-start"}`}>
       {/* Avatar dos Outros (Esquerda) */}
@@ -137,6 +148,14 @@ export default function MessageBubble({
       )}
 
       <div className={`flex flex-col max-w-[70%] ${isOwn ? "items-end" : "items-start"}`}>
+        
+        {/* Pinned Indicator */}
+        {message.is_pinned && (
+          <div className="flex items-center gap-1 text-xs text-amber-600 font-medium mb-1">
+            <Pin className="w-3 h-3" />
+            <span>Mensagem Fixada</span>
+          </div>
+        )}
         
         {/* Reply Context */}
         {message.reply_to_content && (
@@ -232,6 +251,45 @@ export default function MessageBubble({
               </p>
             )}
 
+            {/* Link Preview */}
+            {message.link_preview && (
+              <a
+                href={message.link_preview.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`block mt-2 rounded-lg border overflow-hidden hover:opacity-90 transition-opacity ${
+                  isOwn ? "border-[#b5dab0]" : "border-gray-200"
+                }`}
+              >
+                {message.link_preview.image && (
+                  <img 
+                    src={message.link_preview.image} 
+                    alt={message.link_preview.title}
+                    className="w-full h-32 object-cover"
+                  />
+                )}
+                <div className={`p-3 ${isOwn ? "bg-[#c6e9c1]" : "bg-gray-50"}`}>
+                  {message.link_preview.site_name && (
+                    <p className="text-xs text-gray-500 mb-1">{message.link_preview.site_name}</p>
+                  )}
+                  {message.link_preview.title && (
+                    <p className="font-medium text-sm text-gray-900 line-clamp-1">
+                      {message.link_preview.title}
+                    </p>
+                  )}
+                  {message.link_preview.description && (
+                    <p className="text-xs text-gray-600 line-clamp-2 mt-1">
+                      {message.link_preview.description}
+                    </p>
+                  )}
+                  <div className="flex items-center gap-1 text-xs text-blue-600 mt-2">
+                    <ExternalLink className="w-3 h-3" />
+                    <span>Abrir link</span>
+                  </div>
+                </div>
+              </a>
+            )}
+
             {/* File Attachment */}
             {(message.message_type === 'file' || (message.attachment_url && message.message_type === 'text')) && (
               <a
@@ -258,29 +316,80 @@ export default function MessageBubble({
             {/* Metadata: Time & Status */}
             <div className="flex items-center justify-end gap-1 mt-1">
               <span className="text-[11px] text-gray-500">{formatTime(message.created_date)}</span>
-              {isOwn && (
-                <div className="ml-0.5">
+              {isOwn && readByUsers.length > 0 && (
+                <button
+                  onClick={() => setShowReadBy(!showReadBy)}
+                  className="ml-0.5 hover:scale-110 transition-transform cursor-pointer"
+                  title={`Visto por ${readByUsers.length} pessoa(s)`}
+                >
                   {readStatus.isReadByAll ? (
                     <CheckCheck className="w-4 h-4 text-blue-500" />
                   ) : readStatus.isRead ? (
-                    <CheckCheck className="w-4 h-4 text-blue-500" />
+                    <CheckCheck className="w-4 h-4 text-gray-400" />
                   ) : (
-                    <Check className="w-4 h-4 text-gray-500" />
+                    <Check className="w-4 h-4 text-gray-400" />
                   )}
-                </div>
+                </button>
+              )}
+              {isOwn && readByUsers.length === 0 && (
+                <Check className="w-4 h-4 text-gray-400" />
               )}
             </div>
+
+            {/* Read By Details Popup */}
+            {showReadBy && isOwn && (
+              <div className="absolute bottom-full right-0 mb-2 bg-white rounded-lg shadow-lg border p-3 min-w-[200px] z-50 animate-in fade-in zoom-in duration-200">
+                <div className="text-xs font-semibold text-gray-700 mb-2 flex items-center gap-1">
+                  <Users className="w-3 h-3" />
+                  Status de Leitura
+                </div>
+                {readByUsers.length > 0 && (
+                  <div className="space-y-1 mb-2">
+                    <p className="text-xs text-gray-500 font-medium">Visto por:</p>
+                    {readByUsers.map(user => (
+                      <div key={user.email} className="flex items-center gap-2 text-xs">
+                        <CheckCheck className="w-3 h-3 text-blue-500" />
+                        <span className="text-gray-700">{user.display_name || user.full_name || user.email}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {unreadUsers.length > 0 && (
+                  <div className="space-y-1 pt-2 border-t">
+                    <p className="text-xs text-gray-500 font-medium">Não visualizaram:</p>
+                    {unreadUsers.map(user => (
+                      <div key={user.email} className="flex items-center gap-2 text-xs">
+                        <Check className="w-3 h-3 text-gray-400" />
+                        <span className="text-gray-500">{user.display_name || user.full_name || user.email}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Reactions Display */}
           {groupedReactions.length > 0 && (
-            <div className={`absolute -bottom-3 ${isOwn ? "right-0" : "left-0"} flex gap-1`}>
-              {groupedReactions.map((r, idx) => (
-                <div key={idx} className="bg-white border shadow-sm rounded-full px-1.5 py-0.5 text-xs flex items-center gap-1 scale-90 hover:scale-100 transition-transform cursor-pointer" title={r.users.join(', ')}>
-                  <span>{r.emoji}</span>
-                  <span className="font-medium text-gray-600">{r.count}</span>
-                </div>
-              ))}
+            <div className={`absolute -bottom-3 ${isOwn ? "right-0" : "left-0"} flex gap-1 flex-wrap max-w-[300px]`}>
+              {groupedReactions.map((r, idx) => {
+                const userNames = r.users.map(email => {
+                  const user = allParticipants.find(p => p.email === email);
+                  return user?.display_name || user?.full_name || email.split('@')[0];
+                }).join(', ');
+                
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => onReact(message, r.emoji)}
+                    className="bg-white border shadow-sm rounded-full px-2 py-0.5 text-sm flex items-center gap-1 hover:scale-110 transition-transform cursor-pointer"
+                    title={userNames}
+                  >
+                    <span>{r.emoji}</span>
+                    <span className="font-medium text-gray-600 text-xs">{r.count}</span>
+                  </button>
+                );
+              })}
             </div>
           )}
 
@@ -298,6 +407,10 @@ export default function MessageBubble({
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={(e) => { e.preventDefault(); setShowReactions(true); }}>
                   <Smile className="w-4 h-4 mr-2" /> Reagir
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onPin?.(message)}>
+                  <Pin className="w-4 h-4 mr-2" /> 
+                  {message.is_pinned ? 'Desafixar' : 'Fixar mensagem'}
                 </DropdownMenuItem>
                 {isOwn && (
                   <>
@@ -319,11 +432,14 @@ export default function MessageBubble({
           
           {/* Quick Reaction Popover */}
           {showReactions && (
-            <div className="absolute -top-10 z-50 bg-white shadow-lg rounded-full border p-1 flex gap-1 animate-in fade-in zoom-in duration-200" onMouseLeave={() => setShowReactions(false)}>
+            <div 
+              className="absolute -top-12 z-50 bg-white shadow-xl rounded-2xl border-2 p-2 flex gap-1 animate-in fade-in zoom-in duration-200" 
+              onMouseLeave={() => setShowReactions(false)}
+            >
               {REACTIONS.map(emoji => (
                 <button
                   key={emoji}
-                  className="hover:bg-gray-100 p-1 rounded-full transition-colors text-lg"
+                  className="hover:bg-gray-100 hover:scale-125 p-1.5 rounded-full transition-all text-xl"
                   onClick={() => {
                     onReact(message, emoji);
                     setShowReactions(false);
