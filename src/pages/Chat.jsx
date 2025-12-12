@@ -145,10 +145,50 @@ export default function Chat() {
   const { data: messagesData = [] } = useMessages(selectedConversation?.id);
   
   const [messages, setMessages] = useState([]);
+  const previousMessagesCountRef = useRef(0);
   
   useEffect(() => {
     if (messagesData) setMessages(messagesData);
   }, [messagesData]);
+
+  // Push Notifications for new messages
+  useEffect(() => {
+    if (!messagesData || messagesData.length === 0 || !currentUser) return;
+    
+    const newMessagesCount = messagesData.length;
+    const hadPreviousMessages = previousMessagesCountRef.current > 0;
+    
+    // Check if there are new messages
+    if (hadPreviousMessages && newMessagesCount > previousMessagesCountRef.current) {
+      const newMessages = messagesData.slice(previousMessagesCountRef.current);
+      
+      // Only notify for messages from others
+      newMessages.forEach(msg => {
+        if (msg.sender_email !== currentUser.email) {
+          const prefs = currentUser.chat_preferences || {};
+          
+          // Check Do Not Disturb
+          if (prefs.dnd_until && new Date(prefs.dnd_until) > new Date()) {
+            return;
+          }
+          
+          // Check conversation type permissions
+          const convType = selectedConversation?.conversation_type;
+          if (convType === 'direct' && prefs.notify_direct === false) return;
+          if ((convType === 'group' || convType === 'department') && prefs.notify_group === false) return;
+          
+          // Show desktop notification
+          showDesktopNotification(
+            msg.sender_name || msg.sender_email,
+            msg.message || "[Arquivo enviado]",
+            null
+          );
+        }
+      });
+    }
+    
+    previousMessagesCountRef.current = newMessagesCount;
+  }, [messagesData, currentUser, selectedConversation]);
 
   const { setTyping, typingUsers: typingUsersList } = useTypingStatus(selectedConversation?.id, currentUser?.email);
   const typingUsers = new Set(typingUsersList);
@@ -294,7 +334,12 @@ export default function Chat() {
   };
 
   const playNotificationSound = () => {
-    if (!appSettings || appSettings.notification_sound === 'none') return;
+    // Check user preferences first, then app settings
+    const userSound = currentUser?.chat_preferences?.notification_sound;
+    const appSound = appSettings?.notification_sound;
+    const soundType = userSound || appSound || 'default';
+    
+    if (soundType === 'none') return;
     
     const AudioContext = window.AudioContext || window.webkitAudioContext;
     if (!AudioContext) {
@@ -309,10 +354,7 @@ export default function Chat() {
     oscillator.connect(gainNode);
     gainNode.connect(audioContext.destination);
     
-    // CORRIGIDO: start() ANTES de configurar stop()
     oscillator.start(audioContext.currentTime);
-    
-    const soundType = appSettings.notification_sound || 'default';
     
     switch(soundType) {
       case 'chime':
@@ -355,7 +397,12 @@ export default function Chat() {
   };
 
   const showDesktopNotification = (title, body, icon) => {
-    if (typeof Notification === 'undefined' || Notification.permission !== "granted" || document.hasFocus()) {
+    if (typeof Notification === 'undefined' || Notification.permission !== "granted") {
+      return;
+    }
+
+    // Don't show notification if user is actively viewing the page and conversation
+    if (document.hasFocus() && document.visibilityState === 'visible') {
       return;
     }
 
@@ -366,7 +413,8 @@ export default function Chat() {
         badge: '/favicon.ico',
         tag: 'chat-message',
         requireInteraction: false,
-        silent: false
+        silent: true, // We handle sound separately
+        vibrate: [200, 100, 200]
       });
 
       playNotificationSound();
@@ -376,7 +424,8 @@ export default function Chat() {
         notification.close();
       };
 
-      setTimeout(() => notification.close(), 5000);
+      // Auto-close after 8 seconds
+      setTimeout(() => notification.close(), 8000);
     } catch (error) {
       console.error("Erro ao mostrar notificação:", error);
     }

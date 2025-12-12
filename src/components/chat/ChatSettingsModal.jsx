@@ -183,6 +183,7 @@ export default function ChatSettingsModal({ open, onClose, currentUser, onUpdate
                 <SelectItem value="bell">Sino (Claro)</SelectItem>
                 <SelectItem value="pop">Pop (Curto)</SelectItem>
                 <SelectItem value="ding">Ding (Agudo)</SelectItem>
+                <SelectItem value="none">Sem Som</SelectItem>
               </SelectContent>
             </Select>
           </div>
