@@ -252,16 +252,24 @@ export default function Chat() {
 
   // Scroll ao receber novas mensagens
   useEffect(() => {
-    scrollToBottom("smooth");
+    if (messages.length > 0) {
+      scrollToBottom("smooth");
+    }
   }, [messages]);
 
-  // Scroll imediato ao selecionar conversa (sem smooth para ser instantâneo)
+  // Scroll imediato ao selecionar conversa - melhorado com múltiplos frames
   useEffect(() => {
-    if (selectedConversation) {
-      // Force immediate scroll without animation
-      setTimeout(() => scrollToBottom("auto"), 50);
+    if (selectedConversation && messages.length > 0) {
+      // Use requestAnimationFrame duplo para garantir que o DOM foi totalmente renderizado
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          if (messagesEndRef.current) {
+            messagesEndRef.current.scrollIntoView({ behavior: 'auto', block: 'end', inline: 'nearest' });
+          }
+        });
+      });
     }
-  }, [selectedConversation?.id]);
+  }, [selectedConversation?.id, messages.length]);
 
   useEffect(() => {
     loadAppSettings();
