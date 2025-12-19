@@ -271,7 +271,17 @@ export default function CreateTasksModal({ open, onClose, users, departments, on
                   <SelectValue placeholder="Selecione um departamento" />
                 </SelectTrigger>
                 <SelectContent>
-                  {departments.map(dept => (
+                  {[...departments].sort((a, b) => {
+                    const priority = ['registro', 'conferencia', 'certidão', 'certidao'];
+                    const aName = a.name.toLowerCase();
+                    const bName = b.name.toLowerCase();
+                    const aIndex = priority.findIndex(p => aName.includes(p));
+                    const bIndex = priority.findIndex(p => bName.includes(p));
+                    if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+                    if (aIndex !== -1) return -1;
+                    if (bIndex !== -1) return 1;
+                    return aName.localeCompare(bName, 'pt-BR');
+                  }).map(dept => (
                     <SelectItem key={dept.id} value={dept.id}>
                       {dept.name}
                     </SelectItem>
