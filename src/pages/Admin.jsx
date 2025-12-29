@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Department } from "@/entities/Department";
 import { User } from "@/entities/User";
@@ -15,6 +14,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import DepartmentViewEditModal from "../components/admin/DepartmentViewEditModal";
 import ImportTasksModal from "../components/admin/ImportTasksModal";
 import AppearanceSettings from "../components/admin/AppearanceSettings";
+import BackupRestore from "../components/admin/BackupRestore";
 import {
   Dialog,
   DialogContent,
@@ -391,8 +391,11 @@ export default function Admin() {
           </CardContent>
         </Card>
 
-        {/* New Appearance Settings Card */}
+        {/* Appearance Settings Card */}
         <AppearanceSettings />
+
+        {/* Backup and Restore Card */}
+        {isAdmin && <BackupRestore />}
 
       </div>
 
