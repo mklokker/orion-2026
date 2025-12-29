@@ -187,13 +187,13 @@ export default function Admin() {
 
   return (
     <div className="p-4 md:p-8 min-h-screen">
-      <div className="max-w-7xl mx-auto space-y-8">
+      <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-700 to-indigo-700 bg-clip-text text-transparent">
               Administração
             </h1>
-            <p className="text-gray-600 mt-2">Gerencie departamentos e usuários do sistema</p>
+            <p className="text-gray-600 mt-2">Gerencie o sistema</p>
           </div>
           <Button
             onClick={() => setShowImportModal(true)}
@@ -204,198 +204,229 @@ export default function Admin() {
           </Button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card className="shadow-lg border-0">
-            <CardHeader className="border-b bg-gradient-to-r from-gray-50 to-blue-50">
-              <CardTitle className="flex items-center gap-2">
-                <Building2 className="w-5 h-5" />
-                Criar Departamento
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-6 space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="dept-name">Nome do Departamento *</Label>
-                <Input
-                  id="dept-name"
-                  placeholder="Ex: Registro de Imóveis"
-                  value={newDepartment.name}
-                  onChange={(e) => setNewDepartment({...newDepartment, name: e.target.value})}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="dept-desc">Descrição</Label>
-                <Textarea
-                  id="dept-desc"
-                  placeholder="Descrição do departamento (opcional)"
-                  value={newDepartment.description}
-                  onChange={(e) => setNewDepartment({...newDepartment, description: e.target.value})}
-                  rows={3}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="days-before">Dias antes de virar Atrasada</Label>
-                <Input
-                  id="days-before"
-                  type="number"
-                  min="0"
-                  placeholder="0"
-                  value={newDepartment.days_before_overdue}
-                  onChange={(e) => setNewDepartment({...newDepartment, days_before_overdue: parseInt(e.target.value) || 0})}
-                />
-                <p className="text-xs text-gray-500">
-                  Tarefas "Em Execução" virarão automaticamente para "Atrasada" quando faltarem X dias para a data de término
-                </p>
-              </div>
-              <Button
-                onClick={createDepartment}
-                className="w-full gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
-              >
-                <Plus className="w-4 h-4" />
-                Criar Departamento
-              </Button>
-            </CardContent>
-          </Card>
+        <Tabs defaultValue="departments" className="w-full">
+          <TabsList className="grid w-full grid-cols-4 mb-6">
+            <TabsTrigger value="departments" className="gap-2">
+              <Building2 className="w-4 h-4" />
+              <span className="hidden sm:inline">Departamentos</span>
+            </TabsTrigger>
+            <TabsTrigger value="users" className="gap-2">
+              <Users className="w-4 h-4" />
+              <span className="hidden sm:inline">Usuários</span>
+            </TabsTrigger>
+            <TabsTrigger value="appearance" className="gap-2">
+              <Palette className="w-4 h-4" />
+              <span className="hidden sm:inline">Aparência</span>
+            </TabsTrigger>
+            <TabsTrigger value="backup" className="gap-2">
+              <Database className="w-4 h-4" />
+              <span className="hidden sm:inline">Backup</span>
+            </TabsTrigger>
+          </TabsList>
 
-          <Card className="shadow-lg border-0">
-            <CardHeader className="border-b bg-gradient-to-r from-gray-50 to-blue-50">
-              <CardTitle className="flex items-center gap-2">
-                <Building2 className="w-5 h-5" />
-                Departamentos ({departments.length})
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-6">
-              {departments.length === 0 ? (
-                <p className="text-center text-gray-500 py-8">
-                  Nenhum departamento cadastrado
-                </p>
-              ) : (
-                <div className="space-y-3 max-h-96 overflow-y-auto">
-                  {departments.map(dept => (
-                    <Card 
-                      key={dept.id} 
-                      className="border-2 hover:border-blue-300 transition-colors cursor-pointer"
-                      onClick={() => handleViewDepartment(dept)}
-                    >
-                      <CardContent className="p-4 flex justify-between items-start">
-                        <div className="flex-1">
-                          <h3 className="font-semibold text-gray-900">{dept.name}</h3>
-                          {dept.description && (
-                            <p className="text-sm text-gray-600 mt-1">{dept.description}</p>
-                          )}
-                          {dept.days_before_overdue > 0 && (
-                            <Badge variant="outline" className="mt-2 text-xs">
-                              Virada automática: {dept.days_before_overdue} {dept.days_before_overdue === 1 ? 'dia' : 'dias'} antes
-                            </Badge>
-                          )}
-                        </div>
-                        {isAdmin && (
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={(e) => { 
-                              e.stopPropagation(); 
-                              deleteDepartment(dept.id);
-                            }}
-                            className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        )}
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+          {/* Departments Tab */}
+          <TabsContent value="departments" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <Card className="shadow-lg border-0">
+                <CardHeader className="border-b bg-gradient-to-r from-gray-50 to-blue-50">
+                  <CardTitle className="flex items-center gap-2">
+                    <Building2 className="w-5 h-5" />
+                    Criar Departamento
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-6 space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="dept-name">Nome do Departamento *</Label>
+                    <Input
+                      id="dept-name"
+                      placeholder="Ex: Registro de Imóveis"
+                      value={newDepartment.name}
+                      onChange={(e) => setNewDepartment({...newDepartment, name: e.target.value})}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="dept-desc">Descrição</Label>
+                    <Textarea
+                      id="dept-desc"
+                      placeholder="Descrição do departamento (opcional)"
+                      value={newDepartment.description}
+                      onChange={(e) => setNewDepartment({...newDepartment, description: e.target.value})}
+                      rows={3}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="days-before">Dias antes de virar Atrasada</Label>
+                    <Input
+                      id="days-before"
+                      type="number"
+                      min="0"
+                      placeholder="0"
+                      value={newDepartment.days_before_overdue}
+                      onChange={(e) => setNewDepartment({...newDepartment, days_before_overdue: parseInt(e.target.value) || 0})}
+                    />
+                    <p className="text-xs text-gray-500">
+                      Tarefas "Em Execução" virarão automaticamente para "Atrasada" quando faltarem X dias para a data de término
+                    </p>
+                  </div>
+                  <Button
+                    onClick={createDepartment}
+                    className="w-full gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Criar Departamento
+                  </Button>
+                </CardContent>
+              </Card>
 
-        <Card className="shadow-lg border-0">
-          <CardHeader className="border-b bg-gradient-to-r from-gray-50 to-blue-50">
-            <CardTitle className="flex items-center gap-2">
-              <Users className="w-5 h-5" />
-              Usuários do Sistema ({users.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-6">
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-gray-50">
-                    <TableHead className="w-16">Avatar</TableHead>
-                    <TableHead>Nome</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Departamento</TableHead>
-                    <TableHead>Função</TableHead>
-                    <TableHead>Cadastro</TableHead>
-                    {isAdmin && <TableHead className="w-12">Ações</TableHead>}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {users.map(user => {
-                    const userDept = departments.find(d => d.id === user.department_id);
-                    
-                    return (
-                      <TableRow key={user.id}>
-                        <TableCell>
-                          <Avatar className="w-10 h-10 border-2 border-gray-200">
-                            <AvatarImage src={user.profile_picture} alt={getUserDisplayName(user)} />
-                            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-semibold text-sm">
-                              {getInitials(getUserDisplayName(user))}
-                            </AvatarFallback>
-                          </Avatar>
-                        </TableCell>
-                        <TableCell className="font-medium">{getUserDisplayName(user)}</TableCell>
-                        <TableCell className="text-gray-600">{user.email}</TableCell>
-                        <TableCell>
-                          {userDept ? (
-                            <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                              {userDept.name}
-                            </Badge>
-                          ) : (
-                            <span className="text-gray-400 text-sm">Sem departamento</span>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <Badge 
-                            className={
-                              user.role === 'admin' 
-                                ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-white border-0' 
-                                : 'bg-gray-100 text-gray-800'
-                            }
-                          >
-                            {user.role === 'admin' ? 'Administrador' : 'Usuário'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-gray-600">
-                          {new Date(user.created_date).toLocaleDateString('pt-BR')}
-                        </TableCell>
-                        {isAdmin && (
-                          <TableCell>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleEditUser(user)}
-                              className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                            >
-                              Editar
-                            </Button>
-                          </TableCell>
-                        )}
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
+              <Card className="shadow-lg border-0">
+                <CardHeader className="border-b bg-gradient-to-r from-gray-50 to-blue-50">
+                  <CardTitle className="flex items-center gap-2">
+                    <Building2 className="w-5 h-5" />
+                    Departamentos ({departments.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-6">
+                  {departments.length === 0 ? (
+                    <p className="text-center text-gray-500 py-8">
+                      Nenhum departamento cadastrado
+                    </p>
+                  ) : (
+                    <div className="space-y-3 max-h-[500px] overflow-y-auto">
+                      {departments.map(dept => (
+                        <Card 
+                          key={dept.id} 
+                          className="border-2 hover:border-blue-300 transition-colors cursor-pointer"
+                          onClick={() => handleViewDepartment(dept)}
+                        >
+                          <CardContent className="p-4 flex justify-between items-start">
+                            <div className="flex-1">
+                              <h3 className="font-semibold text-gray-900">{dept.name}</h3>
+                              {dept.description && (
+                                <p className="text-sm text-gray-600 mt-1">{dept.description}</p>
+                              )}
+                              {dept.days_before_overdue > 0 && (
+                                <Badge variant="outline" className="mt-2 text-xs">
+                                  Virada automática: {dept.days_before_overdue} {dept.days_before_overdue === 1 ? 'dia' : 'dias'} antes
+                                </Badge>
+                              )}
+                            </div>
+                            {isAdmin && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={(e) => { 
+                                  e.stopPropagation(); 
+                                  deleteDepartment(dept.id);
+                                }}
+                                className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            )}
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </div>
-          </CardContent>
-        </Card>
+          </TabsContent>
 
-        {/* Appearance Settings Card */}
-        <AppearanceSettings />
+          {/* Users Tab */}
+          <TabsContent value="users">
+            <Card className="shadow-lg border-0">
+              <CardHeader className="border-b bg-gradient-to-r from-gray-50 to-blue-50">
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="w-5 h-5" />
+                  Usuários do Sistema ({users.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="bg-gray-50">
+                        <TableHead className="w-16">Avatar</TableHead>
+                        <TableHead>Nome</TableHead>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Departamento</TableHead>
+                        <TableHead>Função</TableHead>
+                        <TableHead>Cadastro</TableHead>
+                        {isAdmin && <TableHead className="w-12">Ações</TableHead>}
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {users.map(user => {
+                        const userDept = departments.find(d => d.id === user.department_id);
+                        
+                        return (
+                          <TableRow key={user.id}>
+                            <TableCell>
+                              <Avatar className="w-10 h-10 border-2 border-gray-200">
+                                <AvatarImage src={user.profile_picture} alt={getUserDisplayName(user)} />
+                                <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-semibold text-sm">
+                                  {getInitials(getUserDisplayName(user))}
+                                </AvatarFallback>
+                              </Avatar>
+                            </TableCell>
+                            <TableCell className="font-medium">{getUserDisplayName(user)}</TableCell>
+                            <TableCell className="text-gray-600">{user.email}</TableCell>
+                            <TableCell>
+                              {userDept ? (
+                                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                                  {userDept.name}
+                                </Badge>
+                              ) : (
+                                <span className="text-gray-400 text-sm">Sem departamento</span>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              <Badge 
+                                className={
+                                  user.role === 'admin' 
+                                    ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-white border-0' 
+                                    : 'bg-gray-100 text-gray-800'
+                                }
+                              >
+                                {user.role === 'admin' ? 'Administrador' : 'Usuário'}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-gray-600">
+                              {new Date(user.created_date).toLocaleDateString('pt-BR')}
+                            </TableCell>
+                            {isAdmin && (
+                              <TableCell>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleEditUser(user)}
+                                  className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                >
+                                  Editar
+                                </Button>
+                              </TableCell>
+                            )}
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
-        {/* Backup and Restore Card */}
-        {isAdmin && <BackupRestore />}
+          {/* Appearance Tab */}
+          <TabsContent value="appearance">
+            <AppearanceSettings />
+          </TabsContent>
+
+          {/* Backup Tab */}
+          <TabsContent value="backup">
+            {isAdmin && <BackupRestore />}
+          </TabsContent>
+        </Tabs>
 
       </div>
 
