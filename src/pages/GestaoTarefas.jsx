@@ -392,12 +392,30 @@ export default function GestaoTarefas() {
             user_name: currentUser.full_name,
             metadata: { bulk_action: true, old_status: item.status, new_status: value }
           });
+        } else if (action === "change_year") {
+          // Alterar apenas o ano da data de término, mantendo dia e mês
+          if (item.end_date) {
+            const currentEndDate = item.end_date.split('-'); // formato YYYY-MM-DD
+            const newEndDate = `${value}-${currentEndDate[1]}-${currentEndDate[2]}`;
+            const oldEndDate = item.end_date;
+
+            await api.update(item.id, { end_date: newEndDate });
+
+            await interactionEntity.create({
+              [entityIdField]: item.id,
+              interaction_type: "updated",
+              message: `Ano de término do(a) ${item.type === 'task' ? 'tarefa' : 'serviço'} alterado de ${oldEndDate} para ${newEndDate}`,
+              user_email: currentUser.email,
+              user_name: currentUser.full_name,
+              metadata: { bulk_action: true, old_end_date: oldEndDate, new_end_date: newEndDate }
+            });
+          }
         }
       }
       
       toast({
         title: "Sucesso!",
-        description: `${itemIds.length} item(ns) ${action === "delete" ? "excluído(s)" : action === "transfer" ? "transferido(s)" : action === "department" ? "com departamento atualizado" : "com status atualizado"} com sucesso.`,
+        description: `${itemIds.length} item(ns) ${action === "delete" ? "excluído(s)" : action === "transfer" ? "transferido(s)" : action === "department" ? "com departamento atualizado" : action === "change_year" ? "com ano de término atualizado" : "com status atualizado"} com sucesso.`,
       });
 
       setSelectedTasks([]);
