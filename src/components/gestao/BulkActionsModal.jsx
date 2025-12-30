@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertCircle, ArrowRight, Building2, Edit3, Trash2 } from "lucide-react";
+import { AlertCircle, ArrowRight, Building2, Edit3, Trash2, Calendar } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 export default function BulkActionsModal({ open, onClose, selectedCount, users, departments, onAction, isAdmin }) {
@@ -57,6 +57,12 @@ export default function BulkActionsModal({ open, onClose, selectedCount, users, 
                   <div className="flex items-center gap-2">
                     <Edit3 className="w-4 h-4" />
                     Alterar Status...
+                  </div>
+                </SelectItem>
+                <SelectItem value="change_year">
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4" />
+                    Alterar Ano de Término...
                   </div>
                 </SelectItem>
                 {isAdmin && (
@@ -121,6 +127,27 @@ export default function BulkActionsModal({ open, onClose, selectedCount, users, 
                   <SelectItem value="Concluída">Concluída</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+          )}
+
+          {action === "change_year" && (
+            <div className="space-y-2">
+              <Label>Novo ano de término</Label>
+              <Select value={value} onValueChange={setValue}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o ano" />
+                </SelectTrigger>
+                <SelectContent>
+                  {[2024, 2025, 2026, 2027, 2028, 2029, 2030].map(year => (
+                    <SelectItem key={year} value={year.toString()}>
+                      {year}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-gray-500">
+                O dia e mês de término serão mantidos, apenas o ano será alterado.
+              </p>
             </div>
           )}
 
