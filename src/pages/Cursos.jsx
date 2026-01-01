@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Course } from "@/entities/Course";
 import { CourseVideo } from "@/entities/CourseVideo";
+import { CourseDocument } from "@/entities/CourseDocument";
 import { CourseQuiz } from "@/entities/CourseQuiz";
 import { CourseProgress } from "@/entities/CourseProgress";
 import { QuizAttempt } from "@/entities/QuizAttempt";
@@ -54,6 +55,7 @@ export default function Cursos() {
   const { toast } = useToast();
   const [courses, setCourses] = useState([]);
   const [courseVideos, setCourseVideos] = useState({});
+  const [courseDocuments, setCourseDocuments] = useState({});
   const [courseQuizzes, setCourseQuizzes] = useState({});
   const [userProgress, setUserProgress] = useState({});
   const [userAttempts, setUserAttempts] = useState({});
@@ -82,9 +84,10 @@ export default function Cursos() {
       const userData = await User.me();
       setCurrentUser(userData);
 
-      const [coursesData, videosData, quizzesData, progressData, attemptsData] = await Promise.all([
+      const [coursesData, videosData, documentsData, quizzesData, progressData, attemptsData] = await Promise.all([
         Course.list("-created_date"),
         CourseVideo.list("order"),
+        CourseDocument.list("order"),
         CourseQuiz.list("order"),
         CourseProgress.filter({ user_email: userData.email }),
         QuizAttempt.filter({ user_email: userData.email })
@@ -101,6 +104,16 @@ export default function Cursos() {
         videosByCourse[video.course_id].push(video);
       });
       setCourseVideos(videosByCourse);
+
+      // Agrupar documentos por curso
+      const docsByCourse = {};
+      documentsData.forEach(doc => {
+        if (!docsByCourse[doc.course_id]) {
+          docsByCourse[doc.course_id] = [];
+        }
+        docsByCourse[doc.course_id].push(doc);
+      });
+      setCourseDocuments(docsByCourse);
 
       // Agrupar quizzes por curso
       const quizzesByCourse = {};
@@ -256,9 +269,9 @@ export default function Cursos() {
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Total de Vídeos</p>
+                  <p className="text-sm text-gray-600">Total de Conteúdos</p>
                   <p className="text-3xl font-bold text-gray-900">
-                    {Object.values(courseVideos).flat().length}
+                    {Object.values(courseVideos).flat().length + Object.values(courseDocuments).flat().length}
                   </p>
                 </div>
                 <Video className="w-10 h-10 text-indigo-600 opacity-20" />
@@ -331,6 +344,7 @@ export default function Cursos() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredCourses.map(course => {
               const videos = courseVideos[course.id] || [];
+              const documents = courseDocuments[course.id] || [];
               const quizzes = courseQuizzes[course.id] || [];
               const progress = userProgress[course.id];
               const attempts = userAttempts[course.id] || [];
@@ -339,10 +353,11 @@ export default function Cursos() {
               const coverImage = course.cover_image || firstVideoThumbnail;
 
               // Calculate progress
-              const totalItems = videos.length + quizzes.length;
+              const totalItems = videos.length + documents.length + quizzes.length;
               const completedVideos = progress?.videos_watched?.length || 0;
+              const completedDocs = progress?.documents_read?.length || 0;
               const completedQuizzes = progress?.quizzes_completed?.length || 0;
-              const completedItems = completedVideos + completedQuizzes;
+              const completedItems = completedVideos + completedDocs + completedQuizzes;
               const progressPercent = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
 
               return (
@@ -458,14 +473,22 @@ export default function Cursos() {
                     )}
 
                     <div className="flex items-center gap-2 flex-wrap">
-                      <Badge variant="outline" className="gap-1">
-                        <Video className="w-3 h-3" />
-                        {videos.length} {videos.length === 1 ? 'vídeo' : 'vídeos'}
-                      </Badge>
-                      {quizzes.length > 0 && (
+                      {videos.length > 0 && (
+                        <Badge variant="outline" className="gap-1">
+                          <Video className="w-3 h-3" />
+                          {videos.length}
+                        </Badge>
+                      )}
+                      {documents.length > 0 && (
                         <Badge variant="outline" className="gap-1">
                           <FileQuestion className="w-3 h-3" />
-                          {quizzes.length} {quizzes.length === 1 ? 'prova' : 'provas'}
+                          {documents.length}
+                        </Badge>
+                      )}
+                      {quizzes.length > 0 && (
+                        <Badge variant="outline" className="gap-1">
+                          <Trophy className="w-3 h-3" />
+                          {quizzes.length}
                         </Badge>
                       )}
                     </div>
@@ -560,6 +583,7 @@ export default function Cursos() {
           }}
           course={selectedCourse}
           videos={courseVideos[selectedCourse.id] || []}
+          documents={courseDocuments[selectedCourse.id] || []}
           quizzes={courseQuizzes[selectedCourse.id] || []}
           userProgress={userProgress[selectedCourse.id]}
           userAttempts={userAttempts[selectedCourse.id] || []}
