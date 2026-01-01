@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Search, 
   Plus,
@@ -21,7 +22,10 @@ import {
   FileQuestion,
   TrendingUp,
   Trophy,
-  CheckCircle2
+  CheckCircle2,
+  Users,
+  Settings,
+  Award
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import CourseModal from "../components/cursos/CourseModal";
@@ -29,6 +33,7 @@ import CreateCourseModal from "../components/cursos/CreateCourseModal";
 import CourseProgressView from "../components/cursos/CourseProgressView";
 import CertificatesManager from "../components/cursos/CertificatesManager";
 import CertificateViewer from "../components/cursos/CertificateViewer";
+import AdminCoursesView from "../components/cursos/AdminCoursesView";
 import { Certificate } from "@/entities/Certificate";
 import {
   AlertDialog,
@@ -60,6 +65,7 @@ export default function Cursos() {
   const [showCertificatesManager, setShowCertificatesManager] = useState(false);
   const [userCertificates, setUserCertificates] = useState([]);
   const [viewingCertificate, setViewingCertificate] = useState(null);
+  const [activeMainTab, setActiveMainTab] = useState("cursos");
 
   const isAdmin = currentUser?.role === 'admin';
 
