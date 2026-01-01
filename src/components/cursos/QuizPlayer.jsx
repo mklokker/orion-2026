@@ -38,6 +38,7 @@ export default function QuizPlayer({
   const [result, setResult] = useState(null);
   const [startTime] = useState(new Date());
   const timerRef = useRef(null);
+  const [newBadge, setNewBadge] = useState(null);
 
   useEffect(() => {
     if (open && quiz.time_limit_minutes) {
@@ -120,6 +121,19 @@ export default function QuizPlayer({
 
       // Update course progress
       await updateCourseProgress(passed, score);
+
+      // Add gamification points
+      let pointsResult = await addPoints(userEmail, 'QUIZ_COMPLETED');
+      if (passed) {
+        pointsResult = await addPoints(userEmail, 'QUIZ_PASSED');
+        if (score === 100) {
+          pointsResult = await addPoints(userEmail, 'QUIZ_PERFECT');
+        }
+      }
+      
+      if (pointsResult?.newBadges?.length > 0) {
+        setNewBadge(pointsResult.newBadges[0]);
+      }
 
       setResult({
         score,
@@ -401,6 +415,12 @@ export default function QuizPlayer({
           </p>
         )}
       </DialogContent>
+
+      {/* Badge Notification */}
+      <BadgeNotification
+        badge={newBadge}
+        onClose={() => setNewBadge(null)}
+      />
     </Dialog>
   );
 }

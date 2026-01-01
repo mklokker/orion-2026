@@ -15,6 +15,7 @@ import { Certificate } from "@/entities/Certificate";
 import { User } from "@/entities/User";
 import { useToast } from "@/components/ui/use-toast";
 import confetti from "canvas-confetti";
+import { addPoints } from "./GamificationService";
 
 export default function UserProgressCard({ 
   progress, 
@@ -84,6 +85,10 @@ export default function UserProgressCard({
         score: avgScore,
         is_revoked: false
       });
+
+      // Add gamification points
+      await addPoints(userEmail, 'COURSE_COMPLETED');
+      await addPoints(userEmail, 'CERTIFICATE_EARNED');
 
       confetti({
         particleCount: 100,
