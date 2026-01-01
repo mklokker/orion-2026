@@ -1,11 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { Course } from "@/entities/Course";
 import { CourseVideo } from "@/entities/CourseVideo";
+import { CourseQuiz } from "@/entities/CourseQuiz";
+import { CourseProgress } from "@/entities/CourseProgress";
+import { QuizAttempt } from "@/entities/QuizAttempt";
 import { User } from "@/entities/User";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { 
   Search, 
   Plus,
@@ -13,11 +17,16 @@ import {
   Video,
   Edit,
   Trash2,
-  Play
+  Play,
+  FileQuestion,
+  TrendingUp,
+  Trophy,
+  CheckCircle2
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import CourseModal from "../components/cursos/CourseModal";
 import CreateCourseModal from "../components/cursos/CreateCourseModal";
+import CourseProgressView from "../components/cursos/CourseProgressView";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,6 +42,9 @@ export default function Cursos() {
   const { toast } = useToast();
   const [courses, setCourses] = useState([]);
   const [courseVideos, setCourseVideos] = useState({});
+  const [courseQuizzes, setCourseQuizzes] = useState({});
+  const [userProgress, setUserProgress] = useState({});
+  const [userAttempts, setUserAttempts] = useState({});
   const [currentUser, setCurrentUser] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCourse, setSelectedCourse] = useState(null);
@@ -41,6 +53,7 @@ export default function Cursos() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [courseToDelete, setCourseToDelete] = useState(null);
+  const [showProgressView, setShowProgressView] = useState(null);
 
   const isAdmin = currentUser?.role === 'admin';
 
@@ -53,9 +66,12 @@ export default function Cursos() {
       const userData = await User.me();
       setCurrentUser(userData);
 
-      const [coursesData, videosData] = await Promise.all([
+      const [coursesData, videosData, quizzesData, progressData, attemptsData] = await Promise.all([
         Course.list("-created_date"),
-        CourseVideo.list("order")
+        CourseVideo.list("order"),
+        CourseQuiz.list("order"),
+        CourseProgress.filter({ user_email: userData.email }),
+        QuizAttempt.filter({ user_email: userData.email })
       ]);
 
       setCourses(coursesData);
@@ -68,8 +84,35 @@ export default function Cursos() {
         }
         videosByCourse[video.course_id].push(video);
       });
-
       setCourseVideos(videosByCourse);
+
+      // Agrupar quizzes por curso
+      const quizzesByCourse = {};
+      quizzesData.forEach(quiz => {
+        if (!quizzesByCourse[quiz.course_id]) {
+          quizzesByCourse[quiz.course_id] = [];
+        }
+        quizzesByCourse[quiz.course_id].push(quiz);
+      });
+      setCourseQuizzes(quizzesByCourse);
+
+      // Progresso do usuário por curso
+      const progressByCourse = {};
+      progressData.forEach(p => {
+        progressByCourse[p.course_id] = p;
+      });
+      setUserProgress(progressByCourse);
+
+      // Tentativas do usuário por curso
+      const attemptsByCourse = {};
+      attemptsData.forEach(a => {
+        if (!attemptsByCourse[a.course_id]) {
+          attemptsByCourse[a.course_id] = [];
+        }
+        attemptsByCourse[a.course_id].push(a);
+      });
+      setUserAttempts(attemptsByCourse);
+
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
       toast({
@@ -203,7 +246,7 @@ export default function Cursos() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
@@ -226,6 +269,34 @@ export default function Cursos() {
                   </p>
                 </div>
                 <Video className="w-10 h-10 text-indigo-600 opacity-20" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">Total de Provas</p>
+                  <p className="text-3xl font-bold text-gray-900">
+                    {Object.values(courseQuizzes).flat().length}
+                  </p>
+                </div>
+                <FileQuestion className="w-10 h-10 text-purple-600 opacity-20" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-600">Cursos Concluídos</p>
+                  <p className="text-3xl font-bold text-gray-900">
+                    {Object.values(userProgress).filter(p => p.status === 'completed').length}
+                  </p>
+                </div>
+                <Trophy className="w-10 h-10 text-amber-600 opacity-20" />
               </div>
             </CardContent>
           </Card>
@@ -267,8 +338,18 @@ export default function Cursos() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredCourses.map(course => {
               const videos = courseVideos[course.id] || [];
+              const quizzes = courseQuizzes[course.id] || [];
+              const progress = userProgress[course.id];
+              const attempts = userAttempts[course.id] || [];
               const firstVideoThumbnail = videos.length > 0 ? getYoutubeThumbnail(videos[0].youtube_url) : null;
               const coverImage = course.cover_image || firstVideoThumbnail;
+
+              // Calculate progress
+              const totalItems = videos.length + quizzes.length;
+              const completedVideos = progress?.videos_watched?.length || 0;
+              const completedQuizzes = progress?.quizzes_completed?.length || 0;
+              const completedItems = completedVideos + completedQuizzes;
+              const progressPercent = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
 
               return (
                 <Card 
@@ -292,13 +373,42 @@ export default function Cursos() {
                     <div className="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
                       <Play className="w-16 h-16 text-white" />
                     </div>
+                    
+                    {/* Progress Badge */}
+                    {progress && (
+                      <div className="absolute top-3 right-3">
+                        {progress.status === 'completed' ? (
+                          <Badge className="bg-green-500 gap-1">
+                            <CheckCircle2 className="w-3 h-3" />
+                            Concluído
+                          </Badge>
+                        ) : progressPercent > 0 && (
+                          <Badge className="bg-blue-500 gap-1">
+                            <TrendingUp className="w-3 h-3" />
+                            {progressPercent}%
+                          </Badge>
+                        )}
+                      </div>
+                    )}
                   </div>
 
-                  <CardHeader>
+                  <CardHeader className="pb-2">
                     <div className="flex items-start justify-between gap-2">
                       <CardTitle className="text-lg line-clamp-2">{course.name}</CardTitle>
                       {isAdmin && (
                         <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            title="Ver Progresso dos Alunos"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setShowProgressView(course);
+                            }}
+                          >
+                            <TrendingUp className="w-4 h-4" />
+                          </Button>
                           <Button
                             variant="ghost"
                             size="icon"
@@ -333,11 +443,25 @@ export default function Cursos() {
                         {course.description}
                       </p>
                     )}
-                    <div className="flex items-center gap-2">
+                    
+                    {/* Progress Bar */}
+                    {progress && progressPercent > 0 && (
+                      <div className="mb-3">
+                        <Progress value={progressPercent} className="h-2" />
+                      </div>
+                    )}
+
+                    <div className="flex items-center gap-2 flex-wrap">
                       <Badge variant="outline" className="gap-1">
                         <Video className="w-3 h-3" />
                         {videos.length} {videos.length === 1 ? 'vídeo' : 'vídeos'}
                       </Badge>
+                      {quizzes.length > 0 && (
+                        <Badge variant="outline" className="gap-1">
+                          <FileQuestion className="w-3 h-3" />
+                          {quizzes.length} {quizzes.length === 1 ? 'prova' : 'provas'}
+                        </Badge>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -357,8 +481,20 @@ export default function Cursos() {
           }}
           course={selectedCourse}
           videos={courseVideos[selectedCourse.id] || []}
+          quizzes={courseQuizzes[selectedCourse.id] || []}
+          userProgress={userProgress[selectedCourse.id]}
+          userAttempts={userAttempts[selectedCourse.id] || []}
+          currentUser={currentUser}
           isAdmin={isAdmin}
           onUpdate={loadData}
+        />
+      )}
+
+      {showProgressView && (
+        <CourseProgressView
+          open={!!showProgressView}
+          onClose={() => setShowProgressView(null)}
+          course={showProgressView}
         />
       )}
 
