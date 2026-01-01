@@ -232,48 +232,9 @@ export default function Cursos() {
     course.description?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  return (
-    <div className="p-4 md:p-8 min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div>
-            <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-700 to-indigo-700 bg-clip-text text-transparent flex items-center gap-3">
-              <GraduationCap className="w-10 h-10 text-blue-600" />
-              Cursos de Treinamento
-            </h1>
-            <p className="text-gray-600 mt-2">
-              Aprenda com nossos cursos em vídeo
-            </p>
-          </div>
-
-          <div className="flex gap-2">
-            {isAdmin && (
-              <Button
-                variant="outline"
-                onClick={() => setShowCertificatesManager(true)}
-                className="gap-2"
-              >
-                <Trophy className="w-4 h-4" />
-                Certificados
-              </Button>
-            )}
-            {isAdmin && (
-              <Button
-                onClick={() => {
-                  setEditingCourse(null);
-                  setShowCreateModal(true);
-                }}
-                className="gap-2 bg-gradient-to-r from-blue-600 to-indigo-600"
-              >
-                <Plus className="w-4 h-4" />
-                Novo Curso
-              </Button>
-            )}
-          </div>
-        </div>
-
-        {/* Stats */}
+  const renderCoursesContent = () => (
+    <>
+      {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Card>
             <CardContent className="pt-6">
@@ -509,6 +470,63 @@ export default function Cursos() {
               );
             })}
           </div>
+        )}
+    </>
+  );
+
+  return (
+    <div className="p-4 md:p-8 min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+      <div className="max-w-7xl mx-auto space-y-6">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-700 to-indigo-700 bg-clip-text text-transparent flex items-center gap-3">
+              <GraduationCap className="w-10 h-10 text-blue-600" />
+              Cursos de Treinamento
+            </h1>
+            <p className="text-gray-600 mt-2">
+              Aprenda com nossos cursos em vídeo
+            </p>
+          </div>
+
+          {isAdmin && (
+            <Button
+              onClick={() => {
+                setEditingCourse(null);
+                setShowCreateModal(true);
+              }}
+              className="gap-2 bg-gradient-to-r from-blue-600 to-indigo-600"
+            >
+              <Plus className="w-4 h-4" />
+              Novo Curso
+            </Button>
+          )}
+        </div>
+
+        {/* Main Content with Admin Tabs */}
+        {isAdmin ? (
+          <Tabs value={activeMainTab} onValueChange={setActiveMainTab}>
+            <TabsList className="grid w-full grid-cols-2 mb-6">
+              <TabsTrigger value="cursos" className="gap-2">
+                <GraduationCap className="w-4 h-4" />
+                Meus Cursos
+              </TabsTrigger>
+              <TabsTrigger value="admin" className="gap-2">
+                <Settings className="w-4 h-4" />
+                Administração
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="cursos">
+              {renderCoursesContent()}
+            </TabsContent>
+
+            <TabsContent value="admin">
+              <AdminCoursesView />
+            </TabsContent>
+          </Tabs>
+        ) : (
+          renderCoursesContent()
         )}
       </div>
 
