@@ -28,12 +28,12 @@ import {
   Award
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import CourseModal from "../components/cursos/CourseModal";
-import CreateCourseModal from "../components/cursos/CreateCourseModal";
-import CourseProgressView from "../components/cursos/CourseProgressView";
-import CertificatesManager from "../components/cursos/CertificatesManager";
-import CertificateViewer from "../components/cursos/CertificateViewer";
-import AdminCoursesView from "../components/cursos/AdminCoursesView";
+import CourseModal from "@/components/cursos/CourseModal";
+import CreateCourseModal from "@/components/cursos/CreateCourseModal";
+import CourseProgressView from "@/components/cursos/CourseProgressView";
+import CertificatesManager from "@/components/cursos/CertificatesManager";
+import CertificateViewer from "@/components/cursos/CertificateViewer";
+import AdminCoursesView from "@/components/cursos/AdminCoursesView";
 import { Certificate } from "@/entities/Certificate";
 import {
   AlertDialog,
