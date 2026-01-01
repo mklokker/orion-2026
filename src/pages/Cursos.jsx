@@ -26,7 +26,8 @@ import {
   Users,
   Settings,
   Award,
-  Gamepad2
+  Gamepad2,
+  MessageSquare
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import CourseModal from "@/components/cursos/CourseModal";
@@ -36,6 +37,7 @@ import CertificatesManager from "@/components/cursos/CertificatesManager";
 import CertificateViewer from "@/components/cursos/CertificateViewer";
 import AdminCoursesView from "@/components/cursos/AdminCoursesView";
 import GamificationPanel from "@/components/cursos/GamificationPanel";
+import ForumSection from "@/components/forum/ForumSection";
 import { Certificate } from "@/entities/Certificate";
 import {
   AlertDialog,
@@ -507,10 +509,14 @@ export default function Cursos() {
 
         {/* Main Content with Tabs */}
         <Tabs value={activeMainTab} onValueChange={setActiveMainTab}>
-          <TabsList className={`grid w-full ${isAdmin ? 'grid-cols-3' : 'grid-cols-2'} mb-6`}>
+          <TabsList className={`grid w-full ${isAdmin ? 'grid-cols-4' : 'grid-cols-3'} mb-6`}>
             <TabsTrigger value="cursos" className="gap-2">
               <GraduationCap className="w-4 h-4" />
               Cursos
+            </TabsTrigger>
+            <TabsTrigger value="forum" className="gap-2">
+              <MessageSquare className="w-4 h-4" />
+              Fórum
             </TabsTrigger>
             <TabsTrigger value="gamificacao" className="gap-2">
               <Gamepad2 className="w-4 h-4" />
@@ -526,6 +532,10 @@ export default function Cursos() {
 
           <TabsContent value="cursos">
             {renderCoursesContent()}
+          </TabsContent>
+
+          <TabsContent value="forum">
+            <ForumSection currentUser={currentUser} />
           </TabsContent>
 
           <TabsContent value="gamificacao">
