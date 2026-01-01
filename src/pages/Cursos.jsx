@@ -25,7 +25,8 @@ import {
   CheckCircle2,
   Users,
   Settings,
-  Award
+  Award,
+  Gamepad2
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import CourseModal from "@/components/cursos/CourseModal";
@@ -34,6 +35,7 @@ import CourseProgressView from "@/components/cursos/CourseProgressView";
 import CertificatesManager from "@/components/cursos/CertificatesManager";
 import CertificateViewer from "@/components/cursos/CertificateViewer";
 import AdminCoursesView from "@/components/cursos/AdminCoursesView";
+import GamificationPanel from "@/components/cursos/GamificationPanel";
 import { Certificate } from "@/entities/Certificate";
 import {
   AlertDialog,
@@ -503,31 +505,39 @@ export default function Cursos() {
           )}
         </div>
 
-        {/* Main Content with Admin Tabs */}
-        {isAdmin ? (
-          <Tabs value={activeMainTab} onValueChange={setActiveMainTab}>
-            <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="cursos" className="gap-2">
-                <GraduationCap className="w-4 h-4" />
-                Meus Cursos
-              </TabsTrigger>
+        {/* Main Content with Tabs */}
+        <Tabs value={activeMainTab} onValueChange={setActiveMainTab}>
+          <TabsList className={`grid w-full ${isAdmin ? 'grid-cols-3' : 'grid-cols-2'} mb-6`}>
+            <TabsTrigger value="cursos" className="gap-2">
+              <GraduationCap className="w-4 h-4" />
+              Cursos
+            </TabsTrigger>
+            <TabsTrigger value="gamificacao" className="gap-2">
+              <Gamepad2 className="w-4 h-4" />
+              Conquistas
+            </TabsTrigger>
+            {isAdmin && (
               <TabsTrigger value="admin" className="gap-2">
                 <Settings className="w-4 h-4" />
                 Administração
               </TabsTrigger>
-            </TabsList>
+            )}
+          </TabsList>
 
-            <TabsContent value="cursos">
-              {renderCoursesContent()}
-            </TabsContent>
+          <TabsContent value="cursos">
+            {renderCoursesContent()}
+          </TabsContent>
 
+          <TabsContent value="gamificacao">
+            <GamificationPanel currentUser={currentUser} />
+          </TabsContent>
+
+          {isAdmin && (
             <TabsContent value="admin">
               <AdminCoursesView />
             </TabsContent>
-          </Tabs>
-        ) : (
-          renderCoursesContent()
-        )}
+          )}
+        </Tabs>
       </div>
 
       {/* Modals */}
