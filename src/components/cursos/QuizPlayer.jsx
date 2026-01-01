@@ -16,10 +16,6 @@ import {
 } from "lucide-react";
 import { QuizAttempt } from "@/entities/QuizAttempt";
 import { CourseProgress } from "@/entities/CourseProgress";
-import { Certificate } from "@/entities/Certificate";
-import { CourseQuiz } from "@/entities/CourseQuiz";
-import { CourseVideo } from "@/entities/CourseVideo";
-import { User } from "@/entities/User";
 import { useToast } from "@/components/ui/use-toast";
 import confetti from "canvas-confetti";
 
