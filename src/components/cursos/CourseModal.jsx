@@ -9,6 +9,7 @@ import { Plus, Play, Edit, Trash2, GripVertical, Upload, X, FileQuestion, Video,
 import { CourseVideo } from "@/entities/CourseVideo";
 import { CourseProgress } from "@/entities/CourseProgress";
 import { QuizQuestion } from "@/entities/QuizQuestion";
+import { Certificate } from "@/entities/Certificate";
 import { useToast } from "@/components/ui/use-toast";
 import { base44 } from "@/api/base44Client";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
@@ -16,6 +17,7 @@ import VideoPlayer from "./VideoPlayer";
 import QuizManager from "./QuizManager";
 import QuizPlayer from "./QuizPlayer";
 import UserProgressCard from "./UserProgressCard";
+import CertificateViewer from "./CertificateViewer";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -63,10 +65,31 @@ export default function CourseModal({
   const [selectedQuiz, setSelectedQuiz] = useState(null);
   const [quizQuestions, setQuizQuestions] = useState([]);
   const [activeTab, setActiveTab] = useState("videos");
+  const [userCertificate, setUserCertificate] = useState(null);
+  const [viewingCertificate, setViewingCertificate] = useState(null);
 
   React.useEffect(() => {
     setOrderedVideos(videos);
   }, [videos]);
+
+  // Load user certificate
+  React.useEffect(() => {
+    const loadCertificate = async () => {
+      if (currentUser && course) {
+        try {
+          const certs = await Certificate.filter({
+            user_email: currentUser.email,
+            course_id: course.id
+          });
+          const validCert = certs.find(c => !c.is_revoked);
+          setUserCertificate(validCert || null);
+        } catch (error) {
+          console.error("Erro ao carregar certificado:", error);
+        }
+      }
+    };
+    loadCertificate();
+  }, [currentUser, course]);
 
   const loadQuizQuestions = async (quiz) => {
     try {
@@ -346,12 +369,28 @@ export default function CourseModal({
           </DialogHeader>
 
           {/* User Progress Card */}
-          {currentUser && (userProgress || userAttempts.length > 0) && (
+          {currentUser && (
             <UserProgressCard
               progress={userProgress}
               totalVideos={videos.length}
-              totalQuizzes={quizzes.length}
+              totalQuizzes={quizzes.filter(q => q.is_active !== false).length}
               quizAttempts={userAttempts}
+              course={course}
+              userEmail={currentUser.email}
+              existingCertificate={userCertificate}
+              onCertificateRequest={() => {
+                onUpdate();
+                // Reload certificate
+                Certificate.filter({
+                  user_email: currentUser.email,
+                  course_id: course.id
+                }).then(certs => {
+                  const validCert = certs.find(c => !c.is_revoked);
+                  setUserCertificate(validCert || null);
+                  if (validCert) setViewingCertificate(validCert);
+                });
+              }}
+              onViewCertificate={(cert) => setViewingCertificate(cert)}
             />
           )}
 
@@ -696,6 +735,13 @@ export default function CourseModal({
           onComplete={onUpdate}
         />
       )}
+
+      {/* Certificate Viewer */}
+      <CertificateViewer
+        open={!!viewingCertificate}
+        onClose={() => setViewingCertificate(null)}
+        certificate={viewingCertificate}
+      />
     </>
   );
 }
