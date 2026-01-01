@@ -18,6 +18,8 @@ import { QuizAttempt } from "@/entities/QuizAttempt";
 import { CourseProgress } from "@/entities/CourseProgress";
 import { useToast } from "@/components/ui/use-toast";
 import confetti from "canvas-confetti";
+import { addPoints } from "./GamificationService";
+import BadgeNotification from "./BadgeNotification";
 
 export default function QuizPlayer({ 
   open, 

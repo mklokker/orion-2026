@@ -18,6 +18,8 @@ import QuizManager from "./QuizManager";
 import QuizPlayer from "./QuizPlayer";
 import UserProgressCard from "./UserProgressCard";
 import CertificateViewer from "./CertificateViewer";
+import BadgeNotification from "./BadgeNotification";
+import { addPoints } from "./GamificationService";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -67,6 +69,7 @@ export default function CourseModal({
   const [activeTab, setActiveTab] = useState("videos");
   const [userCertificate, setUserCertificate] = useState(null);
   const [viewingCertificate, setViewingCertificate] = useState(null);
+  const [newBadge, setNewBadge] = useState(null);
 
   React.useEffect(() => {
     setOrderedVideos(videos);
@@ -111,15 +114,19 @@ export default function CourseModal({
         course_id: course.id
       });
 
+      let isNewVideo = false;
+
       if (existingProgress.length > 0) {
         const progress = existingProgress[0];
         const videosWatched = progress.videos_watched || [];
         
         if (!videosWatched.includes(video.id)) {
+          isNewVideo = true;
           videosWatched.push(video.id);
           
           // Check if course is completed
-          const totalItems = videos.length + quizzes.length;
+          const activeQuizzes = quizzes.filter(q => q.is_active !== false);
+          const totalItems = videos.length + activeQuizzes.length;
           const completedItems = videosWatched.length + (progress.quizzes_completed?.length || 0);
           const isCompleted = completedItems >= totalItems;
 
@@ -131,15 +138,25 @@ export default function CourseModal({
           });
         }
       } else {
+        isNewVideo = true;
+        const activeQuizzes = quizzes.filter(q => q.is_active !== false);
         await CourseProgress.create({
           user_email: currentUser.email,
           course_id: course.id,
           videos_watched: [video.id],
           quizzes_completed: [],
-          progress_percentage: Math.round((1 / (videos.length + quizzes.length)) * 100),
+          progress_percentage: Math.round((1 / (videos.length + activeQuizzes.length)) * 100),
           started_at: new Date().toISOString(),
           status: "in_progress"
         });
+      }
+      
+      // Add gamification points for new video
+      if (isNewVideo) {
+        const result = await addPoints(currentUser.email, 'VIDEO_WATCHED');
+        if (result?.newBadges?.length > 0) {
+          setNewBadge(result.newBadges[0]);
+        }
       }
       
       onUpdate();
@@ -741,6 +758,12 @@ export default function CourseModal({
         open={!!viewingCertificate}
         onClose={() => setViewingCertificate(null)}
         certificate={viewingCertificate}
+      />
+
+      {/* Badge Notification */}
+      <BadgeNotification
+        badge={newBadge}
+        onClose={() => setNewBadge(null)}
       />
     </>
   );
