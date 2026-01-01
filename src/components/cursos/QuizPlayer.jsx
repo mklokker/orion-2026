@@ -16,6 +16,10 @@ import {
 } from "lucide-react";
 import { QuizAttempt } from "@/entities/QuizAttempt";
 import { CourseProgress } from "@/entities/CourseProgress";
+import { Certificate } from "@/entities/Certificate";
+import { CourseQuiz } from "@/entities/CourseQuiz";
+import { CourseVideo } from "@/entities/CourseVideo";
+import { User } from "@/entities/User";
 import { useToast } from "@/components/ui/use-toast";
 import confetti from "canvas-confetti";
 
@@ -117,7 +121,7 @@ export default function QuizPlayer({
       });
 
       // Update course progress
-      await updateCourseProgress(passed);
+      await updateCourseProgress(passed, score);
 
       setResult({
         score,
@@ -146,16 +150,23 @@ export default function QuizPlayer({
     setIsSubmitting(false);
   };
 
-  const updateCourseProgress = async (passed) => {
+  const updateCourseProgress = async (passed, score) => {
     try {
-      const existingProgress = await CourseProgress.filter({
-        user_email: userEmail,
-        course_id: course.id
-      });
+      const [existingProgress, allQuizzes, allVideos, allAttempts] = await Promise.all([
+        CourseProgress.filter({ user_email: userEmail, course_id: course.id }),
+        CourseQuiz.filter({ course_id: course.id }),
+        CourseVideo.filter({ course_id: course.id }),
+        QuizAttempt.filter({ user_email: userEmail, course_id: course.id })
+      ]);
+
+      let progress;
+      let quizzesCompleted = [];
+      let videosWatched = [];
 
       if (existingProgress.length > 0) {
-        const progress = existingProgress[0];
-        const quizzesCompleted = progress.quizzes_completed || [];
+        progress = existingProgress[0];
+        quizzesCompleted = progress.quizzes_completed || [];
+        videosWatched = progress.videos_watched || [];
         
         if (passed && !quizzesCompleted.includes(quiz.id)) {
           quizzesCompleted.push(quiz.id);
@@ -166,7 +177,7 @@ export default function QuizPlayer({
           status: "in_progress"
         });
       } else {
-        await CourseProgress.create({
+        const newProgress = await CourseProgress.create({
           user_email: userEmail,
           course_id: course.id,
           videos_watched: [],
@@ -175,9 +186,76 @@ export default function QuizPlayer({
           started_at: new Date().toISOString(),
           status: "in_progress"
         });
+        quizzesCompleted = passed ? [quiz.id] : [];
+        progress = newProgress;
+      }
+
+      // Check if course is completed (all videos watched + all quizzes passed)
+      const activeQuizzes = allQuizzes.filter(q => q.is_active !== false);
+      const allVideosWatched = videosWatched.length >= allVideos.length;
+      const allQuizzesPassed = activeQuizzes.length === 0 || activeQuizzes.every(q => quizzesCompleted.includes(q.id));
+
+      if (allVideosWatched && allQuizzesPassed && activeQuizzes.length > 0) {
+        // Calculate average score from all passed attempts
+        const passedAttempts = allAttempts.filter(a => a.passed);
+        const avgScore = passedAttempts.length > 0 
+          ? Math.round(passedAttempts.reduce((sum, a) => sum + a.score, 0) / passedAttempts.length)
+          : score;
+
+        // Mark course as completed
+        await CourseProgress.update(progress.id, {
+          status: "completed",
+          completed_at: new Date().toISOString(),
+          progress_percentage: 100
+        });
+
+        // Generate certificate
+        await generateCertificate(avgScore);
       }
     } catch (error) {
       console.error("Erro ao atualizar progresso:", error);
+    }
+  };
+
+  const generateCertificate = async (avgScore) => {
+    try {
+      // Check if certificate already exists
+      const existingCert = await Certificate.filter({
+        user_email: userEmail,
+        course_id: course.id
+      });
+
+      if (existingCert.length > 0) {
+        return; // Certificate already issued
+      }
+
+      // Get user name
+      const user = await User.me();
+      const userName = user.display_name || user.full_name || userEmail;
+
+      // Generate unique certificate ID
+      const year = new Date().getFullYear();
+      const randomPart = Math.random().toString(36).substring(2, 8).toUpperCase();
+      const certificateId = `CERT-${year}-${randomPart}`;
+
+      await Certificate.create({
+        certificate_id: certificateId,
+        user_email: userEmail,
+        user_name: userName,
+        course_id: course.id,
+        course_name: course.name,
+        completion_date: new Date().toISOString().split('T')[0],
+        issued_at: new Date().toISOString(),
+        score: avgScore,
+        is_revoked: false
+      });
+
+      toast({
+        title: "🎉 Certificado Emitido!",
+        description: "Parabéns! Você concluiu o curso e seu certificado foi gerado.",
+      });
+    } catch (error) {
+      console.error("Erro ao gerar certificado:", error);
     }
   };
 

@@ -27,6 +27,9 @@ import { useToast } from "@/components/ui/use-toast";
 import CourseModal from "../components/cursos/CourseModal";
 import CreateCourseModal from "../components/cursos/CreateCourseModal";
 import CourseProgressView from "../components/cursos/CourseProgressView";
+import CertificatesManager from "../components/cursos/CertificatesManager";
+import CertificateViewer from "../components/cursos/CertificateViewer";
+import { Certificate } from "@/entities/Certificate";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -54,6 +57,9 @@ export default function Cursos() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [courseToDelete, setCourseToDelete] = useState(null);
   const [showProgressView, setShowProgressView] = useState(null);
+  const [showCertificatesManager, setShowCertificatesManager] = useState(false);
+  const [userCertificates, setUserCertificates] = useState([]);
+  const [viewingCertificate, setViewingCertificate] = useState(null);
 
   const isAdmin = currentUser?.role === 'admin';
 
@@ -112,6 +118,10 @@ export default function Cursos() {
         attemptsByCourse[a.course_id].push(a);
       });
       setUserAttempts(attemptsByCourse);
+
+      // Load user certificates
+      const certsData = await Certificate.filter({ user_email: userData.email });
+      setUserCertificates(certsData);
 
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
@@ -231,18 +241,30 @@ export default function Cursos() {
             </p>
           </div>
 
-          {isAdmin && (
-            <Button
-              onClick={() => {
-                setEditingCourse(null);
-                setShowCreateModal(true);
-              }}
-              className="gap-2 bg-gradient-to-r from-blue-600 to-indigo-600"
-            >
-              <Plus className="w-4 h-4" />
-              Novo Curso
-            </Button>
-          )}
+          <div className="flex gap-2">
+            {isAdmin && (
+              <Button
+                variant="outline"
+                onClick={() => setShowCertificatesManager(true)}
+                className="gap-2"
+              >
+                <Trophy className="w-4 h-4" />
+                Certificados
+              </Button>
+            )}
+            {isAdmin && (
+              <Button
+                onClick={() => {
+                  setEditingCourse(null);
+                  setShowCreateModal(true);
+                }}
+                className="gap-2 bg-gradient-to-r from-blue-600 to-indigo-600"
+              >
+                <Plus className="w-4 h-4" />
+                Novo Curso
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Stats */}
@@ -341,6 +363,7 @@ export default function Cursos() {
               const quizzes = courseQuizzes[course.id] || [];
               const progress = userProgress[course.id];
               const attempts = userAttempts[course.id] || [];
+              const certificate = userCertificates.find(c => c.course_id === course.id && !c.is_revoked);
               const firstVideoThumbnail = videos.length > 0 ? getYoutubeThumbnail(videos[0].youtube_url) : null;
               const coverImage = course.cover_image || firstVideoThumbnail;
 
@@ -376,7 +399,19 @@ export default function Cursos() {
                     
                     {/* Progress Badge */}
                     {progress && (
-                      <div className="absolute top-3 right-3">
+                      <div className="absolute top-3 right-3 flex gap-1">
+                        {certificate && (
+                          <Badge 
+                            className="bg-amber-500 gap-1 cursor-pointer hover:bg-amber-600"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setViewingCertificate(certificate);
+                            }}
+                          >
+                            <Trophy className="w-3 h-3" />
+                            Certificado
+                          </Badge>
+                        )}
                         {progress.status === 'completed' ? (
                           <Badge className="bg-green-500 gap-1">
                             <CheckCircle2 className="w-3 h-3" />
@@ -497,6 +532,19 @@ export default function Cursos() {
           course={showProgressView}
         />
       )}
+
+      {isAdmin && (
+        <CertificatesManager
+          open={showCertificatesManager}
+          onClose={() => setShowCertificatesManager(false)}
+        />
+      )}
+
+      <CertificateViewer
+        open={!!viewingCertificate}
+        onClose={() => setViewingCertificate(null)}
+        certificate={viewingCertificate}
+      />
 
       <CreateCourseModal
         open={showCreateModal}
