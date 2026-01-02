@@ -53,6 +53,7 @@ export default function ConversationView({
   const scrollRef = useRef(null);
   const [replyingTo, setReplyingTo] = useState(null);
   const messageRefs = useRef({});
+  const bottomRef = useRef(null);
   
   // Mensagens fixadas
   const pinnedMessages = messages.filter(m => m.is_pinned).sort((a, b) => 
@@ -69,12 +70,15 @@ export default function ConversationView({
     }
   };
 
-  // Auto scroll to bottom
+  // Auto scroll to bottom - usa um elemento âncora no final
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    if (bottomRef.current && messages.length > 0) {
+      // Pequeno delay para garantir que o DOM foi renderizado
+      setTimeout(() => {
+        bottomRef.current?.scrollIntoView({ behavior: "auto" });
+      }, 100);
     }
-  }, [messages]);
+  }, [messages, conversation?.id]);
 
   if (!conversation) {
     return (
