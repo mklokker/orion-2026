@@ -571,6 +571,27 @@ export default function Chat() {
     }
   };
 
+  const handlePinMessage = async (message) => {
+    try {
+      const newPinnedState = !message.is_pinned;
+      await ChatMessage.update(message.id, {
+        is_pinned: newPinnedState,
+        pinned_by: newPinnedState ? currentUser.email : null,
+        pinned_at: newPinnedState ? new Date().toISOString() : null
+      });
+      await loadMessages(selectedConversation.id);
+      toast({
+        title: newPinnedState ? "Mensagem fixada" : "Mensagem desafixada",
+        description: newPinnedState 
+          ? "A mensagem foi fixada no topo da conversa" 
+          : "A mensagem foi removida das fixadas"
+      });
+    } catch (error) {
+      console.error("Erro ao fixar:", error);
+      toast({ title: "Erro ao fixar mensagem", variant: "destructive" });
+    }
+  };
+
   // Get typing users for current conversation
   const typingUsers = selectedConversation?.typing_users?.filter(e => e !== currentUser?.email) || [];
 
@@ -612,6 +633,7 @@ export default function Chat() {
           onDeleteMessage={handleDeleteMessage}
           onReaction={handleReaction}
           onImageClick={setViewingImage}
+          onPinMessage={handlePinMessage}
           typingUsers={typingUsers}
           presenceMap={presenceMap}
         />
