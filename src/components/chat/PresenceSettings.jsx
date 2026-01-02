@@ -4,9 +4,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Circle, Moon, MinusCircle, Zap } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Circle, Moon, MinusCircle, Zap, Bell, Volume2, MessageSquare, AtSign, Users, Play } from "lucide-react";
 import { UserPresence } from "@/entities/UserPresence";
 import { useToast } from "@/components/ui/use-toast";
+import { playNotificationSound, SOUND_OPTIONS } from "./NotificationSounds";
 
 const statusOptions = [
   { value: "auto", label: "Automático", description: "Detectar automaticamente", icon: Zap, color: "text-blue-500" },
@@ -20,13 +24,50 @@ export default function PresenceSettings({ open, onClose, currentUser, presence,
   const [manualStatus, setManualStatus] = useState(presence?.manual_status || "auto");
   const [statusMessage, setStatusMessage] = useState(presence?.status_message || "");
   const [saving, setSaving] = useState(false);
+  const [activeTab, setActiveTab] = useState("status");
+  
+  // Notification settings
+  const [notifyNewMessages, setNotifyNewMessages] = useState(presence?.notify_new_messages !== false);
+  const [notifyMentions, setNotifyMentions] = useState(presence?.notify_mentions !== false);
+  const [notifyGroupMessages, setNotifyGroupMessages] = useState(presence?.notify_group_messages !== false);
+  const [notificationSound, setNotificationSound] = useState(presence?.notification_sound || "default");
+  const [pushEnabled, setPushEnabled] = useState(presence?.push_enabled || false);
+  const [pushPermission, setPushPermission] = useState(
+    typeof Notification !== 'undefined' ? Notification.permission : 'denied'
+  );
 
   useEffect(() => {
     if (presence) {
       setManualStatus(presence.manual_status || "auto");
       setStatusMessage(presence.status_message || "");
+      setNotifyNewMessages(presence.notify_new_messages !== false);
+      setNotifyMentions(presence.notify_mentions !== false);
+      setNotifyGroupMessages(presence.notify_group_messages !== false);
+      setNotificationSound(presence.notification_sound || "default");
+      setPushEnabled(presence.push_enabled || false);
     }
   }, [presence]);
+
+  const requestPushPermission = async () => {
+    if (typeof Notification === 'undefined') {
+      toast({ title: "Notificações não suportadas", description: "Seu navegador não suporta notificações push.", variant: "destructive" });
+      return;
+    }
+    
+    const permission = await Notification.requestPermission();
+    setPushPermission(permission);
+    
+    if (permission === 'granted') {
+      setPushEnabled(true);
+      toast({ title: "Notificações ativadas!" });
+    } else {
+      toast({ title: "Permissão negada", description: "Você pode alterar nas configurações do navegador.", variant: "destructive" });
+    }
+  };
+
+  const handleTestSound = () => {
+    playNotificationSound(notificationSound);
+  };
 
   const handleSave = async () => {
     if (!currentUser) return;
@@ -34,29 +75,32 @@ export default function PresenceSettings({ open, onClose, currentUser, presence,
     
     try {
       const newStatus = manualStatus === "auto" ? "online" : manualStatus;
+      const data = {
+        manual_status: manualStatus,
+        status: newStatus,
+        status_message: statusMessage,
+        last_seen: new Date().toISOString(),
+        notify_new_messages: notifyNewMessages,
+        notify_mentions: notifyMentions,
+        notify_group_messages: notifyGroupMessages,
+        notification_sound: notificationSound,
+        push_enabled: pushEnabled && pushPermission === 'granted'
+      };
       
       if (presence?.id) {
-        await UserPresence.update(presence.id, {
-          manual_status: manualStatus,
-          status: newStatus,
-          status_message: statusMessage,
-          last_seen: new Date().toISOString()
-        });
+        await UserPresence.update(presence.id, data);
       } else {
         await UserPresence.create({
           user_email: currentUser.email,
-          manual_status: manualStatus,
-          status: newStatus,
-          status_message: statusMessage,
-          last_seen: new Date().toISOString()
+          ...data
         });
       }
       
-      toast({ title: "Status atualizado!" });
+      toast({ title: "Configurações salvas!" });
       onUpdate?.();
       onClose();
     } catch (error) {
-      console.error("Erro ao salvar status:", error);
+      console.error("Erro ao salvar:", error);
       toast({ title: "Erro ao salvar", variant: "destructive" });
     }
     
@@ -65,46 +109,180 @@ export default function PresenceSettings({ open, onClose, currentUser, presence,
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Configurações de Presença</DialogTitle>
+          <DialogTitle>Configurações do Chat</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-6 py-4">
-          <div className="space-y-3">
-            <Label>Status de Presença</Label>
-            <RadioGroup value={manualStatus} onValueChange={setManualStatus}>
-              {statusOptions.map(opt => (
-                <div
-                  key={opt.value}
-                  className={`flex items-center space-x-3 p-3 rounded-lg border cursor-pointer transition-colors ${
-                    manualStatus === opt.value ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:bg-gray-50"
-                  }`}
-                  onClick={() => setManualStatus(opt.value)}
-                >
-                  <RadioGroupItem value={opt.value} id={opt.value} />
-                  <opt.icon className={`w-5 h-5 ${opt.color}`} />
-                  <div className="flex-1">
-                    <p className="font-medium">{opt.label}</p>
-                    <p className="text-xs text-gray-500">{opt.description}</p>
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="status" className="gap-2">
+              <Circle className="w-4 h-4" />
+              Status
+            </TabsTrigger>
+            <TabsTrigger value="notifications" className="gap-2">
+              <Bell className="w-4 h-4" />
+              Notificações
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="status" className="space-y-6 py-4">
+            <div className="space-y-3">
+              <Label>Status de Presença</Label>
+              <RadioGroup value={manualStatus} onValueChange={setManualStatus}>
+                {statusOptions.map(opt => (
+                  <div
+                    key={opt.value}
+                    className={`flex items-center space-x-3 p-3 rounded-lg border cursor-pointer transition-colors ${
+                      manualStatus === opt.value ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:bg-gray-50"
+                    }`}
+                    onClick={() => setManualStatus(opt.value)}
+                  >
+                    <RadioGroupItem value={opt.value} id={opt.value} />
+                    <opt.icon className={`w-5 h-5 ${opt.color}`} />
+                    <div className="flex-1">
+                      <p className="font-medium">{opt.label}</p>
+                      <p className="text-xs text-gray-500">{opt.description}</p>
+                    </div>
                   </div>
+                ))}
+              </RadioGroup>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Mensagem de Status (opcional)</Label>
+              <Input
+                placeholder="Ex: Em reunião até 15h"
+                value={statusMessage}
+                onChange={(e) => setStatusMessage(e.target.value)}
+                maxLength={100}
+              />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="notifications" className="space-y-6 py-4">
+            {/* Push Notifications */}
+            <div className="space-y-3">
+              <Label className="flex items-center gap-2">
+                <Bell className="w-4 h-4" />
+                Notificações Push
+              </Label>
+              
+              {pushPermission !== 'granted' ? (
+                <Button 
+                  variant="outline" 
+                  className="w-full gap-2"
+                  onClick={requestPushPermission}
+                >
+                  <Bell className="w-4 h-4" />
+                  Ativar Notificações Push
+                </Button>
+              ) : (
+                <div className="flex items-center justify-between p-3 rounded-lg border bg-green-50 border-green-200">
+                  <div className="flex items-center gap-2">
+                    <Bell className="w-4 h-4 text-green-600" />
+                    <span className="text-sm text-green-700">Notificações push ativadas</span>
+                  </div>
+                  <Switch
+                    checked={pushEnabled}
+                    onCheckedChange={setPushEnabled}
+                  />
                 </div>
-              ))}
-            </RadioGroup>
-          </div>
+              )}
+            </div>
 
-          <div className="space-y-2">
-            <Label>Mensagem de Status (opcional)</Label>
-            <Input
-              placeholder="Ex: Em reunião até 15h"
-              value={statusMessage}
-              onChange={(e) => setStatusMessage(e.target.value)}
-              maxLength={100}
-            />
-          </div>
-        </div>
+            {/* Notification Types */}
+            <div className="space-y-3">
+              <Label>Tipos de Notificação</Label>
+              
+              <div className="space-y-2">
+                <div className="flex items-center justify-between p-3 rounded-lg border hover:bg-gray-50">
+                  <div className="flex items-center gap-3">
+                    <MessageSquare className="w-5 h-5 text-blue-500" />
+                    <div>
+                      <p className="font-medium text-sm">Novas Mensagens</p>
+                      <p className="text-xs text-gray-500">Mensagens diretas</p>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={notifyNewMessages}
+                    onCheckedChange={setNotifyNewMessages}
+                  />
+                </div>
 
-        <div className="flex justify-end gap-2">
+                <div className="flex items-center justify-between p-3 rounded-lg border hover:bg-gray-50">
+                  <div className="flex items-center gap-3">
+                    <AtSign className="w-5 h-5 text-purple-500" />
+                    <div>
+                      <p className="font-medium text-sm">Menções</p>
+                      <p className="text-xs text-gray-500">Quando alguém mencionar você</p>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={notifyMentions}
+                    onCheckedChange={setNotifyMentions}
+                  />
+                </div>
+
+                <div className="flex items-center justify-between p-3 rounded-lg border hover:bg-gray-50">
+                  <div className="flex items-center gap-3">
+                    <Users className="w-5 h-5 text-green-500" />
+                    <div>
+                      <p className="font-medium text-sm">Mensagens de Grupos</p>
+                      <p className="text-xs text-gray-500">Mensagens em conversas de grupo</p>
+                    </div>
+                  </div>
+                  <Switch
+                    checked={notifyGroupMessages}
+                    onCheckedChange={setNotifyGroupMessages}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Notification Sound */}
+            <div className="space-y-3">
+              <Label className="flex items-center gap-2">
+                <Volume2 className="w-4 h-4" />
+                Som de Notificação
+              </Label>
+              
+              <div className="flex gap-2">
+                <Select value={notificationSound} onValueChange={setNotificationSound}>
+                  <SelectTrigger className="flex-1">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SOUND_OPTIONS.map(opt => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button 
+                  variant="outline" 
+                  size="icon"
+                  onClick={handleTestSound}
+                  disabled={notificationSound === "none"}
+                  title="Testar som"
+                >
+                  <Play className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+
+            {manualStatus === "dnd" && (
+              <div className="p-3 rounded-lg bg-amber-50 border border-amber-200">
+                <p className="text-sm text-amber-700">
+                  <strong>Modo "Não Incomodar" ativo:</strong> Você não receberá notificações enquanto este modo estiver ativado.
+                </p>
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
+
+        <div className="flex justify-end gap-2 pt-4 border-t">
           <Button variant="outline" onClick={onClose}>Cancelar</Button>
           <Button onClick={handleSave} disabled={saving}>
             {saving ? "Salvando..." : "Salvar"}
