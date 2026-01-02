@@ -666,7 +666,7 @@ export default function Chat() {
           onPinMessage={handlePinMessage}
           typingUsers={typingUsers}
           presenceMap={presenceMap}
-          onPinMessage={handlePinMessage}
+        />
       </div>
 
       {/* Modals */}
