@@ -15,7 +15,8 @@ import {
   Trash2,
   Smile
 } from "lucide-react";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
+import { toZonedTime } from "date-fns-tz";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -84,6 +85,17 @@ export default function MessageBubble({
   const FileIcon = getFileIcon(message.file_type);
   const isImage = message.type === "image" || message.file_type?.includes("image");
   const readStatus = message.read_by?.length > 1 ? "read" : "sent";
+  
+  // Formata hora no timezone de São Paulo
+  const formatTime = (dateStr) => {
+    try {
+      const date = typeof dateStr === "string" ? parseISO(dateStr) : new Date(dateStr);
+      const zonedDate = toZonedTime(date, "America/Sao_Paulo");
+      return format(zonedDate, "HH:mm");
+    } catch {
+      return format(new Date(dateStr), "HH:mm");
+    }
+  };
 
   const renderContent = () => {
     // Reply preview
@@ -169,17 +181,17 @@ export default function MessageBubble({
 
   return (
     <div 
-      className={`flex ${isOwn ? "justify-end" : "justify-start"} mb-1 group`}
+      className={`flex ${isOwn ? "justify-end" : "justify-start"} mb-2 group`}
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => setShowActions(false)}
     >
-      {/* Avatar for others in group */}
-      {!isOwn && isGroupChat && (
-        <div className="w-8 mr-2">
+      {/* Avatar for others (always show in direct and group chats) */}
+      {!isOwn && (
+        <div className="w-10 mr-2 flex-shrink-0">
           {showAvatar && (
-            <Avatar className="w-8 h-8">
+            <Avatar className="w-10 h-10">
               <AvatarImage src={senderAvatar} />
-              <AvatarFallback className="text-xs bg-blue-100 text-blue-700">
+              <AvatarFallback className="text-sm bg-blue-100 text-blue-700">
                 {getInitials(message.sender_name)}
               </AvatarFallback>
             </Avatar>
@@ -188,9 +200,9 @@ export default function MessageBubble({
       )}
 
       <div className={`relative max-w-[70%] ${isOwn ? "order-1" : ""}`}>
-        {/* Sender name in group */}
-        {!isOwn && isGroupChat && showAvatar && (
-          <span className="text-xs font-semibold text-blue-600 ml-1">{message.sender_name}</span>
+        {/* Sender name (always show for others) */}
+        {!isOwn && showAvatar && (
+          <span className="text-sm font-semibold text-blue-600 ml-1 block mb-0.5">{message.sender_name}</span>
         )}
 
         {/* Message bubble */}
@@ -206,7 +218,7 @@ export default function MessageBubble({
           {/* Time and read status */}
           <div className={`flex items-center justify-end gap-1 mt-1 ${isOwn ? "text-green-100" : "text-gray-400"}`}>
             {message.is_edited && <span className="text-xs">editada</span>}
-            <span className="text-xs">{format(new Date(message.created_date), "HH:mm")}</span>
+            <span className="text-xs">{formatTime(message.created_date)}</span>
             {isOwn && (
               readStatus === "read" ? (
                 <CheckCheck className="w-4 h-4 text-blue-300" />
