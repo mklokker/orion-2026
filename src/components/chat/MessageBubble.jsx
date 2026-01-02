@@ -184,17 +184,17 @@ export default function MessageBubble({
 
   return (
     <div 
-      className={`flex ${isOwn ? "justify-end" : "justify-start"} mb-2 group`}
+      className={`flex ${isOwn ? "justify-end" : "justify-start"} mb-3 group`}
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => setShowActions(false)}
     >
       {/* Avatar for others (always show in direct and group chats) */}
       {!isOwn && (
-        <div className="w-10 mr-2 flex-shrink-0">
+        <div className="w-12 mr-3 flex-shrink-0">
           {showAvatar && (
-            <Avatar className="w-10 h-10">
+            <Avatar className="w-12 h-12 border-2 border-white shadow-md">
               <AvatarImage src={senderAvatar} />
-              <AvatarFallback className="text-sm bg-blue-100 text-blue-700">
+              <AvatarFallback className="text-base font-semibold bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
                 {getInitials(message.sender_name)}
               </AvatarFallback>
             </Avatar>
@@ -203,17 +203,21 @@ export default function MessageBubble({
       )}
 
       <div className={`relative max-w-[70%] ${isOwn ? "order-1" : ""}`}>
-        {/* Sender name (always show for others) */}
+        {/* Sender name with badge style (always show for others) */}
         {!isOwn && showAvatar && (
-          <span className="text-sm font-semibold text-blue-600 ml-1 block mb-0.5">{message.sender_name}</span>
+          <div className="mb-1">
+            <span className="inline-block text-base font-bold text-white bg-gradient-to-r from-blue-500 to-indigo-600 px-3 py-1 rounded-full shadow-sm">
+              {message.sender_name}
+            </span>
+          </div>
         )}
 
         {/* Message bubble */}
         <div
-          className={`relative px-3 py-2 rounded-lg ${
+          className={`relative px-4 py-3 rounded-2xl ${
             isOwn
-              ? "bg-green-500 text-white rounded-tr-none"
-              : "bg-white text-gray-900 rounded-tl-none shadow-sm"
+              ? "bg-green-500 text-white rounded-tr-sm"
+              : "bg-white text-gray-900 rounded-tl-sm shadow-md"
           }`}
         >
           {renderContent()}
