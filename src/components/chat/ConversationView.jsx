@@ -15,6 +15,8 @@ import { ptBR } from "date-fns/locale";
 import MessageBubble from "./MessageBubble";
 import ChatInput from "./ChatInput";
 import PresenceIndicator, { statusConfig } from "./PresenceIndicator";
+import TypingIndicator from "./TypingIndicator";
+import PinnedMessages from "./PinnedMessages";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -44,11 +46,28 @@ export default function ConversationView({
   onDeleteMessage,
   onReaction,
   onImageClick,
+  onPinMessage,
   typingUsers,
   presenceMap = {}
 }) {
   const scrollRef = useRef(null);
   const [replyingTo, setReplyingTo] = useState(null);
+  const messageRefs = useRef({});
+  
+  // Mensagens fixadas
+  const pinnedMessages = messages.filter(m => m.is_pinned).sort((a, b) => 
+    new Date(b.pinned_at || b.created_date) - new Date(a.pinned_at || a.created_date)
+  );
+  
+  // Scroll para uma mensagem específica
+  const scrollToMessage = (messageId) => {
+    const element = messageRefs.current[messageId];
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "center" });
+      element.classList.add("bg-amber-100/50");
+      setTimeout(() => element.classList.remove("bg-amber-100/50"), 2000);
+    }
+  };
 
   // Auto scroll to bottom
   useEffect(() => {
@@ -119,13 +138,6 @@ export default function ConversationView({
     setReplyingTo(null);
   };
 
-  // Typing indicator text
-  const typingText = typingUsers?.length > 0 
-    ? typingUsers.length === 1 
-      ? `${typingUsers[0].split("@")[0]} está digitando...`
-      : `${typingUsers.length} pessoas estão digitando...`
-    : null;
-
   return (
     <div className="flex flex-col h-full bg-[#e5ddd5]">
       {/* Header */}
@@ -178,8 +190,17 @@ export default function ConversationView({
         </DropdownMenu>
       </div>
 
+      {/* Pinned Messages */}
+      <PinnedMessages
+        pinnedMessages={pinnedMessages}
+        users={users}
+        currentUser={currentUser}
+        onUnpin={onPinMessage}
+        onScrollToMessage={scrollToMessage}
+      />
+
       {/* Messages */}
-      <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+      <ScrollArea className="flex-1 p-4" ref={scrollRef}
         {Object.entries(groupedMessages).map(([date, msgs]) => (
           <div key={date}>
             {/* Date separator */}
@@ -198,23 +219,34 @@ export default function ConversationView({
               const showAvatar = !prevMsg || prevMsg.sender_email !== msg.sender_email;
 
               return (
-                <MessageBubble
-                  key={msg.id}
-                  message={msg}
-                  isOwn={isOwn}
-                  showAvatar={showAvatar}
-                  senderAvatar={getUserAvatar(msg.sender_email)}
-                  isGroupChat={isGroup}
-                  onReply={setReplyingTo}
-                  onEdit={onEditMessage}
-                  onDelete={onDeleteMessage}
-                  onReaction={onReaction}
-                  onImageClick={onImageClick}
-                />
+                <div 
+                  key={msg.id} 
+                  ref={el => messageRefs.current[msg.id] = el}
+                  className="transition-colors duration-500 rounded-lg"
+                >
+                  <MessageBubble
+                    message={msg}
+                    isOwn={isOwn}
+                    showAvatar={showAvatar}
+                    senderAvatar={getUserAvatar(msg.sender_email)}
+                    isGroupChat={isGroup}
+                    onReply={setReplyingTo}
+                    onEdit={onEditMessage}
+                    onDelete={onDeleteMessage}
+                    onReaction={onReaction}
+                    onImageClick={onImageClick}
+                    onPin={onPinMessage}
+                  />
+                </div>
               );
             })}
           </div>
         ))}
+        
+        {/* Typing Indicator - Proeminente */}
+        {typingUsers?.length > 0 && (
+          <TypingIndicator typingUsers={typingUsers} users={users} />
+        )}
       </ScrollArea>
 
       {/* Input */}
