@@ -200,7 +200,7 @@ export default function ConversationView({
       />
 
       {/* Messages */}
-      <ScrollArea className="flex-1 p-4" ref={scrollRef}
+      <ScrollArea className="flex-1 p-4" ref={scrollRef}>
         {Object.entries(groupedMessages).map(([date, msgs]) => (
           <div key={date}>
             {/* Date separator */}
