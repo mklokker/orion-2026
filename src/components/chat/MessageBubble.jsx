@@ -13,7 +13,8 @@ import {
   Reply,
   Pencil,
   Trash2,
-  Smile
+  Smile,
+  Pin
 } from "lucide-react";
 import { format } from "date-fns";
 import {
@@ -22,6 +23,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import LinkPreview from "./LinkPreview";
 
 const getInitials = (name) => {
   if (!name) return "?";
@@ -57,7 +59,8 @@ export default function MessageBubble({
   onEdit,
   onDelete,
   onReaction,
-  onImageClick
+  onImageClick,
+  onPin
 }) {
   const [showActions, setShowActions] = React.useState(false);
   
@@ -85,24 +88,39 @@ export default function MessageBubble({
   const isImage = message.type === "image" || message.file_type?.includes("image");
   const readStatus = message.read_by?.length > 1 ? "read" : "sent";
   
-  // Formata hora no timezone de São Paulo (GMT-3)
+  // Formata hora no timezone de São Paulo (GMT-3) usando Intl API
   const formatSaoPauloTime = (dateStr) => {
     if (!dateStr) return "";
     
-    // Cria a data a partir da string
-    const date = new Date(dateStr);
-    
-    // Obtém o offset de São Paulo manualmente (-3 horas = -180 minutos)
-    // Nota: São Paulo não usa horário de verão desde 2019
-    const utcTime = date.getTime();
-    const saoPauloOffset = -3 * 60 * 60 * 1000; // -3 horas em milissegundos
-    const saoPauloTime = new Date(utcTime + saoPauloOffset + (date.getTimezoneOffset() * 60 * 1000));
-    
-    const hours = String(saoPauloTime.getHours()).padStart(2, "0");
-    const minutes = String(saoPauloTime.getMinutes()).padStart(2, "0");
-    
-    return `${hours}:${minutes}`;
+    try {
+      const date = new Date(dateStr);
+      // Usa Intl.DateTimeFormat que é mais confiável
+      return new Intl.DateTimeFormat("pt-BR", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+        timeZone: "America/Sao_Paulo"
+      }).format(date);
+    } catch (e) {
+      // Fallback manual se Intl falhar
+      const date = new Date(dateStr);
+      const utcTime = date.getTime();
+      const saoPauloOffset = -3 * 60 * 60 * 1000;
+      const saoPauloTime = new Date(utcTime + saoPauloOffset + (date.getTimezoneOffset() * 60 * 1000));
+      const hours = String(saoPauloTime.getHours()).padStart(2, "0");
+      const minutes = String(saoPauloTime.getMinutes()).padStart(2, "0");
+      return `${hours}:${minutes}`;
+    }
   };
+  
+  // Detecta URLs no texto
+  const extractUrls = (text) => {
+    if (!text) return [];
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    return text.match(urlRegex) || [];
+  };
+  
+  const urls = message.type === "text" ? extractUrls(message.content) : [];
 
   const renderContent = () => {
     // Reply preview
@@ -169,7 +187,7 @@ export default function MessageBubble({
                 href={part}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-blue-400 underline hover:text-blue-300"
+                className={`underline hover:opacity-80 ${isOwn ? "text-green-100" : "text-blue-500"}`}
               >
                 {part}
               </a>
@@ -178,6 +196,8 @@ export default function MessageBubble({
             )
           )}
         </p>
+        {/* Link preview para o primeiro link */}
+        {urls.length > 0 && <LinkPreview url={urls[0]} isOwn={isOwn} />}
       </>
     );
   };
@@ -228,6 +248,7 @@ export default function MessageBubble({
 
           {/* Time and read status */}
           <div className={`flex items-center justify-end gap-1 mt-1 ${isOwn ? "text-green-100" : "text-gray-400"}`}>
+            {message.is_pinned && <Pin className="w-3 h-3 text-amber-500" />}
             {message.is_edited && <span className="text-xs">editada</span>}
             <span className="text-xs">{formatSaoPauloTime(message.created_date)}</span>
             {isOwn && (
@@ -272,6 +293,10 @@ export default function MessageBubble({
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
+                  <DropdownMenuItem onClick={() => onPin?.(message)}>
+                    <Pin className="w-4 h-4 mr-2" /> 
+                    {message.is_pinned ? "Desafixar" : "Fixar mensagem"}
+                  </DropdownMenuItem>
                   {isOwn && (
                     <DropdownMenuItem onClick={() => onEdit?.(message)}>
                       <Pencil className="w-4 h-4 mr-2" /> Editar
