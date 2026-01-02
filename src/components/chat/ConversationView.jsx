@@ -251,6 +251,9 @@ export default function ConversationView({
         {typingUsers?.length > 0 && (
           <TypingIndicator typingUsers={typingUsers} users={users} />
         )}
+        
+        {/* Âncora para scroll automático */}
+        <div ref={bottomRef} />
       </ScrollArea>
 
       {/* Input */}
