@@ -4,7 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Search, Plus, Users, Check, CheckCheck, Settings } from "lucide-react";
+import { Search, Plus, Users, Check, CheckCheck, Settings, Pin, PinOff } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 import { format, isToday, isYesterday } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import PresenceIndicator from "./PresenceIndicator";
@@ -36,9 +37,34 @@ export default function ChatList({
   onNewGroup,
   unreadCounts,
   presenceMap = {},
-  onOpenPresenceSettings
+  onOpenPresenceSettings,
+  onPinConversation
 }) {
   const [search, setSearch] = React.useState("");
+  const { toast } = useToast();
+  
+  const MAX_PINNED = 5;
+  
+  // Contar conversas fixadas pelo usuário atual
+  const pinnedCount = conversations.filter(c => 
+    c.is_pinned_by?.includes(currentUser?.email)
+  ).length;
+  
+  const handlePinToggle = (e, conv) => {
+    e.stopPropagation();
+    const isPinned = conv.is_pinned_by?.includes(currentUser?.email);
+    
+    if (!isPinned && pinnedCount >= MAX_PINNED) {
+      toast({
+        title: "Limite de conversas fixadas",
+        description: `Você só pode fixar até ${MAX_PINNED} conversas. Desafixe uma para fixar outra.`,
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    onPinConversation?.(conv, !isPinned);
+  };
 
   const getConversationDisplay = (conv) => {
     if (conv.type === "group") {
@@ -65,8 +91,15 @@ export default function ChatList({
     return display.name.toLowerCase().includes(search.toLowerCase());
   });
 
-  // Sort by last message
+  // Sort: pinned first, then by last message
   const sortedConversations = [...filteredConversations].sort((a, b) => {
+    const aPinned = a.is_pinned_by?.includes(currentUser?.email) ? 1 : 0;
+    const bPinned = b.is_pinned_by?.includes(currentUser?.email) ? 1 : 0;
+    
+    // Fixadas primeiro
+    if (aPinned !== bPinned) return bPinned - aPinned;
+    
+    // Depois por última mensagem
     const dateA = a.last_message_at ? new Date(a.last_message_at) : new Date(a.created_date);
     const dateB = b.last_message_at ? new Date(b.last_message_at) : new Date(b.created_date);
     return dateB - dateA;
@@ -114,14 +147,15 @@ export default function ChatList({
               const unread = unreadCounts[conv.id] || 0;
               const isSelected = selectedId === conv.id;
               const isTyping = conv.typing_users?.some(e => e !== currentUser?.email);
+              const isPinned = conv.is_pinned_by?.includes(currentUser?.email);
 
               return (
                 <div
                   key={conv.id}
                   onClick={() => onSelect(conv)}
-                  className={`flex items-center gap-3 p-3 cursor-pointer transition-colors hover:bg-gray-50 ${
+                  className={`flex items-center gap-3 p-3 cursor-pointer transition-colors hover:bg-gray-50 group ${
                     isSelected ? "bg-blue-50 border-l-4 border-blue-500" : ""
-                  }`}
+                  } ${isPinned ? "bg-amber-50/50" : ""}`}
                 >
                   <div className="relative">
                     <Avatar className="w-12 h-12">
@@ -141,10 +175,28 @@ export default function ChatList({
 
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
-                      <span className="font-semibold text-gray-900 truncate">{display.name}</span>
-                      <span className="text-xs text-gray-500 ml-2 shrink-0">
-                        {formatMessageTime(conv.last_message_at)}
-                      </span>
+                      <div className="flex items-center gap-1 min-w-0">
+                        {isPinned && <Pin className="w-3 h-3 text-amber-500 shrink-0" />}
+                        <span className="font-semibold text-gray-900 truncate">{display.name}</span>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <span className="text-xs text-gray-500">
+                          {formatMessageTime(conv.last_message_at)}
+                        </span>
+                        <button
+                          onClick={(e) => handlePinToggle(e, conv)}
+                          className={`p-1 rounded hover:bg-gray-200 transition-opacity ${
+                            isPinned ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                          }`}
+                          title={isPinned ? "Desafixar" : "Fixar conversa"}
+                        >
+                          {isPinned ? (
+                            <PinOff className="w-4 h-4 text-amber-500" />
+                          ) : (
+                            <Pin className="w-4 h-4 text-gray-400" />
+                          )}
+                        </button>
+                      </div>
                     </div>
                     <div className="flex items-center justify-between">
                       <p className={`text-sm truncate ${unread > 0 ? "text-gray-900 font-medium" : "text-gray-500"}`}>
