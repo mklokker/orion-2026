@@ -89,13 +89,16 @@ export default function MessageBubble({
   const formatTime = (dateStr) => {
     try {
       const date = new Date(dateStr);
-      // Usa toLocaleTimeString com timezone de São Paulo
-      return date.toLocaleTimeString("pt-BR", { 
-        hour: "2-digit", 
+      // Usa Intl.DateTimeFormat para garantir timezone correto
+      const formatter = new Intl.DateTimeFormat("pt-BR", {
+        hour: "2-digit",
         minute: "2-digit",
+        hour12: false,
         timeZone: "America/Sao_Paulo"
       });
-    } catch {
+      return formatter.format(date);
+    } catch (e) {
+      console.error("Erro ao formatar hora:", e);
       return format(new Date(dateStr), "HH:mm");
     }
   };
