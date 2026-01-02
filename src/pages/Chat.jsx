@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { ChatConversation } from "@/entities/ChatConversation";
 import { ChatMessage } from "@/entities/ChatMessage";
 import { User } from "@/entities/User";
+import { getPublicUsers } from "@/functions/getPublicUsers";
 import ChatList from "@/components/chat/ChatList";
 import ConversationView from "@/components/chat/ConversationView";
 import NewChatModal from "@/components/chat/NewChatModal";
@@ -54,12 +55,27 @@ export default function Chat() {
 
   const loadInitialData = async () => {
     try {
-      const [userData, usersData] = await Promise.all([
-        User.me(),
-        User.list()
-      ]);
+      const userData = await User.me();
       setCurrentUser(userData);
-      setUsers(usersData);
+      
+      // Use backend function to get users (works for all roles)
+      try {
+        const response = await getPublicUsers();
+        if (response?.data?.users) {
+          setUsers(response.data.users);
+        }
+      } catch (usersError) {
+        console.error("Erro ao carregar usuários via função:", usersError);
+        // Fallback: try direct list (works only for admins)
+        try {
+          const usersData = await User.list();
+          setUsers(usersData);
+        } catch (e) {
+          // If user is not admin, they can only see themselves
+          setUsers([userData]);
+        }
+      }
+      
       await loadConversations(userData.email);
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
