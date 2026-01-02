@@ -36,6 +36,7 @@ export default function Chat() {
   const presenceIntervalRef = useRef(null);
   const lastMessageCountRef = useRef({});
   const notifiedMessagesRef = useRef(new Set());
+  const lastNotificationTimeRef = useRef({}); // cooldown per conversation
 
   // Load initial data
   useEffect(() => {
@@ -206,11 +207,28 @@ export default function Chat() {
     }
   };
 
-  const sendNotification = (title, body, senderEmail) => {
+  const sendNotification = (title, body, senderEmail, conversationId) => {
     if (!myPresence) return;
     
     // Don't notify if user is in DND mode
     if (myPresence.status === "dnd" || myPresence.manual_status === "dnd") return;
+    
+    // Check if muted temporarily
+    if (myPresence.mute_until) {
+      const muteEnd = new Date(myPresence.mute_until);
+      if (new Date() < muteEnd) return;
+    }
+    
+    // Check cooldown per conversation
+    const cooldownSeconds = myPresence.notification_cooldown_seconds || 30;
+    if (cooldownSeconds > 0 && conversationId) {
+      const lastTime = lastNotificationTimeRef.current[conversationId];
+      const now = Date.now();
+      if (lastTime && (now - lastTime) < cooldownSeconds * 1000) {
+        return; // Still in cooldown
+      }
+      lastNotificationTimeRef.current[conversationId] = now;
+    }
     
     // Play sound if enabled
     if (myPresence.notification_sound !== "none") {
@@ -223,7 +241,7 @@ export default function Chat() {
         new Notification(title, {
           body,
           icon: "/favicon.ico",
-          tag: `chat-${senderEmail}`,
+          tag: `chat-${conversationId}`,
           renotify: true
         });
       } catch (e) {
@@ -270,7 +288,7 @@ export default function Chat() {
             const senderName = msg.sender_name || msg.sender_email;
             const title = isGroup ? `${senderName} em ${conv.name || "Grupo"}` : senderName;
             const body = msg.type === "text" ? msg.content : "📎 Enviou um arquivo";
-            sendNotification(title, body, msg.sender_email);
+            sendNotification(title, body, msg.sender_email, conv.id);
           }
         }
       }

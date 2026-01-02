@@ -7,10 +7,12 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Circle, Moon, MinusCircle, Zap, Bell, Volume2, MessageSquare, AtSign, Users, Play } from "lucide-react";
+import { Circle, Moon, MinusCircle, Zap, Bell, Volume2, MessageSquare, AtSign, Users, Play, Clock, BellOff } from "lucide-react";
 import { UserPresence } from "@/entities/UserPresence";
 import { useToast } from "@/components/ui/use-toast";
 import { playNotificationSound, SOUND_OPTIONS } from "./NotificationSounds";
+import { format, addHours, addMinutes, isPast } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 const statusOptions = [
   { value: "auto", label: "Automático", description: "Detectar automaticamente", icon: Zap, color: "text-blue-500" },
@@ -35,6 +37,10 @@ export default function PresenceSettings({ open, onClose, currentUser, presence,
   const [pushPermission, setPushPermission] = useState(
     typeof Notification !== 'undefined' ? Notification.permission : 'denied'
   );
+  const [muteUntil, setMuteUntil] = useState(presence?.mute_until || null);
+  const [cooldownSeconds, setCooldownSeconds] = useState(presence?.notification_cooldown_seconds || 30);
+  
+  const isMuted = muteUntil && !isPast(new Date(muteUntil));
 
   useEffect(() => {
     if (presence) {
@@ -45,8 +51,39 @@ export default function PresenceSettings({ open, onClose, currentUser, presence,
       setNotifyGroupMessages(presence.notify_group_messages !== false);
       setNotificationSound(presence.notification_sound || "default");
       setPushEnabled(presence.push_enabled || false);
+      setMuteUntil(presence.mute_until || null);
+      setCooldownSeconds(presence.notification_cooldown_seconds || 30);
     }
   }, [presence]);
+
+  const handleMuteFor = async (minutes) => {
+    const until = addMinutes(new Date(), minutes);
+    setMuteUntil(until.toISOString());
+    
+    if (presence?.id) {
+      try {
+        await UserPresence.update(presence.id, { mute_until: until.toISOString() });
+        toast({ title: `Notificações silenciadas por ${minutes} minutos` });
+        onUpdate?.();
+      } catch (e) {
+        console.error("Erro ao silenciar:", e);
+      }
+    }
+  };
+
+  const handleUnmute = async () => {
+    setMuteUntil(null);
+    
+    if (presence?.id) {
+      try {
+        await UserPresence.update(presence.id, { mute_until: null });
+        toast({ title: "Notificações reativadas" });
+        onUpdate?.();
+      } catch (e) {
+        console.error("Erro ao reativar:", e);
+      }
+    }
+  };
 
   const requestPushPermission = async () => {
     if (typeof Notification === 'undefined') {
@@ -84,7 +121,9 @@ export default function PresenceSettings({ open, onClose, currentUser, presence,
         notify_mentions: notifyMentions,
         notify_group_messages: notifyGroupMessages,
         notification_sound: notificationSound,
-        push_enabled: pushEnabled && pushPermission === 'granted'
+        push_enabled: pushEnabled && pushPermission === 'granted',
+        mute_until: muteUntil,
+        notification_cooldown_seconds: cooldownSeconds
       };
       
       if (presence?.id) {
@@ -270,6 +309,69 @@ export default function PresenceSettings({ open, onClose, currentUser, presence,
                   <Play className="w-4 h-4" />
                 </Button>
               </div>
+            </div>
+
+            {/* Mute Temporarily */}
+            <div className="space-y-3">
+              <Label className="flex items-center gap-2">
+                <BellOff className="w-4 h-4" />
+                Silenciar Temporariamente
+              </Label>
+              
+              {isMuted ? (
+                <div className="p-3 rounded-lg bg-amber-50 border border-amber-200">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-medium text-amber-700">Notificações silenciadas</p>
+                      <p className="text-xs text-amber-600">
+                        Até {format(new Date(muteUntil), "HH:mm", { locale: ptBR })}
+                      </p>
+                    </div>
+                    <Button variant="outline" size="sm" onClick={handleUnmute}>
+                      Reativar
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex gap-2 flex-wrap">
+                  <Button variant="outline" size="sm" onClick={() => handleMuteFor(30)}>
+                    30 min
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => handleMuteFor(60)}>
+                    1 hora
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => handleMuteFor(120)}>
+                    2 horas
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => handleMuteFor(480)}>
+                    8 horas
+                  </Button>
+                </div>
+              )}
+            </div>
+
+            {/* Cooldown */}
+            <div className="space-y-3">
+              <Label className="flex items-center gap-2">
+                <Clock className="w-4 h-4" />
+                Intervalo entre Notificações
+              </Label>
+              <Select value={String(cooldownSeconds)} onValueChange={(v) => setCooldownSeconds(Number(v))}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="0">Sem intervalo</SelectItem>
+                  <SelectItem value="10">10 segundos</SelectItem>
+                  <SelectItem value="30">30 segundos</SelectItem>
+                  <SelectItem value="60">1 minuto</SelectItem>
+                  <SelectItem value="120">2 minutos</SelectItem>
+                  <SelectItem value="300">5 minutos</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-gray-500">
+                Tempo mínimo entre notificações da mesma conversa
+              </p>
             </div>
 
             {manualStatus === "dnd" && (
