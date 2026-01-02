@@ -169,7 +169,7 @@ export default function ConversationView({
             display.status === "away" ? "text-yellow-600" : 
             display.status === "dnd" ? "text-red-600" : "text-gray-500"
           }`}>
-            {typingText || display.subtitle}
+            {display.subtitle}
           </p>
         </div>
 
