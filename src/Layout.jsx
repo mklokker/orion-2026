@@ -40,8 +40,6 @@ import { Notification as NotificationEntity } from "@/entities/Notification";
 import { Task } from "@/entities/Task";
 import { Service } from "@/entities/Service";
 import { AppSettings } from "@/entities/AppSettings";
-import { ChatMessage } from "@/entities/ChatMessage";
-import { ChatConversation } from "@/entities/ChatConversation";
 
 import UserProfileModal from "./components/profile/UserProfileModal";
 import NotificationCenter from "./components/notifications/NotificationCenter";
