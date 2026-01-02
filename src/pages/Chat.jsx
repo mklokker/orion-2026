@@ -255,45 +255,48 @@ export default function Chat() {
     if (!currentUser) return;
     
     try {
-      // Only check the selected conversation to minimize API calls
-      if (!selectedConversation) return;
+      const allConvs = await ChatConversation.filter({});
+      const myConvs = allConvs.filter(c => c.participants?.includes(currentUser.email));
       
-      const msgs = await ChatMessage.filter({ conversation_id: selectedConversation.id });
-      const newMsgs = msgs.filter(m => 
-        m.sender_email !== currentUser.email && 
-        !m.read_by?.includes(currentUser.email) &&
-        !notifiedMessagesRef.current.has(m.id)
-      );
-      
-      for (const msg of newMsgs) {
-        // Mark as notified
-        notifiedMessagesRef.current.add(msg.id);
+      for (const conv of myConvs.slice(0, 5)) { // Limit to avoid rate limit
+        const msgs = await ChatMessage.filter({ conversation_id: conv.id });
+        const newMsgs = msgs.filter(m => 
+          m.sender_email !== currentUser.email && 
+          !m.read_by?.includes(currentUser.email) &&
+          !notifiedMessagesRef.current.has(m.id)
+        );
         
-        // Check notification preferences (default to true if no presence)
-        const isGroup = selectedConversation.type === "group";
-        const isMention = msg.content?.includes(`@${currentUser.full_name}`) || 
-                         msg.content?.includes(`@${currentUser.email}`);
-        
-        let shouldNotify = false;
-        
-        if (isMention && myPresence?.notify_mentions !== false) {
-          shouldNotify = true;
-        } else if (isGroup && myPresence?.notify_group_messages !== false) {
-          shouldNotify = true;
-        } else if (!isGroup && myPresence?.notify_new_messages !== false) {
-          shouldNotify = true;
-        }
-        
-        if (shouldNotify) {
-          console.log("[Chat] Nova mensagem detectada de:", msg.sender_email);
-          const senderName = msg.sender_name || msg.sender_email;
-          const title = isGroup ? `${senderName} em ${selectedConversation.name || "Grupo"}` : senderName;
-          const body = msg.type === "text" ? msg.content : "📎 Enviou um arquivo";
-          sendNotification(title, body, msg.sender_email, selectedConversation.id);
+        for (const msg of newMsgs) {
+          // Mark as notified
+          notifiedMessagesRef.current.add(msg.id);
+          
+          // Check notification preferences (default to true if no presence)
+          const isGroup = conv.type === "group";
+          const isMention = msg.content?.includes(`@${currentUser.full_name}`) || 
+                           msg.content?.includes(`@${currentUser.email}`);
+          
+          let shouldNotify = false;
+          
+          if (isMention && myPresence?.notify_mentions !== false) {
+            shouldNotify = true;
+          } else if (isGroup && myPresence?.notify_group_messages !== false) {
+            shouldNotify = true;
+          } else if (!isGroup && myPresence?.notify_new_messages !== false) {
+            shouldNotify = true;
+          }
+          
+          if (shouldNotify) {
+            console.log("[Chat] Nova mensagem detectada de:", msg.sender_email);
+            const senderName = msg.sender_name || msg.sender_email;
+            const title = isGroup ? `${senderName} em ${conv.name || "Grupo"}` : senderName;
+            const body = msg.type === "text" ? msg.content : "📎 Enviou um arquivo";
+            sendNotification(title, body, msg.sender_email, conv.id);
+          }
         }
       }
     } catch (e) {
       // Ignore rate limit errors
+      console.log("[Chat] Erro ao verificar novas mensagens:", e);
     }
   };
 
@@ -301,18 +304,28 @@ export default function Chat() {
     stopPolling();
     pollingRef.current = setInterval(async () => {
       if (currentUser) {
-        // Only reload messages for selected conversation (minimal API calls)
+        // Reload conversations list (skip unread count to avoid rate limit)
+        await loadConversations(currentUser.email, true);
+        
+        // Check for new messages and notify
+        await checkForNewMessages();
+        
+        // Reload messages for selected conversation
         if (selectedConversation?.id) {
           await loadMessages(selectedConversation.id);
-          await checkForNewMessages();
-        }
-        
-        // Reload conversations list less frequently (every other poll)
-        if (Math.random() < 0.3) {
-          await loadConversations(currentUser.email, true);
+          
+          // Also reload the conversation object to get updated typing_users
+          try {
+            const updatedConvs = await ChatConversation.filter({ id: selectedConversation.id });
+            if (updatedConvs.length > 0) {
+              setSelectedConversation(updatedConvs[0]);
+            }
+          } catch (e) {
+            // Ignore rate limit errors
+          }
         }
       }
-    }, 4000); // 4 seconds to reduce rate limit issues
+    }, 2500); // 2.5 seconds for balance between speed and rate limit
   };
 
   const stopPolling = () => {
