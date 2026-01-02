@@ -15,8 +15,7 @@ import {
   Trash2,
   Smile
 } from "lucide-react";
-import { format, parseISO } from "date-fns";
-import { toZonedTime } from "date-fns-tz";
+import { format } from "date-fns";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -86,12 +85,16 @@ export default function MessageBubble({
   const isImage = message.type === "image" || message.file_type?.includes("image");
   const readStatus = message.read_by?.length > 1 ? "read" : "sent";
   
-  // Formata hora no timezone de São Paulo
+  // Formata hora no timezone de São Paulo (-3h)
   const formatTime = (dateStr) => {
     try {
-      const date = typeof dateStr === "string" ? parseISO(dateStr) : new Date(dateStr);
-      const zonedDate = toZonedTime(date, "America/Sao_Paulo");
-      return format(zonedDate, "HH:mm");
+      const date = new Date(dateStr);
+      // Usa toLocaleTimeString com timezone de São Paulo
+      return date.toLocaleTimeString("pt-BR", { 
+        hour: "2-digit", 
+        minute: "2-digit",
+        timeZone: "America/Sao_Paulo"
+      });
     } catch {
       return format(new Date(dateStr), "HH:mm");
     }
