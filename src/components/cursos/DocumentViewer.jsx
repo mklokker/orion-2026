@@ -68,35 +68,35 @@ export default function DocumentViewer({ open, onClose, document }) {
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent 
-        className={`p-0 overflow-hidden ${
+        className={`p-0 overflow-hidden flex flex-col ${
           isFullscreen 
             ? 'max-w-[100vw] w-[100vw] h-[100vh] max-h-[100vh] rounded-none' 
-            : 'max-w-5xl w-[90vw] h-[85vh]'
+            : 'max-w-[95vw] w-[95vw] h-[92vh] max-h-[92vh]'
         }`}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between p-3 bg-gray-100 border-b">
-          <div className="flex items-center gap-3">
-            <div className={`p-2 rounded-lg ${
-              document.file_type === 'pdf' ? 'bg-red-100 text-red-600' :
-              document.file_type === 'word' ? 'bg-blue-100 text-blue-600' :
-              document.file_type === 'excel' ? 'bg-green-100 text-green-600' :
-              'bg-orange-100 text-orange-600'
+        {/* Compact Header */}
+        <div className="flex items-center justify-between px-3 py-2 bg-gray-800 text-white shrink-0">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className={`p-1.5 rounded ${
+              document.file_type === 'pdf' ? 'bg-red-500/20 text-red-300' :
+              document.file_type === 'word' ? 'bg-blue-500/20 text-blue-300' :
+              document.file_type === 'excel' ? 'bg-green-500/20 text-green-300' :
+              'bg-orange-500/20 text-orange-300'
             }`}>
-              <Icon className="w-5 h-5" />
+              <Icon className="w-4 h-4" />
             </div>
-            <div>
-              <h3 className="font-semibold text-sm line-clamp-1">{document.title}</h3>
-              <p className="text-xs text-gray-500">{document.file_name}</p>
+            <div className="min-w-0">
+              <h3 className="font-medium text-sm truncate">{document.title}</h3>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
             <Button 
               variant="ghost" 
               size="sm" 
               onClick={handleDownload}
               title="Baixar"
+              className="text-white hover:bg-white/10 h-8 w-8 p-0"
             >
               <Download className="w-4 h-4" />
             </Button>
@@ -105,6 +105,7 @@ export default function DocumentViewer({ open, onClose, document }) {
               size="sm" 
               onClick={handleOpenExternal}
               title="Abrir em nova aba"
+              className="text-white hover:bg-white/10 h-8 w-8 p-0"
             >
               <ExternalLink className="w-4 h-4" />
             </Button>
@@ -113,6 +114,7 @@ export default function DocumentViewer({ open, onClose, document }) {
               size="sm" 
               onClick={toggleFullscreen}
               title={isFullscreen ? "Sair da tela cheia" : "Tela cheia"}
+              className="text-white hover:bg-white/10 h-8 w-8 p-0"
             >
               {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
             </Button>
@@ -120,17 +122,18 @@ export default function DocumentViewer({ open, onClose, document }) {
               variant="ghost" 
               size="sm" 
               onClick={onClose}
+              className="text-white hover:bg-white/10 h-8 w-8 p-0"
             >
               <X className="w-4 h-4" />
             </Button>
           </div>
         </div>
 
-        {/* Document Viewer */}
-        <div className="flex-1 bg-gray-200" style={{ height: 'calc(100% - 56px)' }}>
+        {/* Document Viewer - takes all remaining space */}
+        <div className="flex-1 bg-gray-900 min-h-0">
           {document.file_type === 'pdf' ? (
             <iframe
-              src={`${viewerUrl}#toolbar=1&navpanes=1&scrollbar=1`}
+              src={`${viewerUrl}#toolbar=1&navpanes=0&scrollbar=1&view=FitH`}
               className="w-full h-full border-0"
               title={document.title}
             />
