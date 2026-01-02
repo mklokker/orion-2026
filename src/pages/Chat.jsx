@@ -592,6 +592,35 @@ export default function Chat() {
     }
   };
 
+  const handlePinConversation = async (conversation, shouldPin) => {
+    try {
+      const currentPinnedBy = conversation.is_pinned_by || [];
+      
+      let newPinnedBy;
+      if (shouldPin) {
+        newPinnedBy = [...currentPinnedBy, currentUser.email];
+      } else {
+        newPinnedBy = currentPinnedBy.filter(e => e !== currentUser.email);
+      }
+      
+      await ChatConversation.update(conversation.id, {
+        is_pinned_by: newPinnedBy
+      });
+      
+      await loadConversations(currentUser.email, true);
+      
+      toast({
+        title: shouldPin ? "Conversa fixada" : "Conversa desafixada",
+        description: shouldPin 
+          ? "A conversa aparecerá no topo da lista" 
+          : "A conversa voltou à ordem normal"
+      });
+    } catch (error) {
+      console.error("Erro ao fixar conversa:", error);
+      toast({ title: "Erro ao fixar conversa", variant: "destructive" });
+    }
+  };
+
   // Get typing users for current conversation
   const typingUsers = selectedConversation?.typing_users?.filter(e => e !== currentUser?.email) || [];
 
@@ -615,7 +644,8 @@ export default function Chat() {
           unreadCounts={unreadCounts}
           presenceMap={presenceMap}
           onOpenPresenceSettings={() => setShowPresenceSettings(true)}
-        />
+          onPinConversation={handlePinConversation}
+          />
       </div>
 
       {/* Main - Conversation View */}
@@ -636,7 +666,7 @@ export default function Chat() {
           onPinMessage={handlePinMessage}
           typingUsers={typingUsers}
           presenceMap={presenceMap}
-        />
+          onPinMessage={handlePinMessage}
       </div>
 
       {/* Modals */}
