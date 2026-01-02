@@ -4,9 +4,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Search, Plus, Users, Check, CheckCheck } from "lucide-react";
+import { Search, Plus, Users, Check, CheckCheck, Settings } from "lucide-react";
 import { format, isToday, isYesterday } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import PresenceIndicator from "./PresenceIndicator";
 
 const getInitials = (name) => {
   if (!name) return "?";
@@ -33,7 +34,9 @@ export default function ChatList({
   onSelect,
   onNewChat,
   onNewGroup,
-  unreadCounts
+  unreadCounts,
+  presenceMap = {},
+  onOpenPresenceSettings
 }) {
   const [search, setSearch] = React.useState("");
 
@@ -42,7 +45,8 @@ export default function ChatList({
       return {
         name: conv.name || "Grupo sem nome",
         avatar: conv.avatar_url,
-        isGroup: true
+        isGroup: true,
+        otherEmail: null
       };
     }
     // Direct chat - find the other participant
@@ -51,7 +55,8 @@ export default function ChatList({
     return {
       name: otherUser?.display_name || otherUser?.full_name || otherEmail || "Usuário",
       avatar: otherUser?.profile_picture,
-      isGroup: false
+      isGroup: false,
+      otherEmail
     };
   };
 
@@ -74,6 +79,9 @@ export default function ChatList({
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-bold text-gray-800">Conversas</h2>
           <div className="flex gap-1">
+            <Button variant="ghost" size="icon" onClick={onOpenPresenceSettings} title="Status de presença">
+              <Settings className="w-5 h-5" />
+            </Button>
             <Button variant="ghost" size="icon" onClick={onNewChat} title="Nova conversa">
               <Plus className="w-5 h-5" />
             </Button>
@@ -122,6 +130,13 @@ export default function ChatList({
                         {display.isGroup ? <Users className="w-5 h-5" /> : getInitials(display.name)}
                       </AvatarFallback>
                     </Avatar>
+                    {!display.isGroup && display.otherEmail && (
+                      <PresenceIndicator 
+                        status={presenceMap[display.otherEmail] || "offline"}
+                        size="md"
+                        className="absolute bottom-0 right-0"
+                      />
+                    )}
                   </div>
 
                   <div className="flex-1 min-w-0">

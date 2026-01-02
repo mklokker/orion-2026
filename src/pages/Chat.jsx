@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { ChatConversation } from "@/entities/ChatConversation";
 import { ChatMessage } from "@/entities/ChatMessage";
+import { UserPresence } from "@/entities/UserPresence";
 import { User } from "@/entities/User";
 import { getPublicUsers } from "@/functions/getPublicUsers";
 import ChatList from "@/components/chat/ChatList";
@@ -8,6 +9,7 @@ import ConversationView from "@/components/chat/ConversationView";
 import NewChatModal from "@/components/chat/NewChatModal";
 import GroupSettingsModal from "@/components/chat/GroupSettingsModal";
 import ImageViewer from "@/components/chat/ImageViewer";
+import PresenceSettings from "@/components/chat/PresenceSettings";
 import { useToast } from "@/components/ui/use-toast";
 
 export default function Chat() {
@@ -24,9 +26,13 @@ export default function Chat() {
   const [viewingImage, setViewingImage] = useState(null);
   const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768);
   const [showConversation, setShowConversation] = useState(false);
+  const [presenceMap, setPresenceMap] = useState({});
+  const [myPresence, setMyPresence] = useState(null);
+  const [showPresenceSettings, setShowPresenceSettings] = useState(false);
   
   const pollingRef = useRef(null);
   const typingTimeoutRef = useRef(null);
+  const presenceIntervalRef = useRef(null);
 
   // Load initial data
   useEffect(() => {
@@ -41,8 +47,21 @@ export default function Chat() {
   useEffect(() => {
     if (currentUser) {
       startPolling();
+      updateMyPresence();
+      loadPresenceData();
+      
+      // Update presence every 30 seconds
+      presenceIntervalRef.current = setInterval(() => {
+        updateMyPresence();
+        loadPresenceData();
+      }, 30000);
     }
-    return () => stopPolling();
+    return () => {
+      stopPolling();
+      if (presenceIntervalRef.current) {
+        clearInterval(presenceIntervalRef.current);
+      }
+    };
   }, [currentUser]);
 
   // Load messages when conversation changes
@@ -77,8 +96,70 @@ export default function Chat() {
       }
       
       await loadConversations(userData.email);
+      await loadPresenceData();
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
+    }
+  };
+
+  const loadPresenceData = async () => {
+    try {
+      const presences = await UserPresence.list();
+      const map = {};
+      const now = new Date();
+      
+      presences.forEach(p => {
+        // Check if user was seen recently (within 2 minutes) or has manual status
+        const lastSeen = p.last_seen ? new Date(p.last_seen) : null;
+        const isRecent = lastSeen && (now - lastSeen) < 2 * 60 * 1000;
+        
+        if (p.manual_status && p.manual_status !== "auto") {
+          map[p.user_email] = p.status || p.manual_status;
+        } else if (isRecent) {
+          map[p.user_email] = "online";
+        } else {
+          map[p.user_email] = "offline";
+        }
+        
+        // Store my presence
+        if (p.user_email === currentUser?.email) {
+          setMyPresence(p);
+        }
+      });
+      
+      setPresenceMap(map);
+    } catch (error) {
+      console.error("Erro ao carregar presença:", error);
+    }
+  };
+
+  const updateMyPresence = async () => {
+    if (!currentUser) return;
+    try {
+      const existing = await UserPresence.filter({ user_email: currentUser.email });
+      
+      if (existing.length > 0) {
+        const presence = existing[0];
+        const newStatus = presence.manual_status && presence.manual_status !== "auto" 
+          ? presence.manual_status 
+          : "online";
+        
+        await UserPresence.update(presence.id, {
+          status: newStatus,
+          last_seen: new Date().toISOString()
+        });
+        setMyPresence({ ...presence, status: newStatus, last_seen: new Date().toISOString() });
+      } else {
+        const newPresence = await UserPresence.create({
+          user_email: currentUser.email,
+          status: "online",
+          manual_status: "auto",
+          last_seen: new Date().toISOString()
+        });
+        setMyPresence(newPresence);
+      }
+    } catch (error) {
+      console.error("Erro ao atualizar presença:", error);
     }
   };
 
@@ -411,6 +492,8 @@ export default function Chat() {
           onNewChat={() => { setIsGroupMode(false); setShowNewChat(true); }}
           onNewGroup={() => { setIsGroupMode(true); setShowNewChat(true); }}
           unreadCounts={unreadCounts}
+          presenceMap={presenceMap}
+          onOpenPresenceSettings={() => setShowPresenceSettings(true)}
         />
       </div>
 
@@ -430,6 +513,7 @@ export default function Chat() {
           onReaction={handleReaction}
           onImageClick={setViewingImage}
           typingUsers={typingUsers}
+          presenceMap={presenceMap}
         />
       </div>
 
@@ -460,6 +544,17 @@ export default function Chat() {
         open={!!viewingImage}
         onClose={() => setViewingImage(null)}
         imageUrl={viewingImage}
+      />
+
+      <PresenceSettings
+        open={showPresenceSettings}
+        onClose={() => setShowPresenceSettings(false)}
+        currentUser={currentUser}
+        presence={myPresence}
+        onUpdate={() => {
+          loadPresenceData();
+          updateMyPresence();
+        }}
       />
     </div>
   );

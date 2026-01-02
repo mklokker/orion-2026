@@ -14,6 +14,7 @@ import { format, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import MessageBubble from "./MessageBubble";
 import ChatInput from "./ChatInput";
+import PresenceIndicator, { statusConfig } from "./PresenceIndicator";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -43,7 +44,8 @@ export default function ConversationView({
   onDeleteMessage,
   onReaction,
   onImageClick,
-  typingUsers
+  typingUsers,
+  presenceMap = {}
 }) {
   const scrollRef = useRef(null);
   const [replyingTo, setReplyingTo] = useState(null);
@@ -73,15 +75,21 @@ export default function ConversationView({
       return {
         name: conversation.name || "Grupo",
         avatar: conversation.avatar_url,
-        subtitle: `${conversation.participants?.length || 0} participantes`
+        subtitle: `${conversation.participants?.length || 0} participantes`,
+        otherEmail: null,
+        status: null
       };
     }
     const otherEmail = conversation.participants?.find(p => p !== currentUser?.email);
     const otherUser = users.find(u => u.email === otherEmail);
+    const status = presenceMap[otherEmail] || "offline";
+    const statusLabel = statusConfig[status]?.label || "Offline";
     return {
       name: otherUser?.display_name || otherUser?.full_name || otherEmail || "Usuário",
       avatar: otherUser?.profile_picture,
-      subtitle: "Online" // Could be enhanced with real presence
+      subtitle: statusLabel,
+      otherEmail,
+      status
     };
   };
 
@@ -126,16 +134,29 @@ export default function ConversationView({
           <ArrowLeft className="w-5 h-5" />
         </Button>
 
-        <Avatar className="w-10 h-10 cursor-pointer" onClick={onOpenSettings}>
-          <AvatarImage src={display.avatar} />
-          <AvatarFallback className={isGroup ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"}>
-            {isGroup ? <Users className="w-5 h-5" /> : getInitials(display.name)}
-          </AvatarFallback>
-        </Avatar>
+        <div className="relative">
+          <Avatar className="w-10 h-10 cursor-pointer" onClick={onOpenSettings}>
+            <AvatarImage src={display.avatar} />
+            <AvatarFallback className={isGroup ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"}>
+              {isGroup ? <Users className="w-5 h-5" /> : getInitials(display.name)}
+            </AvatarFallback>
+          </Avatar>
+          {!isGroup && display.status && (
+            <PresenceIndicator 
+              status={display.status}
+              size="md"
+              className="absolute bottom-0 right-0"
+            />
+          )}
+        </div>
 
         <div className="flex-1 min-w-0 cursor-pointer" onClick={onOpenSettings}>
           <h3 className="font-semibold text-gray-900 truncate">{display.name}</h3>
-          <p className="text-xs text-gray-500 truncate">
+          <p className={`text-xs truncate ${
+            display.status === "online" ? "text-green-600" : 
+            display.status === "away" ? "text-yellow-600" : 
+            display.status === "dnd" ? "text-red-600" : "text-gray-500"
+          }`}>
             {typingText || display.subtitle}
           </p>
         </div>
