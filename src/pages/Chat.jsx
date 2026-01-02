@@ -376,16 +376,31 @@ export default function Chat() {
         read_by: [currentUser.email]
       });
 
-      // Update conversation
+      // Update conversation with new timestamp
+      const now = new Date().toISOString();
       await ChatConversation.update(selectedConversation.id, {
         last_message: msgData.type === "text" ? msgData.content : `📎 ${msgData.file_name || "Arquivo"}`,
-        last_message_at: new Date().toISOString(),
+        last_message_at: now,
         last_message_by: currentUser.email,
         typing_users: []
       });
 
+      // Update local state immediately for instant UI feedback
       setMessages(prev => [...prev, newMsg]);
-      loadConversations(currentUser.email);
+      
+      // Update conversations list with the new timestamp
+      setConversations(prev => {
+        const updated = prev.map(c => 
+          c.id === selectedConversation.id 
+            ? { ...c, last_message: msgData.type === "text" ? msgData.content : `📎 ${msgData.file_name || "Arquivo"}`, last_message_at: now }
+            : c
+        );
+        return updated;
+      });
+      
+      // Also update selectedConversation
+      setSelectedConversation(prev => prev ? { ...prev, last_message_at: now } : prev);
+      
     } catch (error) {
       console.error("Erro ao enviar:", error);
       toast({ title: "Erro ao enviar mensagem", variant: "destructive" });
