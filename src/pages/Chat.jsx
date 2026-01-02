@@ -209,19 +209,17 @@ export default function Chat() {
   };
 
   const sendNotification = (title, body, senderEmail, conversationId) => {
-    if (!myPresence) return;
-    
     // Don't notify if user is in DND mode
-    if (myPresence.status === "dnd" || myPresence.manual_status === "dnd") return;
+    if (myPresence?.status === "dnd" || myPresence?.manual_status === "dnd") return;
     
     // Check if muted temporarily
-    if (myPresence.mute_until) {
+    if (myPresence?.mute_until) {
       const muteEnd = new Date(myPresence.mute_until);
       if (new Date() < muteEnd) return;
     }
     
     // Check cooldown per conversation
-    const cooldownSeconds = myPresence.notification_cooldown_seconds || 30;
+    const cooldownSeconds = myPresence?.notification_cooldown_seconds || 30;
     if (cooldownSeconds > 0 && conversationId) {
       const lastTime = lastNotificationTimeRef.current[conversationId];
       const now = Date.now();
@@ -231,13 +229,15 @@ export default function Chat() {
       lastNotificationTimeRef.current[conversationId] = now;
     }
     
-    // Play sound if enabled
-    if (myPresence.notification_sound !== "none") {
-      playNotificationSound(myPresence.notification_sound || "default");
+    // Play sound - always play unless explicitly disabled
+    const soundType = myPresence?.notification_sound || "default";
+    if (soundType !== "none") {
+      console.log("[Chat] Tocando som de notificação:", soundType);
+      playNotificationSound(soundType);
     }
     
     // Send push notification if enabled
-    if (myPresence.push_enabled && Notification.permission === "granted") {
+    if (myPresence?.push_enabled && Notification.permission === "granted") {
       try {
         new Notification(title, {
           body,
@@ -252,7 +252,7 @@ export default function Chat() {
   };
 
   const checkForNewMessages = async () => {
-    if (!currentUser || !myPresence) return;
+    if (!currentUser) return;
     
     try {
       const allConvs = await ChatConversation.filter({});
@@ -270,22 +270,23 @@ export default function Chat() {
           // Mark as notified
           notifiedMessagesRef.current.add(msg.id);
           
-          // Check notification preferences
+          // Check notification preferences (default to true if no presence)
           const isGroup = conv.type === "group";
           const isMention = msg.content?.includes(`@${currentUser.full_name}`) || 
                            msg.content?.includes(`@${currentUser.email}`);
           
           let shouldNotify = false;
           
-          if (isMention && myPresence.notify_mentions !== false) {
+          if (isMention && myPresence?.notify_mentions !== false) {
             shouldNotify = true;
-          } else if (isGroup && myPresence.notify_group_messages !== false) {
+          } else if (isGroup && myPresence?.notify_group_messages !== false) {
             shouldNotify = true;
-          } else if (!isGroup && myPresence.notify_new_messages !== false) {
+          } else if (!isGroup && myPresence?.notify_new_messages !== false) {
             shouldNotify = true;
           }
           
           if (shouldNotify) {
+            console.log("[Chat] Nova mensagem detectada de:", msg.sender_email);
             const senderName = msg.sender_name || msg.sender_email;
             const title = isGroup ? `${senderName} em ${conv.name || "Grupo"}` : senderName;
             const body = msg.type === "text" ? msg.content : "📎 Enviou um arquivo";
@@ -295,6 +296,7 @@ export default function Chat() {
       }
     } catch (e) {
       // Ignore rate limit errors
+      console.log("[Chat] Erro ao verificar novas mensagens:", e);
     }
   };
 
