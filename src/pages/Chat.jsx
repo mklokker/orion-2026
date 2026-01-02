@@ -11,6 +11,7 @@ import GroupSettingsModal from "@/components/chat/GroupSettingsModal";
 import ImageViewer from "@/components/chat/ImageViewer";
 import PresenceSettings from "@/components/chat/PresenceSettings";
 import { useToast } from "@/components/ui/use-toast";
+import { playNotificationSound } from "@/components/chat/NotificationSounds";
 
 export default function Chat() {
   const { toast } = useToast();
@@ -33,6 +34,8 @@ export default function Chat() {
   const pollingRef = useRef(null);
   const typingTimeoutRef = useRef(null);
   const presenceIntervalRef = useRef(null);
+  const lastMessageCountRef = useRef({});
+  const notifiedMessagesRef = useRef(new Set());
 
   // Load initial data
   useEffect(() => {
@@ -203,12 +206,88 @@ export default function Chat() {
     }
   };
 
+  const sendNotification = (title, body, senderEmail) => {
+    if (!myPresence) return;
+    
+    // Don't notify if user is in DND mode
+    if (myPresence.status === "dnd" || myPresence.manual_status === "dnd") return;
+    
+    // Play sound if enabled
+    if (myPresence.notification_sound !== "none") {
+      playNotificationSound(myPresence.notification_sound || "default");
+    }
+    
+    // Send push notification if enabled
+    if (myPresence.push_enabled && Notification.permission === "granted") {
+      try {
+        new Notification(title, {
+          body,
+          icon: "/favicon.ico",
+          tag: `chat-${senderEmail}`,
+          renotify: true
+        });
+      } catch (e) {
+        console.log("Erro ao enviar notificação:", e);
+      }
+    }
+  };
+
+  const checkForNewMessages = async () => {
+    if (!currentUser || !myPresence) return;
+    
+    try {
+      const allConvs = await ChatConversation.filter({});
+      const myConvs = allConvs.filter(c => c.participants?.includes(currentUser.email));
+      
+      for (const conv of myConvs.slice(0, 5)) { // Limit to avoid rate limit
+        const msgs = await ChatMessage.filter({ conversation_id: conv.id });
+        const newMsgs = msgs.filter(m => 
+          m.sender_email !== currentUser.email && 
+          !m.read_by?.includes(currentUser.email) &&
+          !notifiedMessagesRef.current.has(m.id)
+        );
+        
+        for (const msg of newMsgs) {
+          // Mark as notified
+          notifiedMessagesRef.current.add(msg.id);
+          
+          // Check notification preferences
+          const isGroup = conv.type === "group";
+          const isMention = msg.content?.includes(`@${currentUser.full_name}`) || 
+                           msg.content?.includes(`@${currentUser.email}`);
+          
+          let shouldNotify = false;
+          
+          if (isMention && myPresence.notify_mentions !== false) {
+            shouldNotify = true;
+          } else if (isGroup && myPresence.notify_group_messages !== false) {
+            shouldNotify = true;
+          } else if (!isGroup && myPresence.notify_new_messages !== false) {
+            shouldNotify = true;
+          }
+          
+          if (shouldNotify) {
+            const senderName = msg.sender_name || msg.sender_email;
+            const title = isGroup ? `${senderName} em ${conv.name || "Grupo"}` : senderName;
+            const body = msg.type === "text" ? msg.content : "📎 Enviou um arquivo";
+            sendNotification(title, body, msg.sender_email);
+          }
+        }
+      }
+    } catch (e) {
+      // Ignore rate limit errors
+    }
+  };
+
   const startPolling = () => {
     stopPolling();
     pollingRef.current = setInterval(async () => {
       if (currentUser) {
         // Reload conversations list (skip unread count to avoid rate limit)
         await loadConversations(currentUser.email, true);
+        
+        // Check for new messages and notify
+        await checkForNewMessages();
         
         // Reload messages for selected conversation
         if (selectedConversation?.id) {
