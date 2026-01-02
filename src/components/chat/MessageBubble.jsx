@@ -85,22 +85,23 @@ export default function MessageBubble({
   const isImage = message.type === "image" || message.file_type?.includes("image");
   const readStatus = message.read_by?.length > 1 ? "read" : "sent";
   
-  // Formata hora no timezone de São Paulo (-3h)
-  const formatTime = (dateStr) => {
-    try {
-      const date = new Date(dateStr);
-      // Usa Intl.DateTimeFormat para garantir timezone correto
-      const formatter = new Intl.DateTimeFormat("pt-BR", {
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
-        timeZone: "America/Sao_Paulo"
-      });
-      return formatter.format(date);
-    } catch (e) {
-      console.error("Erro ao formatar hora:", e);
-      return format(new Date(dateStr), "HH:mm");
-    }
+  // Formata hora no timezone de São Paulo (GMT-3)
+  const formatSaoPauloTime = (dateStr) => {
+    if (!dateStr) return "";
+    
+    // Cria a data a partir da string
+    const date = new Date(dateStr);
+    
+    // Obtém o offset de São Paulo manualmente (-3 horas = -180 minutos)
+    // Nota: São Paulo não usa horário de verão desde 2019
+    const utcTime = date.getTime();
+    const saoPauloOffset = -3 * 60 * 60 * 1000; // -3 horas em milissegundos
+    const saoPauloTime = new Date(utcTime + saoPauloOffset + (date.getTimezoneOffset() * 60 * 1000));
+    
+    const hours = String(saoPauloTime.getHours()).padStart(2, "0");
+    const minutes = String(saoPauloTime.getMinutes()).padStart(2, "0");
+    
+    return `${hours}:${minutes}`;
   };
 
   const renderContent = () => {
