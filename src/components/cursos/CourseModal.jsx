@@ -551,6 +551,7 @@ export default function CourseModal({
             <UserProgressCard
               progress={userProgress}
               totalVideos={videos.length}
+              totalDocuments={documents.length}
               totalQuizzes={quizzes.filter(q => q.is_active !== false).length}
               quizAttempts={userAttempts}
               course={course}

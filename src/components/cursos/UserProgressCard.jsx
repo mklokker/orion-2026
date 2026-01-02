@@ -19,7 +19,8 @@ import { addPoints } from "./GamificationService";
 
 export default function UserProgressCard({ 
   progress, 
-  totalVideos, 
+  totalVideos,
+  totalDocuments = 0,
   totalQuizzes,
   quizAttempts = [],
   course,
@@ -32,20 +33,20 @@ export default function UserProgressCard({
   const [isRequesting, setIsRequesting] = useState(false);
   
   const videosWatched = progress?.videos_watched?.length || 0;
+  const documentsRead = progress?.documents_read?.length || 0;
   const quizzesCompleted = progress?.quizzes_completed?.length || 0;
   
-  // Calculate overall progress - only count quizzes if there are any
-  const totalItems = totalVideos + totalQuizzes;
-  const completedVideos = videosWatched;
-  const completedQuizzesCount = quizzesCompleted;
-  const completedItems = completedVideos + completedQuizzesCount;
+  // Calculate overall progress
+  const totalItems = totalVideos + totalDocuments + totalQuizzes;
+  const completedItems = videosWatched + documentsRead + quizzesCompleted;
   const progressPercentage = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
 
   // Check if course is completed
-  // Course is complete when: all videos watched AND (no quizzes OR all quizzes passed)
-  const allVideosWatched = videosWatched >= totalVideos && totalVideos > 0;
+  const allVideosWatched = videosWatched >= totalVideos;
+  const allDocumentsRead = documentsRead >= totalDocuments;
   const allQuizzesPassed = totalQuizzes === 0 || quizzesCompleted >= totalQuizzes;
-  const isCourseCompleted = allVideosWatched && allQuizzesPassed;
+  const hasContent = totalVideos > 0 || totalDocuments > 0;
+  const isCourseCompleted = hasContent && allVideosWatched && allDocumentsRead && allQuizzesPassed;
 
   // Get best score from attempts
   const bestScore = quizAttempts.length > 0 
@@ -130,15 +131,29 @@ export default function UserProgressCard({
         <Progress value={progressPercentage} className="h-3 mb-4" />
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-          <div className="flex items-center gap-2 text-sm">
-            <div className="p-1.5 bg-blue-100 rounded">
-              <Video className="w-4 h-4 text-blue-600" />
+          {totalVideos > 0 && (
+            <div className="flex items-center gap-2 text-sm">
+              <div className="p-1.5 bg-blue-100 rounded">
+                <Video className="w-4 h-4 text-blue-600" />
+              </div>
+              <div>
+                <p className="font-medium text-blue-900">{videosWatched}/{totalVideos}</p>
+                <p className="text-xs text-gray-600">Vídeos</p>
+              </div>
             </div>
-            <div>
-              <p className="font-medium text-blue-900">{videosWatched}/{totalVideos}</p>
-              <p className="text-xs text-gray-600">Vídeos</p>
+          )}
+
+          {totalDocuments > 0 && (
+            <div className="flex items-center gap-2 text-sm">
+              <div className="p-1.5 bg-indigo-100 rounded">
+                <FileQuestion className="w-4 h-4 text-indigo-600" />
+              </div>
+              <div>
+                <p className="font-medium text-indigo-900">{documentsRead}/{totalDocuments}</p>
+                <p className="text-xs text-gray-600">Documentos</p>
+              </div>
             </div>
-          </div>
+          )}
 
           {totalQuizzes > 0 && (
             <div className="flex items-center gap-2 text-sm">
