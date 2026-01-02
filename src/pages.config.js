@@ -1,7 +1,6 @@
 import Acervo from './pages/Acervo';
 import Admin from './pages/Admin';
 import CargaDiaria from './pages/CargaDiaria';
-import Chat from './pages/Chat';
 import Cursos from './pages/Cursos';
 import Dashboard from './pages/Dashboard';
 import GestaoTarefas from './pages/GestaoTarefas';
@@ -18,7 +17,6 @@ export const PAGES = {
     "Acervo": Acervo,
     "Admin": Admin,
     "CargaDiaria": CargaDiaria,
-    "Chat": Chat,
     "Cursos": Cursos,
     "Dashboard": Dashboard,
     "GestaoTarefas": GestaoTarefas,
