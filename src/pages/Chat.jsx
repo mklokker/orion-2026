@@ -10,8 +10,9 @@ import NewChatModal from "@/components/chat/NewChatModal";
 import GroupSettingsModal from "@/components/chat/GroupSettingsModal";
 import ImageViewer from "@/components/chat/ImageViewer";
 import PresenceSettings from "@/components/chat/PresenceSettings";
+import AudioPermissionBanner from "@/components/chat/AudioPermissionBanner";
 import { useToast } from "@/components/ui/use-toast";
-import { playNotificationSound } from "@/components/chat/NotificationSounds";
+import { playNotificationSound, unlockAudio, isAudioUnlocked } from "@/components/chat/NotificationSounds";
 
 export default function Chat() {
   const { toast } = useToast();
@@ -653,6 +654,9 @@ export default function Chat() {
           updateMyPresence();
         }}
       />
+
+      {/* Banner para solicitar permissão de áudio */}
+      <AudioPermissionBanner />
     </div>
   );
 }

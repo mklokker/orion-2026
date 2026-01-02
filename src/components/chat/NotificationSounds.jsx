@@ -1,30 +1,8 @@
-// Sound URLs - usando sons base64 inline para garantir funcionamento
-// Sons curtos e leves codificados em base64
+// Sistema de sons de notificação usando Web Audio API
+// Requer interação do usuário para funcionar em alguns navegadores
 
-const createBeepSound = (frequency = 800, duration = 150, volume = 0.3) => {
-  try {
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-    
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-    
-    oscillator.frequency.value = frequency;
-    oscillator.type = 'sine';
-    
-    gainNode.gain.setValueAtTime(volume, audioContext.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration / 1000);
-    
-    oscillator.start(audioContext.currentTime);
-    oscillator.stop(audioContext.currentTime + duration / 1000);
-    
-    return true;
-  } catch (e) {
-    console.error("Erro ao criar som:", e);
-    return false;
-  }
-};
+let audioContext = null;
+let audioUnlocked = false;
 
 const SOUND_CONFIGS = {
   default: { frequency: 800, duration: 150, type: 'double' },
@@ -35,6 +13,62 @@ const SOUND_CONFIGS = {
   none: null
 };
 
+// Inicializa o contexto de áudio (deve ser chamado após interação do usuário)
+export const initAudioContext = () => {
+  if (audioContext) return audioContext;
+  
+  try {
+    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    
+    // Resume se estiver suspenso
+    if (audioContext.state === 'suspended') {
+      audioContext.resume();
+    }
+    
+    audioUnlocked = true;
+    localStorage.setItem('audioUnlocked', 'true');
+    return audioContext;
+  } catch (e) {
+    console.error("Erro ao criar AudioContext:", e);
+    return null;
+  }
+};
+
+// Desbloqueia o áudio com interação do usuário
+export const unlockAudio = async () => {
+  if (audioUnlocked && audioContext?.state === 'running') return true;
+  
+  try {
+    const ctx = initAudioContext();
+    if (!ctx) return false;
+    
+    if (ctx.state === 'suspended') {
+      await ctx.resume();
+    }
+    
+    // Toca um som silencioso para desbloquear
+    const oscillator = ctx.createOscillator();
+    const gainNode = ctx.createGain();
+    oscillator.connect(gainNode);
+    gainNode.connect(ctx.destination);
+    gainNode.gain.value = 0; // Silencioso
+    oscillator.start();
+    oscillator.stop(ctx.currentTime + 0.001);
+    
+    audioUnlocked = true;
+    localStorage.setItem('audioUnlocked', 'true');
+    return true;
+  } catch (e) {
+    console.error("Erro ao desbloquear áudio:", e);
+    return false;
+  }
+};
+
+// Verifica se o áudio está desbloqueado
+export const isAudioUnlocked = () => {
+  return audioUnlocked || localStorage.getItem('audioUnlocked') === 'true';
+};
+
 export const playNotificationSound = (soundType = "default") => {
   if (soundType === "none" || !SOUND_CONFIGS[soundType]) return;
   
@@ -42,7 +76,15 @@ export const playNotificationSound = (soundType = "default") => {
   if (!config) return;
 
   try {
-    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    // Inicializa contexto se não existir
+    if (!audioContext) {
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    
+    // Resume se suspenso
+    if (audioContext.state === 'suspended') {
+      audioContext.resume();
+    }
     
     const playTone = (freq, startTime, dur) => {
       const oscillator = audioContext.createOscillator();
