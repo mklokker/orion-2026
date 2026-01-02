@@ -10,6 +10,7 @@ import ProdutividadeGeral from './pages/ProdutividadeGeral';
 import Ranking from './pages/Ranking';
 import Relatorios from './pages/Relatorios';
 import Removedor from './pages/Removedor';
+import Chat from './pages/Chat';
 import __Layout from './Layout.jsx';
 
 
@@ -26,6 +27,7 @@ export const PAGES = {
     "Ranking": Ranking,
     "Relatorios": Relatorios,
     "Removedor": Removedor,
+    "Chat": Chat,
 }
 
 export const pagesConfig = {
