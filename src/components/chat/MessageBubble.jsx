@@ -229,7 +229,7 @@ export default function MessageBubble({
           {/* Time and read status */}
           <div className={`flex items-center justify-end gap-1 mt-1 ${isOwn ? "text-green-100" : "text-gray-400"}`}>
             {message.is_edited && <span className="text-xs">editada</span>}
-            <span className="text-xs">{formatTime(message.created_date)}</span>
+            <span className="text-xs">{formatSaoPauloTime(message.created_date)}</span>
             {isOwn && (
               readStatus === "read" ? (
                 <CheckCheck className="w-4 h-4 text-blue-300" />
