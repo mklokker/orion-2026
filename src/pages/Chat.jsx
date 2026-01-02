@@ -66,25 +66,34 @@ export default function Chat() {
     }
   };
 
-  const loadConversations = async (userEmail) => {
+  const loadConversations = async (userEmail, skipUnreadCount = false) => {
     try {
       const allConvs = await ChatConversation.list("-last_message_at");
       const myConvs = allConvs.filter(c => c.participants?.includes(userEmail));
       setConversations(myConvs);
       
-      // Calculate unread counts
-      const counts = {};
-      for (const conv of myConvs) {
-        const msgs = await ChatMessage.filter({ conversation_id: conv.id });
-        const unread = msgs.filter(m => 
-          m.sender_email !== userEmail && 
-          !m.read_by?.includes(userEmail)
-        ).length;
-        if (unread > 0) counts[conv.id] = unread;
+      // Calculate unread counts only on initial load to avoid rate limit
+      if (!skipUnreadCount) {
+        const counts = {};
+        for (const conv of myConvs.slice(0, 10)) { // Limit to 10 to avoid rate limit
+          try {
+            const msgs = await ChatMessage.filter({ conversation_id: conv.id });
+            const unread = msgs.filter(m => 
+              m.sender_email !== userEmail && 
+              !m.read_by?.includes(userEmail)
+            ).length;
+            if (unread > 0) counts[conv.id] = unread;
+          } catch (e) {
+            // Skip on rate limit
+            if (e?.response?.status === 429) break;
+          }
+        }
+        setUnreadCounts(counts);
       }
-      setUnreadCounts(counts);
     } catch (error) {
-      console.error("Erro ao carregar conversas:", error);
+      if (error?.response?.status !== 429) {
+        console.error("Erro ao carregar conversas:", error);
+      }
     }
   };
 
@@ -101,12 +110,25 @@ export default function Chat() {
     stopPolling();
     pollingRef.current = setInterval(async () => {
       if (currentUser) {
-        await loadConversations(currentUser.email);
-        if (selectedConversation) {
+        // Reload conversations list (skip unread count to avoid rate limit)
+        await loadConversations(currentUser.email, true);
+        
+        // Reload messages for selected conversation
+        if (selectedConversation?.id) {
           await loadMessages(selectedConversation.id);
+          
+          // Also reload the conversation object to get updated typing_users
+          try {
+            const updatedConvs = await ChatConversation.filter({ id: selectedConversation.id });
+            if (updatedConvs.length > 0) {
+              setSelectedConversation(updatedConvs[0]);
+            }
+          } catch (e) {
+            // Ignore rate limit errors
+          }
         }
       }
-    }, 3000);
+    }, 2500); // 2.5 seconds for balance between speed and rate limit
   };
 
   const stopPolling = () => {
