@@ -15,22 +15,23 @@ import { useToast } from "@/components/ui/use-toast";
 import { playNotificationSound, unlockAudio, isAudioUnlocked } from "@/components/chat/NotificationSounds";
 
 export default function Chat() {
-  const { toast } = useToast();
-  const [currentUser, setCurrentUser] = useState(null);
-  const [users, setUsers] = useState([]);
-  const [conversations, setConversations] = useState([]);
-  const [selectedConversation, setSelectedConversation] = useState(null);
-  const [messages, setMessages] = useState([]);
-  const [unreadCounts, setUnreadCounts] = useState({});
-  const [showNewChat, setShowNewChat] = useState(false);
-  const [isGroupMode, setIsGroupMode] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
-  const [viewingImage, setViewingImage] = useState(null);
-  const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768);
-  const [showConversation, setShowConversation] = useState(false);
-  const [presenceMap, setPresenceMap] = useState({});
-  const [myPresence, setMyPresence] = useState(null);
-  const [showPresenceSettings, setShowPresenceSettings] = useState(false);
+    const { toast } = useToast();
+    const [currentUser, setCurrentUser] = useState(null);
+    const [users, setUsers] = useState([]);
+    const [conversations, setConversations] = useState([]);
+    const [selectedConversation, setSelectedConversation] = useState(null);
+    const [messages, setMessages] = useState([]);
+    const [unreadCounts, setUnreadCounts] = useState({});
+    const [showNewChat, setShowNewChat] = useState(false);
+    const [isGroupMode, setIsGroupMode] = useState(false);
+    const [showSettings, setShowSettings] = useState(false);
+    const [viewingImage, setViewingImage] = useState(null);
+    const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768);
+    const [showConversation, setShowConversation] = useState(false);
+    const [presenceMap, setPresenceMap] = useState({});
+    const [myPresence, setMyPresence] = useState(null);
+    const [showPresenceSettings, setShowPresenceSettings] = useState(false);
+    const [isRefreshing, setIsRefreshing] = useState(false);
   
   const pollingRef = useRef(null);
   const typingTimeoutRef = useRef(null);
@@ -368,6 +369,23 @@ export default function Chat() {
     if (isMobileView) setShowConversation(true);
   };
 
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await loadConversations(currentUser.email, false);
+      if (selectedConversation?.id) {
+        await loadMessages(selectedConversation.id);
+      }
+      toast({
+        title: "Atualizado",
+        description: "Conversas e mensagens atualizadas"
+      });
+    } catch (error) {
+      console.error("Erro ao atualizar:", error);
+    }
+    setIsRefreshing(false);
+  };
+
   const handleSendMessage = async (msgData) => {
     if (!selectedConversation || !currentUser) return;
 
@@ -658,18 +676,20 @@ export default function Chat() {
       {/* Sidebar - Chat List */}
       <div className={`${isMobileView && showConversation ? "hidden" : "flex"} w-full md:w-[350px] lg:w-[400px] border-r flex-col`}>
         <ChatList
-          conversations={conversations}
-          users={users}
-          currentUser={currentUser}
-          selectedId={selectedConversation?.id}
-          onSelect={handleSelectConversation}
-          onNewChat={() => { setIsGroupMode(false); setShowNewChat(true); }}
-          onNewGroup={() => { setIsGroupMode(true); setShowNewChat(true); }}
-          unreadCounts={unreadCounts}
-          presenceMap={presenceMap}
-          onOpenPresenceSettings={() => setShowPresenceSettings(true)}
-          onPinConversation={handlePinConversation}
-          />
+            conversations={conversations}
+            users={users}
+            currentUser={currentUser}
+            selectedId={selectedConversation?.id}
+            onSelect={handleSelectConversation}
+            onNewChat={() => { setIsGroupMode(false); setShowNewChat(true); }}
+            onNewGroup={() => { setIsGroupMode(true); setShowNewChat(true); }}
+            unreadCounts={unreadCounts}
+            presenceMap={presenceMap}
+            onOpenPresenceSettings={() => setShowPresenceSettings(true)}
+            onPinConversation={handlePinConversation}
+            onRefresh={handleRefresh}
+            isRefreshing={isRefreshing}
+            />
       </div>
 
       {/* Main - Conversation View */}
