@@ -9,7 +9,8 @@ import {
   Phone,
   Video,
   Search,
-  FolderOpen
+  FolderOpen,
+  ArrowDown
 } from "lucide-react";
 import { format, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -57,6 +58,8 @@ export default function ConversationView({
   const [showFilesModal, setShowFilesModal] = useState(false);
   const messageRefs = useRef({});
   const bottomRef = useRef(null);
+  const [showScrollButton, setShowScrollButton] = useState(false);
+  const scrollAreaRef = useRef(null);
   
   // Mensagens fixadas
   const pinnedMessages = messages.filter(m => m.is_pinned).sort((a, b) => 
@@ -71,6 +74,18 @@ export default function ConversationView({
       element.classList.add("bg-amber-100/50");
       setTimeout(() => element.classList.remove("bg-amber-100/50"), 2000);
     }
+  };
+
+  // Scroll para o final
+  const scrollToBottom = () => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  // Detectar scroll para mostrar/esconder botão
+  const handleScroll = (e) => {
+    const target = e.target;
+    const isNearBottom = target.scrollHeight - target.scrollTop - target.clientHeight < 200;
+    setShowScrollButton(!isNearBottom);
   };
 
   // Auto scroll to bottom - usa um elemento âncora no final
@@ -214,7 +229,7 @@ export default function ConversationView({
       />
 
       {/* Messages */}
-      <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+      <ScrollArea className="flex-1 p-4 relative" ref={scrollRef} onScrollCapture={handleScroll}>
         {Object.entries(groupedMessages).map(([date, msgs]) => (
           <div key={date}>
             {/* Date separator */}
@@ -269,6 +284,18 @@ export default function ConversationView({
         {/* Âncora para scroll automático */}
         <div ref={bottomRef} />
       </ScrollArea>
+
+      {/* Botão scroll para baixo */}
+      {showScrollButton && (
+        <Button
+          onClick={scrollToBottom}
+          className="absolute bottom-24 right-6 z-50 rounded-full w-10 h-10 bg-white shadow-lg hover:bg-gray-100 border"
+          size="icon"
+          variant="ghost"
+        >
+          <ArrowDown className="w-5 h-5 text-gray-600" />
+        </Button>
+      )}
 
       {/* Input */}
       <ChatInput
