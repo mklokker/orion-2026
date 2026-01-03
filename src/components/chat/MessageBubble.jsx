@@ -23,7 +23,18 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import LinkPreview from "./LinkPreview";
+
+// Lista de emojis para reações rápidas
+const REACTION_EMOJIS = [
+  "👍", "👎", "❤️", "😂", "😮", "😢", "😡", "🎉", "🔥", "👏", 
+  "💯", "🙏", "🤔", "👀", "✅", "❌", "⭐", "💪", "🤝", "😍"
+];
 
 const getInitials = (name) => {
   if (!name) return "?";
@@ -267,12 +278,32 @@ export default function MessageBubble({
         {showActions && (
           <div className={`absolute top-0 ${isOwn ? "left-0 -translate-x-full pr-1" : "right-0 translate-x-full pl-1"}`}>
             <div className="flex items-center gap-0.5 bg-white rounded-lg shadow-md p-0.5">
-              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onReaction?.(message.id, "👍")}>
-                <Smile className="w-4 h-4" />
-              </Button>
+              {/* Emoji Picker para Reações */}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-7 w-7">
+                    <Smile className="w-4 h-4" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-2" side="top">
+                  <div className="grid grid-cols-5 gap-1">
+                    {REACTION_EMOJIS.map((emoji, i) => (
+                      <button
+                        key={i}
+                        onClick={() => onReaction?.(message.id, emoji)}
+                        className="text-xl hover:bg-gray-100 rounded p-1 w-8 h-8 flex items-center justify-center transition-transform hover:scale-110"
+                      >
+                        {emoji}
+                      </button>
+                    ))}
+                  </div>
+                </PopoverContent>
+              </Popover>
+              
               <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onReply?.(message)}>
                 <Reply className="w-4 h-4" />
               </Button>
+              
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="h-7 w-7">
@@ -283,6 +314,9 @@ export default function MessageBubble({
                   <DropdownMenuItem onClick={() => onPin?.(message)}>
                     <Pin className="w-4 h-4 mr-2" /> 
                     {message.is_pinned ? "Desafixar" : "Fixar mensagem"}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onReply?.(message)}>
+                    <Reply className="w-4 h-4 mr-2" /> Responder
                   </DropdownMenuItem>
                   {isOwn && (
                     <DropdownMenuItem onClick={() => onEdit?.(message)}>
