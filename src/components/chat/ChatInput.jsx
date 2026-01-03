@@ -1,13 +1,15 @@
 import React, { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Progress } from "@/components/ui/progress";
 import { 
   Send, 
   Paperclip, 
   X, 
   Image as ImageIcon,
   FileText,
-  Smile
+  Smile,
+  AlertCircle
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import {
@@ -15,8 +17,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { useToast } from "@/components/ui/use-toast";
 
 const EMOJI_LIST = ["👍", "❤️", "😂", "😮", "😢", "🙏", "🔥", "🎉", "👏", "💯"];
+const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB
+const MAX_FILE_SIZE_LABEL = "25MB";
 
 export default function ChatInput({
   onSend,
@@ -25,22 +30,54 @@ export default function ChatInput({
   onCancelReply,
   disabled
 }) {
+  const { toast } = useToast();
   const [message, setMessage] = useState("");
   const [files, setFiles] = useState([]);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [currentUploadFile, setCurrentUploadFile] = useState("");
   const fileInputRef = useRef(null);
   const textareaRef = useRef(null);
+
+  const validateFileSize = (file) => {
+    if (file.size > MAX_FILE_SIZE) {
+      toast({
+        title: "Arquivo muito grande",
+        description: `O arquivo "${file.name}" excede o limite de ${MAX_FILE_SIZE_LABEL}. Tamanho: ${(file.size / 1024 / 1024).toFixed(1)}MB`,
+        variant: "destructive"
+      });
+      return false;
+    }
+    return true;
+  };
 
   const handleSend = async () => {
     if ((!message.trim() && files.length === 0) || uploading) return;
 
     setUploading(true);
+    setUploadProgress(0);
     
     try {
-      // Upload files first
+      // Upload files first with progress tracking
       const uploadedFiles = [];
-      for (const file of files) {
+      const totalFiles = files.length;
+      
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        setCurrentUploadFile(file.file.name);
+        
+        // Simulate progress for each file (since we can't get real progress from the API)
+        const baseProgress = (i / totalFiles) * 100;
+        const fileProgress = 100 / totalFiles;
+        
+        // Start progress animation
+        setUploadProgress(baseProgress + fileProgress * 0.1);
+        
         const { file_url } = await base44.integrations.Core.UploadFile({ file: file.file });
+        
+        // Complete this file's progress
+        setUploadProgress(baseProgress + fileProgress);
+        
         uploadedFiles.push({
           url: file_url,
           name: file.file.name,
@@ -49,6 +86,8 @@ export default function ChatInput({
           isImage: file.file.type.startsWith("image/")
         });
       }
+
+      setUploadProgress(100);
 
       // Send message(s)
       if (uploadedFiles.length > 0) {
@@ -71,9 +110,16 @@ export default function ChatInput({
       onCancelReply?.();
     } catch (error) {
       console.error("Erro ao enviar:", error);
+      toast({
+        title: "Erro ao enviar arquivo",
+        description: "Ocorreu um erro ao fazer upload. Tente novamente.",
+        variant: "destructive"
+      });
     }
     
     setUploading(false);
+    setUploadProgress(0);
+    setCurrentUploadFile("");
   };
 
   const handleKeyDown = (e) => {
@@ -85,7 +131,8 @@ export default function ChatInput({
 
   const handleFileSelect = (e) => {
     const selectedFiles = Array.from(e.target.files || []);
-    const newFiles = selectedFiles.map(file => ({
+    const validFiles = selectedFiles.filter(validateFileSize);
+    const newFiles = validFiles.map(file => ({
       file,
       preview: file.type.startsWith("image/") ? URL.createObjectURL(file) : null
     }));
@@ -121,7 +168,7 @@ export default function ChatInput({
     for (const item of items) {
       if (item.kind === "file") {
         const file = item.getAsFile();
-        if (file) {
+        if (file && validateFileSize(file)) {
           pastedFiles.push({
             file,
             preview: file.type.startsWith("image/") ? URL.createObjectURL(file) : null
@@ -157,7 +204,8 @@ export default function ChatInput({
     setIsDragging(false);
 
     const droppedFiles = Array.from(e.dataTransfer?.files || []);
-    const newFiles = droppedFiles.map(file => ({
+    const validFiles = droppedFiles.filter(validateFileSize);
+    const newFiles = validFiles.map(file => ({
       file,
       preview: file.type.startsWith("image/") ? URL.createObjectURL(file) : null
     }));
@@ -174,6 +222,22 @@ export default function ChatInput({
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
+      {/* Upload progress */}
+      {uploading && files.length > 0 && (
+        <div className="mb-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium text-blue-700">
+              Enviando arquivo...
+            </span>
+            <span className="text-xs text-blue-600">{Math.round(uploadProgress)}%</span>
+          </div>
+          <Progress value={uploadProgress} className="h-2" />
+          {currentUploadFile && (
+            <p className="text-xs text-blue-600 mt-1 truncate">{currentUploadFile}</p>
+          )}
+        </div>
+      )}
+
       {/* Reply preview */}
       {replyingTo && (
         <div className="flex items-center gap-2 mb-2 p-2 bg-gray-100 rounded-lg">
