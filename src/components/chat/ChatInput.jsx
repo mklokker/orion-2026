@@ -112,8 +112,68 @@ export default function ChatInput({
     textareaRef.current?.focus();
   };
 
+  // Handle paste (Ctrl+V) for files/images
+  const handlePaste = (e) => {
+    const items = e.clipboardData?.items;
+    if (!items) return;
+
+    const pastedFiles = [];
+    for (const item of items) {
+      if (item.kind === "file") {
+        const file = item.getAsFile();
+        if (file) {
+          pastedFiles.push({
+            file,
+            preview: file.type.startsWith("image/") ? URL.createObjectURL(file) : null
+          });
+        }
+      }
+    }
+
+    if (pastedFiles.length > 0) {
+      e.preventDefault();
+      setFiles(prev => [...prev, ...pastedFiles]);
+    }
+  };
+
+  // Handle drag and drop
+  const [isDragging, setIsDragging] = useState(false);
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const droppedFiles = Array.from(e.dataTransfer?.files || []);
+    const newFiles = droppedFiles.map(file => ({
+      file,
+      preview: file.type.startsWith("image/") ? URL.createObjectURL(file) : null
+    }));
+
+    if (newFiles.length > 0) {
+      setFiles(prev => [...prev, ...newFiles]);
+    }
+  };
+
   return (
-    <div className="border-t bg-white p-3">
+    <div 
+      className={`border-t bg-white p-3 transition-colors ${isDragging ? "bg-blue-50 border-blue-300 border-2 border-dashed" : ""}`}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
       {/* Reply preview */}
       {replyingTo && (
         <div className="flex items-center gap-2 mb-2 p-2 bg-gray-100 rounded-lg">
