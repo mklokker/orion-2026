@@ -5,9 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
-import { Search, Users, X, Globe } from "lucide-react";
+import { Search, Users, X, UserPlus } from "lucide-react";
 
 const getInitials = (name) => {
   if (!name) return "?";
@@ -30,12 +28,12 @@ export default function NewChatModal({
   const [search, setSearch] = useState("");
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [groupName, setGroupName] = useState("");
-  const [isPublic, setIsPublic] = useState(false);
 
-  const filteredUsers = users.filter(u => 
-    u.email !== currentUser?.email &&
-    (u.full_name?.toLowerCase().includes(search.toLowerCase()) ||
-     u.email?.toLowerCase().includes(search.toLowerCase()))
+  const availableUsers = users.filter(u => u.email !== currentUser?.email);
+  
+  const filteredUsers = availableUsers.filter(u => 
+    u.full_name?.toLowerCase().includes(search.toLowerCase()) ||
+    u.email?.toLowerCase().includes(search.toLowerCase())
   );
 
   const toggleUser = (user) => {
@@ -52,17 +50,23 @@ export default function NewChatModal({
   };
 
   const handleCreateGroup = () => {
-    // Grupo público não precisa de participantes selecionados
-    if (!isPublic && selectedUsers.length < 1) return;
-    onCreateGroup(groupName || "Novo Grupo", selectedUsers.map(u => u.email), isPublic);
+    if (selectedUsers.length < 1) return;
+    onCreateGroup(groupName || "Novo Grupo", selectedUsers.map(u => u.email));
     handleClose();
+  };
+
+  const handleSelectAll = () => {
+    setSelectedUsers(availableUsers);
+  };
+
+  const handleDeselectAll = () => {
+    setSelectedUsers([]);
   };
 
   const handleClose = () => {
     setSearch("");
     setSelectedUsers([]);
     setGroupName("");
-    setIsPublic(false);
     onClose();
   };
 
@@ -86,21 +90,29 @@ export default function NewChatModal({
             />
           )}
 
-          {/* Public group toggle */}
+          {/* Select all / Deselect all buttons */}
           {isGroupMode && (
-            <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
-              <div className="flex items-center gap-3">
-                <Globe className="w-5 h-5 text-blue-600" />
-                <div>
-                  <Label htmlFor="public-group" className="font-medium text-gray-900">Grupo Público</Label>
-                  <p className="text-xs text-gray-500">Todos os usuários poderão ver e participar</p>
-                </div>
-              </div>
-              <Switch
-                id="public-group"
-                checked={isPublic}
-                onCheckedChange={setIsPublic}
-              />
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleSelectAll}
+                className="flex-1"
+              >
+                <UserPlus className="w-4 h-4 mr-1" /> Selecionar Todos
+              </Button>
+              {selectedUsers.length > 0 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleDeselectAll}
+                  className="flex-1"
+                >
+                  <X className="w-4 h-4 mr-1" /> Limpar Seleção
+                </Button>
+              )}
             </div>
           )}
 
@@ -132,64 +144,51 @@ export default function NewChatModal({
             />
           </div>
 
-          {/* Users list - hidden for public groups */}
-          {(!isGroupMode || !isPublic) && (
-            <ScrollArea className="h-[300px]">
-              <div className="space-y-1">
-                {filteredUsers.map(user => {
-                  const isSelected = selectedUsers.find(u => u.email === user.email);
-                  return (
-                    <div
-                      key={user.email}
-                      onClick={() => toggleUser(user)}
-                      className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer hover:bg-gray-100 ${
-                        isSelected ? "bg-green-50" : ""
-                      }`}
-                    >
-                      {isGroupMode && (
-                        <Checkbox checked={!!isSelected} />
-                      )}
-                      <Avatar className="w-10 h-10">
-                        <AvatarImage src={user.profile_picture} />
-                        <AvatarFallback className="bg-blue-100 text-blue-700">
-                          {getInitials(user.full_name)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-gray-900 truncate">
-                          {user.display_name || user.full_name}
-                        </p>
-                        <p className="text-sm text-gray-500 truncate">{user.email}</p>
-                      </div>
+          {/* Users list */}
+          <ScrollArea className="h-[300px]">
+            <div className="space-y-1">
+              {filteredUsers.map(user => {
+                const isSelected = selectedUsers.find(u => u.email === user.email);
+                return (
+                  <div
+                    key={user.email}
+                    onClick={() => toggleUser(user)}
+                    className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer hover:bg-gray-100 ${
+                      isSelected ? "bg-green-50" : ""
+                    }`}
+                  >
+                    {isGroupMode && (
+                      <Checkbox checked={!!isSelected} />
+                    )}
+                    <Avatar className="w-10 h-10">
+                      <AvatarImage src={user.profile_picture} />
+                      <AvatarFallback className="bg-blue-100 text-blue-700">
+                        {getInitials(user.full_name)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-gray-900 truncate">
+                        {user.display_name || user.full_name}
+                      </p>
+                      <p className="text-sm text-gray-500 truncate">{user.email}</p>
                     </div>
-                  );
-                })}
-                {filteredUsers.length === 0 && (
-                  <p className="text-center text-gray-500 py-8">Nenhum usuário encontrado</p>
-                )}
-              </div>
-            </ScrollArea>
-          )}
-
-          {/* Public group info */}
-          {isGroupMode && isPublic && (
-            <div className="text-center py-8 text-gray-500">
-              <Globe className="w-12 h-12 mx-auto mb-3 text-blue-400" />
-              <p className="font-medium text-gray-700">Grupo Público</p>
-              <p className="text-sm">Todos os usuários atuais e futuros terão acesso a este grupo automaticamente.</p>
+                  </div>
+                );
+              })}
+              {filteredUsers.length === 0 && (
+                <p className="text-center text-gray-500 py-8">Nenhum usuário encontrado</p>
+              )}
             </div>
-          )}
+          </ScrollArea>
 
           {/* Create group button */}
           {isGroupMode && (
             <Button
               onClick={handleCreateGroup}
-              disabled={!isPublic && selectedUsers.length < 1}
+              disabled={selectedUsers.length < 1}
               className="w-full bg-green-500 hover:bg-green-600"
             >
-              {isPublic 
-                ? "Criar Grupo Público" 
-                : `Criar Grupo (${selectedUsers.length} participantes)`}
+              Criar Grupo ({selectedUsers.length} participantes)
             </Button>
           )}
         </div>

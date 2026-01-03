@@ -6,6 +6,7 @@ import { User } from "@/entities/User";
 import { getPublicUsers } from "@/functions/getPublicUsers";
 import { getChatConversations } from "@/functions/getChatConversations";
 import { getChatMessages } from "@/functions/getChatMessages";
+import { deleteGroup } from "@/functions/deleteGroup";
 import ChatList from "@/components/chat/ChatList";
 import ConversationView from "@/components/chat/ConversationView";
 import NewChatModal from "@/components/chat/NewChatModal";
@@ -487,26 +488,21 @@ export default function Chat() {
     }
   };
 
-  const handleCreateGroup = async (name, participantEmails, isPublic = false) => {
+  const handleCreateGroup = async (name, participantEmails) => {
     try {
       const newConv = await ChatConversation.create({
         type: "group",
         name,
-        is_public: isPublic,
-        participants: isPublic ? [currentUser.email] : [currentUser.email, ...participantEmails],
+        participants: [currentUser.email, ...participantEmails],
         admins: [currentUser.email]
       });
 
       // System message
-      const systemMessage = isPublic 
-        ? `${currentUser.full_name} criou o grupo público "${name}"`
-        : `${currentUser.full_name} criou o grupo "${name}"`;
-
       await ChatMessage.create({
         conversation_id: newConv.id,
         sender_email: currentUser.email,
         sender_name: currentUser.full_name,
-        content: systemMessage,
+        content: `${currentUser.full_name} criou o grupo "${name}"`,
         type: "system"
       });
 
@@ -554,19 +550,23 @@ export default function Chat() {
   const handleDeleteGroup = async () => {
     if (!selectedConversation) return;
     try {
-      // Delete all messages
-      const msgs = await ChatMessage.filter({ conversation_id: selectedConversation.id });
-      for (const msg of msgs) {
-        await ChatMessage.delete(msg.id);
-      }
-      // Delete conversation
-      await ChatConversation.delete(selectedConversation.id);
-      
+      // Use backend function to delete (works for all users who are admins)
+      await deleteGroup({ conversation_id: selectedConversation.id });
+
       setSelectedConversation(null);
       setShowSettings(false);
       await loadConversations(currentUser.email);
+      toast({
+        title: "Grupo excluído",
+        description: "O grupo foi excluído com sucesso"
+      });
     } catch (error) {
       console.error("Erro ao excluir:", error);
+      toast({
+        title: "Erro ao excluir grupo",
+        description: "Não foi possível excluir o grupo",
+        variant: "destructive"
+      });
     }
   };
 
