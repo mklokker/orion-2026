@@ -4,6 +4,8 @@ import { ChatMessage } from "@/entities/ChatMessage";
 import { UserPresence } from "@/entities/UserPresence";
 import { User } from "@/entities/User";
 import { getPublicUsers } from "@/functions/getPublicUsers";
+import { getChatConversations } from "@/functions/getChatConversations";
+import { getChatMessages } from "@/functions/getChatMessages";
 import ChatList from "@/components/chat/ChatList";
 import ConversationView from "@/components/chat/ConversationView";
 import NewChatModal from "@/components/chat/NewChatModal";
@@ -171,12 +173,9 @@ export default function Chat() {
 
   const loadConversations = async (userEmail, skipUnreadCount = false) => {
     try {
-      const allConvs = await ChatConversation.list("-last_message_at");
-      // Include conversations where user is participant OR group is public
-      const myConvs = allConvs.filter(c => 
-        c.participants?.includes(userEmail) || 
-        (c.type === "group" && c.is_public)
-      );
+      // Use backend function to get conversations (works for all users)
+      const response = await getChatConversations();
+      const myConvs = response?.data?.conversations || [];
       setConversations(myConvs);
       
       // Calculate unread counts only on initial load to avoid rate limit
@@ -206,7 +205,9 @@ export default function Chat() {
 
   const loadMessages = async (conversationId) => {
     try {
-      const msgs = await ChatMessage.filter({ conversation_id: conversationId }, "created_date");
+      // Use backend function to get messages (works for all users)
+      const response = await getChatMessages({ conversation_id: conversationId });
+      const msgs = response?.data?.messages || [];
       setMessages(msgs);
     } catch (error) {
       console.error("Erro ao carregar mensagens:", error);
