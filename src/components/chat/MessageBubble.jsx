@@ -199,10 +199,10 @@ export default function MessageBubble({
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => setShowActions(false)}
     >
-      {/* Avatar for others (always show in direct and group chats) */}
+      {/* Avatar for others - em grupos sempre mostra, em 1:1 só quando muda o remetente */}
       {!isOwn && (
         <div className="w-12 mr-3 flex-shrink-0">
-          {showAvatar && (
+          {(isGroupChat || showAvatar) && (
             <Avatar className="w-12 h-12 border-2 border-white shadow-md">
               <AvatarImage src={senderAvatar} />
               <AvatarFallback className="text-base font-semibold bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
@@ -214,8 +214,8 @@ export default function MessageBubble({
       )}
 
       <div className={`relative max-w-[70%] ${isOwn ? "order-1" : ""}`}>
-        {/* Sender name with badge style (always show for others) */}
-        {!isOwn && showAvatar && (
+        {/* Sender name with badge style - em grupos sempre mostra, em 1:1 só quando muda */}
+        {!isOwn && (isGroupChat || showAvatar) && (
           <div className="mb-1">
             <span className="inline-block text-base font-bold text-white bg-gradient-to-r from-blue-500 to-indigo-600 px-3 py-1 rounded-full shadow-sm">
               {message.sender_name}
