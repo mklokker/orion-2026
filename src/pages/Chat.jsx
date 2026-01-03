@@ -171,7 +171,11 @@ export default function Chat() {
   const loadConversations = async (userEmail, skipUnreadCount = false) => {
     try {
       const allConvs = await ChatConversation.list("-last_message_at");
-      const myConvs = allConvs.filter(c => c.participants?.includes(userEmail));
+      // Include conversations where user is participant OR group is public
+      const myConvs = allConvs.filter(c => 
+        c.participants?.includes(userEmail) || 
+        (c.type === "group" && c.is_public)
+      );
       setConversations(myConvs);
       
       // Calculate unread counts only on initial load to avoid rate limit
@@ -464,21 +468,26 @@ export default function Chat() {
     }
   };
 
-  const handleCreateGroup = async (name, participantEmails) => {
+  const handleCreateGroup = async (name, participantEmails, isPublic = false) => {
     try {
       const newConv = await ChatConversation.create({
         type: "group",
         name,
-        participants: [currentUser.email, ...participantEmails],
+        is_public: isPublic,
+        participants: isPublic ? [currentUser.email] : [currentUser.email, ...participantEmails],
         admins: [currentUser.email]
       });
 
       // System message
+      const systemMessage = isPublic 
+        ? `${currentUser.full_name} criou o grupo público "${name}"`
+        : `${currentUser.full_name} criou o grupo "${name}"`;
+
       await ChatMessage.create({
         conversation_id: newConv.id,
         sender_email: currentUser.email,
         sender_name: currentUser.full_name,
-        content: `${currentUser.full_name} criou o grupo "${name}"`,
+        content: systemMessage,
         type: "system"
       });
 

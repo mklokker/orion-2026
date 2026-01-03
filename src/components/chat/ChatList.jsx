@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Search, Plus, Users, Check, CheckCheck, Settings, Pin, PinOff } from "lucide-react";
+import { Search, Plus, Users, Check, CheckCheck, Settings, Pin, PinOff, Globe } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { format, isToday, isYesterday } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -176,9 +176,10 @@ export default function ChatList({
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1 min-w-0">
-                        {isPinned && <Pin className="w-3 h-3 text-amber-500 shrink-0" />}
-                        <span className="font-semibold text-gray-900 truncate">{display.name}</span>
-                      </div>
+                              {isPinned && <Pin className="w-3 h-3 text-amber-500 shrink-0" />}
+                              {conv.is_public && <Globe className="w-3 h-3 text-blue-500 shrink-0" />}
+                              <span className="font-semibold text-gray-900 truncate">{display.name}</span>
+                            </div>
                       <div className="flex items-center gap-1 shrink-0">
                         <span className="text-xs text-gray-500">
                           {formatMessageTime(conv.last_message_at)}
