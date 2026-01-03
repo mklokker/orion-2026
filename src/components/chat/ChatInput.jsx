@@ -260,10 +260,11 @@ export default function ChatInput({
         {/* Text input */}
         <Textarea
           ref={textareaRef}
-          placeholder="Digite uma mensagem..."
+          placeholder={isDragging ? "Solte o arquivo aqui..." : "Digite uma mensagem..."}
           value={message}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
+          onPaste={handlePaste}
           disabled={disabled || uploading}
           className="min-h-[44px] max-h-32 resize-none flex-1"
           rows={1}
