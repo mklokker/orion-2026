@@ -74,6 +74,11 @@ export default function MessageBubble({
   onPin
 }) {
   const [showActions, setShowActions] = React.useState(false);
+  const [menuOpen, setMenuOpen] = React.useState(false);
+  const [emojiOpen, setEmojiOpen] = React.useState(false);
+  
+  // Mantém ações visíveis enquanto menu ou emoji estiver aberto
+  const keepActionsVisible = menuOpen || emojiOpen;
   
   if (message.is_deleted) {
     return (
@@ -208,7 +213,7 @@ export default function MessageBubble({
     <div 
       className={`flex ${isOwn ? "justify-end" : "justify-start"} mb-3 group`}
       onMouseEnter={() => setShowActions(true)}
-      onMouseLeave={() => setShowActions(false)}
+      onMouseLeave={() => !keepActionsVisible && setShowActions(false)}
     >
       {/* Avatar for others - em grupos sempre mostra, em 1:1 só quando muda o remetente */}
       {!isOwn && (
@@ -275,22 +280,25 @@ export default function MessageBubble({
         )}
 
         {/* Actions */}
-        {showActions && (
-          <div className={`absolute top-0 ${isOwn ? "left-0 -translate-x-full pr-1" : "right-0 translate-x-full pl-1"}`}>
+        {(showActions || keepActionsVisible) && (
+          <div className={`absolute top-0 z-50 ${isOwn ? "left-0 -translate-x-full pr-1" : "right-0 translate-x-full pl-1"}`}>
             <div className="flex items-center gap-0.5 bg-white rounded-lg shadow-md p-0.5">
               {/* Emoji Picker para Reações */}
-              <Popover>
+              <Popover open={emojiOpen} onOpenChange={setEmojiOpen}>
                 <PopoverTrigger asChild>
                   <Button variant="ghost" size="icon" className="h-7 w-7">
                     <Smile className="w-4 h-4" />
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-2" side="top">
+                <PopoverContent className="w-auto p-2 z-50" side="top">
                   <div className="grid grid-cols-5 gap-1">
                     {REACTION_EMOJIS.map((emoji, i) => (
                       <button
                         key={i}
-                        onClick={() => onReaction?.(message.id, emoji)}
+                        onClick={() => {
+                          onReaction?.(message.id, emoji);
+                          setEmojiOpen(false);
+                        }}
                         className="text-xl hover:bg-gray-100 rounded p-1 w-8 h-8 flex items-center justify-center transition-transform hover:scale-110"
                       >
                         {emoji}
@@ -304,27 +312,27 @@ export default function MessageBubble({
                 <Reply className="w-4 h-4" />
               </Button>
               
-              <DropdownMenu>
+              <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="icon" className="h-7 w-7">
                     <MoreVertical className="w-4 h-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem onClick={() => onPin?.(message)}>
+                <DropdownMenuContent className="z-50">
+                  <DropdownMenuItem onClick={() => { onPin?.(message); setMenuOpen(false); }}>
                     <Pin className="w-4 h-4 mr-2" /> 
                     {message.is_pinned ? "Desafixar" : "Fixar mensagem"}
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onReply?.(message)}>
+                  <DropdownMenuItem onClick={() => { onReply?.(message); setMenuOpen(false); }}>
                     <Reply className="w-4 h-4 mr-2" /> Responder
                   </DropdownMenuItem>
                   {isOwn && (
-                    <DropdownMenuItem onClick={() => onEdit?.(message)}>
+                    <DropdownMenuItem onClick={() => { onEdit?.(message); setMenuOpen(false); }}>
                       <Pencil className="w-4 h-4 mr-2" /> Editar
                     </DropdownMenuItem>
                   )}
                   {isOwn && (
-                    <DropdownMenuItem onClick={() => onDelete?.(message)} className="text-red-600">
+                    <DropdownMenuItem onClick={() => { onDelete?.(message); setMenuOpen(false); }} className="text-red-600">
                       <Trash2 className="w-4 h-4 mr-2" /> Excluir
                     </DropdownMenuItem>
                   )}
