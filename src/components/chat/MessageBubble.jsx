@@ -71,7 +71,8 @@ export default function MessageBubble({
   onDelete,
   onReaction,
   onImageClick,
-  onPin
+  onPin,
+  onScrollToMessage
 }) {
   const [showActions, setShowActions] = React.useState(false);
   const [menuOpen, setMenuOpen] = React.useState(false);
@@ -126,9 +127,12 @@ export default function MessageBubble({
   const urls = message.type === "text" ? extractUrls(message.content) : [];
 
   const renderContent = () => {
-    // Reply preview
+    // Reply preview - clicável para scroll até a mensagem original
     const replyPreview = message.reply_to_id && (
-      <div className={`mb-1 p-2 rounded text-xs border-l-2 ${isOwn ? "bg-green-600/20 border-green-300" : "bg-gray-200 border-gray-400"}`}>
+      <div 
+        className={`mb-1 p-2 rounded text-xs border-l-2 cursor-pointer hover:opacity-80 transition-opacity ${isOwn ? "bg-green-600/20 border-green-300" : "bg-gray-200 border-gray-400"}`}
+        onClick={() => onScrollToMessage?.(message.reply_to_id)}
+      >
         <span className="font-semibold">{message.reply_to_sender}</span>
         <p className="truncate opacity-80">{message.reply_to_content}</p>
       </div>

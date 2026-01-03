@@ -253,6 +253,7 @@ export default function ConversationView({
                     onReaction={onReaction}
                     onImageClick={onImageClick}
                     onPin={onPinMessage}
+                    onScrollToMessage={scrollToMessage}
                   />
                 </div>
               );
