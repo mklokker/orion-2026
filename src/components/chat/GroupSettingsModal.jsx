@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Users, 
   Pencil, 
@@ -12,7 +14,9 @@ import {
   LogOut, 
   Trash2,
   Crown,
-  Camera
+  Camera,
+  Search,
+  X
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import {
@@ -48,10 +52,12 @@ export default function GroupSettingsModal({
 }) {
   const [isEditing, setIsEditing] = useState(false);
   const [groupName, setGroupName] = useState(conversation?.name || "");
-  const [showAddMembers, setShowAddMembers] = useState(false);
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [activeTab, setActiveTab] = useState("members");
+  const [searchAdd, setSearchAdd] = useState("");
+  const [selectedToAdd, setSelectedToAdd] = useState([]);
 
   if (!conversation) return null;
 
@@ -83,11 +89,33 @@ export default function GroupSettingsModal({
     await onUpdate({ participants: newParticipants });
   };
 
-  const handleAddMembers = async (emails) => {
-    const newParticipants = [...new Set([...participants, ...emails])];
+  const handleAddMembers = async () => {
+    if (selectedToAdd.length === 0) return;
+    const newParticipants = [...new Set([...participants, ...selectedToAdd.map(u => u.email)])];
     await onUpdate({ participants: newParticipants });
-    setShowAddMembers(false);
+    setSelectedToAdd([]);
+    setSearchAdd("");
+    setActiveTab("members");
   };
+
+  const toggleUserToAdd = (user) => {
+    setSelectedToAdd(prev => 
+      prev.find(u => u.email === user.email)
+        ? prev.filter(u => u.email !== user.email)
+        : [...prev, user]
+    );
+  };
+
+  // Users not in the group yet
+  const usersNotInGroup = allUsers?.filter(u => 
+    !participants.includes(u.email) && 
+    u.email !== currentUser?.email
+  ) || [];
+
+  const filteredUsersToAdd = usersNotInGroup.filter(u =>
+    u.full_name?.toLowerCase().includes(searchAdd.toLowerCase()) ||
+    u.email?.toLowerCase().includes(searchAdd.toLowerCase())
+  );
 
   // For direct chats
   const otherUser = !isGroup 
@@ -154,60 +182,138 @@ export default function GroupSettingsModal({
               )}
             </div>
 
-            {/* Members list (groups only) */}
+            {/* Members management (groups only) */}
             {isGroup && (
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <h4 className="font-medium">Participantes</h4>
-                  {isAdmin && (
-                    <Button variant="ghost" size="sm" onClick={() => setShowAddMembers(true)}>
-                      <UserPlus className="w-4 h-4 mr-1" /> Adicionar
-                    </Button>
-                  )}
-                </div>
-                <ScrollArea className="h-[200px]">
-                  <div className="space-y-2">
-                    {participants.map(email => {
-                      const user = allUsers?.find(u => u.email === email);
-                      const isParticipantAdmin = conversation.admins?.includes(email);
-                      const isMe = email === currentUser?.email;
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="members">Participantes ({participants.length})</TabsTrigger>
+                  {isAdmin && <TabsTrigger value="add">Adicionar</TabsTrigger>}
+                </TabsList>
 
-                      return (
-                        <div key={email} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50">
-                          <Avatar className="w-10 h-10">
-                            <AvatarImage src={user?.profile_picture} />
-                            <AvatarFallback className="bg-blue-100 text-blue-700">
-                              {getInitials(user?.full_name || email)}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium truncate">
-                              {user?.display_name || user?.full_name || email}
-                              {isMe && " (você)"}
-                            </p>
-                            <p className="text-xs text-gray-500 truncate">{email}</p>
+                <TabsContent value="members" className="mt-4">
+                  <ScrollArea className="h-[200px]">
+                    <div className="space-y-2">
+                      {participants.map(email => {
+                        const user = allUsers?.find(u => u.email === email);
+                        const isParticipantAdmin = conversation.admins?.includes(email);
+                        const isMe = email === currentUser?.email;
+
+                        return (
+                          <div key={email} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50">
+                            <Avatar className="w-10 h-10">
+                              <AvatarImage src={user?.profile_picture} />
+                              <AvatarFallback className="bg-blue-100 text-blue-700">
+                                {getInitials(user?.full_name || email)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium truncate">
+                                {user?.display_name || user?.full_name || email}
+                                {isMe && " (você)"}
+                              </p>
+                              <p className="text-xs text-gray-500 truncate">{email}</p>
+                            </div>
+                            {isParticipantAdmin && (
+                              <Badge variant="secondary" className="gap-1">
+                                <Crown className="w-3 h-3" /> Admin
+                              </Badge>
+                            )}
+                            {isAdmin && !isMe && (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-red-500"
+                                onClick={() => handleRemoveMember(email)}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            )}
                           </div>
-                          {isParticipantAdmin && (
-                            <Badge variant="secondary" className="gap-1">
-                              <Crown className="w-3 h-3" /> Admin
-                            </Badge>
-                          )}
-                          {isAdmin && !isMe && (
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="text-red-500"
-                              onClick={() => handleRemoveMember(email)}
+                        );
+                      })}
+                    </div>
+                  </ScrollArea>
+                </TabsContent>
+
+                {isAdmin && (
+                  <TabsContent value="add" className="mt-4 space-y-3">
+                    {/* Selected users chips */}
+                    {selectedToAdd.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {selectedToAdd.map(user => (
+                          <div
+                            key={user.email}
+                            className="flex items-center gap-1 bg-green-100 text-green-700 px-2 py-1 rounded-full text-sm"
+                          >
+                            <span>{user.full_name?.split(" ")[0]}</span>
+                            <button onClick={() => toggleUserToAdd(user)}>
+                              <X className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Search */}
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <Input
+                        placeholder="Buscar usuários..."
+                        value={searchAdd}
+                        onChange={(e) => setSearchAdd(e.target.value)}
+                        className="pl-9"
+                      />
+                    </div>
+
+                    {/* Users list */}
+                    <ScrollArea className="h-[150px]">
+                      <div className="space-y-1">
+                        {filteredUsersToAdd.map(user => {
+                          const isSelected = selectedToAdd.find(u => u.email === user.email);
+                          return (
+                            <div
+                              key={user.email}
+                              onClick={() => toggleUserToAdd(user)}
+                              className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer hover:bg-gray-100 ${
+                                isSelected ? "bg-green-50" : ""
+                              }`}
                             >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </ScrollArea>
-              </div>
+                              <Checkbox checked={!!isSelected} />
+                              <Avatar className="w-8 h-8">
+                                <AvatarImage src={user.profile_picture} />
+                                <AvatarFallback className="bg-blue-100 text-blue-700 text-xs">
+                                  {getInitials(user.full_name)}
+                                </AvatarFallback>
+                              </Avatar>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-sm truncate">{user.display_name || user.full_name}</p>
+                                <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                              </div>
+                            </div>
+                          );
+                        })}
+                        {filteredUsersToAdd.length === 0 && (
+                          <p className="text-center text-gray-500 py-4 text-sm">
+                            {usersNotInGroup.length === 0 
+                              ? "Todos os usuários já estão no grupo" 
+                              : "Nenhum usuário encontrado"}
+                          </p>
+                        )}
+                      </div>
+                    </ScrollArea>
+
+                    {/* Add button */}
+                    <Button 
+                      onClick={handleAddMembers} 
+                      disabled={selectedToAdd.length === 0}
+                      className="w-full bg-green-500 hover:bg-green-600"
+                    >
+                      <UserPlus className="w-4 h-4 mr-2" />
+                      Adicionar {selectedToAdd.length > 0 ? `(${selectedToAdd.length})` : ""}
+                    </Button>
+                  </TabsContent>
+                )}
+              </Tabs>
             )}
 
             {/* Actions */}
