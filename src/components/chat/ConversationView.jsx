@@ -8,7 +8,8 @@ import {
   Users, 
   Phone,
   Video,
-  Search
+  Search,
+  FolderOpen
 } from "lucide-react";
 import { format, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -17,6 +18,7 @@ import ChatInput from "./ChatInput";
 import PresenceIndicator, { statusConfig } from "./PresenceIndicator";
 import TypingIndicator from "./TypingIndicator";
 import PinnedMessages from "./PinnedMessages";
+import ConversationFilesModal from "./ConversationFilesModal";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -52,6 +54,7 @@ export default function ConversationView({
 }) {
   const scrollRef = useRef(null);
   const [replyingTo, setReplyingTo] = useState(null);
+  const [showFilesModal, setShowFilesModal] = useState(false);
   const messageRefs = useRef({});
   const bottomRef = useRef(null);
   
@@ -177,6 +180,10 @@ export default function ConversationView({
           </p>
         </div>
 
+        <Button variant="ghost" size="icon" onClick={() => setShowFilesModal(true)} title="Ver arquivos">
+          <FolderOpen className="w-5 h-5" />
+        </Button>
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon">
@@ -186,6 +193,9 @@ export default function ConversationView({
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={onOpenSettings}>
               Detalhes da conversa
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setShowFilesModal(true)}>
+              <FolderOpen className="w-4 h-4 mr-2" /> Ver arquivos
             </DropdownMenuItem>
             <DropdownMenuItem>
               <Search className="w-4 h-4 mr-2" /> Buscar mensagens
@@ -262,6 +272,14 @@ export default function ConversationView({
         onTyping={onTyping}
         replyingTo={replyingTo}
         onCancelReply={() => setReplyingTo(null)}
+      />
+
+      {/* Files Modal */}
+      <ConversationFilesModal
+        open={showFilesModal}
+        onClose={() => setShowFilesModal(false)}
+        conversation={conversation}
+        users={users}
       />
     </div>
   );
