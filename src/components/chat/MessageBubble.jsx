@@ -88,29 +88,16 @@ export default function MessageBubble({
   const isImage = message.type === "image" || message.file_type?.includes("image");
   const readStatus = message.read_by?.length > 1 ? "read" : "sent";
   
-  // Formata hora no timezone de São Paulo (GMT-3) usando Intl API
-  const formatSaoPauloTime = (dateStr) => {
+  // Formata hora subtraindo 3 horas do horário atual
+  const formatTimeMinusThreeHours = (dateStr) => {
     if (!dateStr) return "";
     
-    try {
-      const date = new Date(dateStr);
-      // Usa Intl.DateTimeFormat que é mais confiável
-      return new Intl.DateTimeFormat("pt-BR", {
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: false,
-        timeZone: "America/Sao_Paulo"
-      }).format(date);
-    } catch (e) {
-      // Fallback manual se Intl falhar
-      const date = new Date(dateStr);
-      const utcTime = date.getTime();
-      const saoPauloOffset = -3 * 60 * 60 * 1000;
-      const saoPauloTime = new Date(utcTime + saoPauloOffset + (date.getTimezoneOffset() * 60 * 1000));
-      const hours = String(saoPauloTime.getHours()).padStart(2, "0");
-      const minutes = String(saoPauloTime.getMinutes()).padStart(2, "0");
-      return `${hours}:${minutes}`;
-    }
+    const date = new Date(dateStr);
+    // Subtrai 3 horas (em milissegundos)
+    const adjustedDate = new Date(date.getTime() - (3 * 60 * 60 * 1000));
+    const hours = String(adjustedDate.getHours()).padStart(2, "0");
+    const minutes = String(adjustedDate.getMinutes()).padStart(2, "0");
+    return `${hours}:${minutes}`;
   };
   
   // Detecta URLs no texto
@@ -250,7 +237,7 @@ export default function MessageBubble({
           <div className={`flex items-center justify-end gap-1 mt-1 ${isOwn ? "text-green-100" : "text-gray-400"}`}>
             {message.is_pinned && <Pin className="w-3 h-3 text-amber-500" />}
             {message.is_edited && <span className="text-xs">editada</span>}
-            <span className="text-xs">{formatSaoPauloTime(message.created_date)}</span>
+            <span className="text-xs">{formatTimeMinusThreeHours(message.created_date)}</span>
             {isOwn && (
               readStatus === "read" ? (
                 <CheckCheck className="w-4 h-4 text-blue-300" />

@@ -230,7 +230,10 @@ export default function ConversationView({
             {msgs.map((msg, idx) => {
               const isOwn = msg.sender_email === currentUser?.email;
               const prevMsg = msgs[idx - 1];
-              const showAvatar = !prevMsg || prevMsg.sender_email !== msg.sender_email;
+              // Em grupos, sempre mostra avatar/nome. Em 1:1, só quando muda o remetente
+              const showAvatar = isGroup 
+                ? (!prevMsg || prevMsg.sender_email !== msg.sender_email)
+                : (!prevMsg || prevMsg.sender_email !== msg.sender_email);
 
               return (
                 <div 
