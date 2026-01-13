@@ -882,6 +882,7 @@ export default function GestaoTarefas() {
         open={showBulkTextModal}
         onClose={() => setShowBulkTextModal(false)}
         users={users}
+        departments={departments}
         onCreateTasks={handleCreateTasks}
         onCreateServices={handleCreateServices}
       />
