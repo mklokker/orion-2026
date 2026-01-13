@@ -6,8 +6,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { AlertCircle, CheckCircle2, FileText, HardHat, ArrowRight } from "lucide-react";
+import { AlertCircle, CheckCircle2, FileText, HardHat, ArrowRight, Search, Check, ChevronsUpDown } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
 
 const normalizeText = (text) => {
   return text
@@ -45,12 +48,51 @@ const parseDate = (dateStr) => {
   return date.toISOString().split('T')[0]; // yyyy-mm-dd
 };
 
-export default function BulkTextLaunchModal({ open, onClose, users, onCreateTasks, onCreateServices }) {
+// Ordem fixa dos departamentos
+const DEPARTMENT_ORDER = ['registro', 'conferencia', 'certidão', 'certidao', 'onr', 'cadastro', 'finalização', 'finalizacao', 'arquivo', 'atendimento', 'administrativo'];
+
+const sortDepartments = (departments) => {
+  return [...departments].sort((a, b) => {
+    const aName = a.name.toLowerCase();
+    const bName = b.name.toLowerCase();
+    const aIndex = DEPARTMENT_ORDER.findIndex(p => aName.includes(p));
+    const bIndex = DEPARTMENT_ORDER.findIndex(p => bName.includes(p));
+    if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+    if (aIndex !== -1) return -1;
+    if (bIndex !== -1) return 1;
+    return aName.localeCompare(bName, 'pt-BR');
+  });
+};
+
+export default function BulkTextLaunchModal({ open, onClose, users, departments = [], onCreateTasks, onCreateServices }) {
   const { toast } = useToast();
   const [text, setText] = useState("");
   const [selectedUserEmail, setSelectedUserEmail] = useState("");
+  const [selectedDepartmentId, setSelectedDepartmentId] = useState("");
   const [parsedItems, setParsedItems] = useState([]);
   const [step, setStep] = useState("input"); // input | preview
+  const [userSearchOpen, setUserSearchOpen] = useState(false);
+
+  // Função para normalizar texto (remover acentos e pontuação)
+  const normalizeSearchText = (text) => {
+    return text
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9\s]/g, "");
+  };
+
+  // Ordenar usuários alfabeticamente pelo nome
+  const sortedUsers = React.useMemo(() => {
+    return [...users].sort((a, b) => {
+      const nameA = (a.display_name || a.full_name || a.email).toLowerCase();
+      const nameB = (b.display_name || b.full_name || b.email).toLowerCase();
+      return nameA.localeCompare(nameB, 'pt-BR');
+    });
+  }, [users]);
+
+  const selectedUser = users.find(u => u.email === selectedUserEmail);
+  const sortedDepartments = sortDepartments(departments);
 
   const handleProcess = () => {
     if (!selectedUserEmail) {
@@ -131,6 +173,7 @@ export default function BulkTextLaunchModal({ open, onClose, users, onCreateTask
                 end_date: item.formattedDate,
                 priority: item.priority,
                 assigned_to: item.user.email,
+                department_id: selectedDepartmentId || undefined,
                 status: "Pendente"
             });
         } else {
@@ -140,6 +183,7 @@ export default function BulkTextLaunchModal({ open, onClose, users, onCreateTask
                 end_date: item.formattedDate,
                 priority: item.priority,
                 assigned_to: item.user.email,
+                department_id: selectedDepartmentId || undefined,
                 status: "Em Execução" // Default para serviços conforme entidade
             });
         }
@@ -151,6 +195,7 @@ export default function BulkTextLaunchModal({ open, onClose, users, onCreateTask
     onClose();
     setText("");
     setSelectedUserEmail("");
+    setSelectedDepartmentId("");
     setParsedItems([]);
     setStep("input");
   };
@@ -166,14 +211,64 @@ export default function BulkTextLaunchModal({ open, onClose, users, onCreateTask
             <div className="flex-1 flex flex-col gap-4 min-h-[300px]">
                 <div className="space-y-2">
                     <label className="text-sm font-medium">Selecione o Usuário</label>
-                    <Select value={selectedUserEmail} onValueChange={setSelectedUserEmail}>
+                    <Popover open={userSearchOpen} onOpenChange={setUserSearchOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={userSearchOpen}
+                          className="w-full justify-between font-normal"
+                        >
+                          {selectedUser 
+                            ? (selectedUser.display_name || selectedUser.full_name || selectedUser.email)
+                            : "Selecione ou busque um usuário..."}
+                          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-full p-0" align="start">
+                        <Command>
+                          <CommandInput placeholder="Buscar usuário..." />
+                          <CommandList>
+                            <CommandEmpty>Nenhum usuário encontrado.</CommandEmpty>
+                            <CommandGroup>
+                              {sortedUsers.map(user => {
+                                const displayName = user.display_name || user.full_name || user.email;
+                                return (
+                                  <CommandItem
+                                    key={user.id}
+                                    value={normalizeSearchText(displayName)}
+                                    onSelect={() => {
+                                      setSelectedUserEmail(user.email);
+                                      setUserSearchOpen(false);
+                                    }}
+                                  >
+                                    <Check
+                                      className={cn(
+                                        "mr-2 h-4 w-4",
+                                        selectedUserEmail === user.email ? "opacity-100" : "opacity-0"
+                                      )}
+                                    />
+                                    {displayName}
+                                  </CommandItem>
+                                );
+                              })}
+                            </CommandGroup>
+                          </CommandList>
+                        </Command>
+                      </PopoverContent>
+                    </Popover>
+                </div>
+
+                <div className="space-y-2">
+                    <label className="text-sm font-medium">Departamento (opcional)</label>
+                    <Select value={selectedDepartmentId} onValueChange={setSelectedDepartmentId}>
                         <SelectTrigger>
-                            <SelectValue placeholder="Selecione quem receberá as tarefas/serviços..." />
+                            <SelectValue placeholder="Selecione um departamento..." />
                         </SelectTrigger>
                         <SelectContent>
-                            {users.map(u => (
-                                <SelectItem key={u.email} value={u.email}>
-                                    {u.display_name || u.full_name || u.email}
+                            {sortedDepartments.map(dept => (
+                                <SelectItem key={dept.id} value={dept.id}>
+                                    {dept.name}
                                 </SelectItem>
                             ))}
                         </SelectContent>

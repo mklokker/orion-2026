@@ -209,7 +209,7 @@ export default function CreateServicesModal({ open, onClose, users, departments,
                 </SelectTrigger>
                 <SelectContent>
                   {[...departments].sort((a, b) => {
-                    const priority = ['registro', 'conferencia', 'certidão', 'certidao'];
+                    const priority = ['registro', 'conferencia', 'certidão', 'certidao', 'onr', 'cadastro', 'finalização', 'finalizacao', 'arquivo', 'atendimento', 'administrativo'];
                     const aName = a.name.toLowerCase();
                     const bName = b.name.toLowerCase();
                     const aIndex = priority.findIndex(p => aName.includes(p));
