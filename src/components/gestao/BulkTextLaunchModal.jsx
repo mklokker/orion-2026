@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -83,7 +83,7 @@ export default function BulkTextLaunchModal({ open, onClose, users, departments 
   };
 
   // Ordenar usuários alfabeticamente pelo nome
-  const sortedUsers = React.useMemo(() => {
+  const sortedUsers = useMemo(() => {
     return [...users].sort((a, b) => {
       const nameA = (a.display_name || a.full_name || a.email).toLowerCase();
       const nameB = (b.display_name || b.full_name || b.email).toLowerCase();
