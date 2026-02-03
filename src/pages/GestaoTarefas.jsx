@@ -690,9 +690,9 @@ export default function GestaoTarefas() {
                     aria-label="Selecionar todos os itens na página"
                   >
                     {selectedTasks.length > 0 && selectedTasks.length === paginatedItems.length ? (
-                      <CheckSquare className="w-5 h-5 text-primary" />
+                      <CheckSquare className="w-4 h-4 text-primary" />
                     ) : (
-                      <Square className="w-5 h-5 text-gray-400" />
+                      <Square className="w-4 h-4 text-gray-400" />
                     )}
                   </div>
                 </TableHead>
@@ -733,9 +733,9 @@ export default function GestaoTarefas() {
                           aria-label={`Selecionar item ${item.protocol}`}
                         >
                           {selectedTasks.includes(item.id) ? (
-                            <CheckSquare className="w-5 h-5 text-primary" />
+                            <CheckSquare className="w-4 h-4 text-primary" />
                           ) : (
-                            <Square className="w-5 h-5 text-gray-400 hover:text-gray-600" />
+                            <Square className="w-4 h-4 text-gray-400 hover:text-gray-600" />
                           )}
                         </div>
                       </TableCell>
