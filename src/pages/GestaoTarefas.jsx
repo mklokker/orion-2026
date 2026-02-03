@@ -684,12 +684,16 @@ export default function GestaoTarefas() {
                 <TableHead className="w-12 px-4">
                   <div
                     onClick={paginatedItems.length > 0 ? toggleAllTasks : undefined}
-                    className={`cursor-pointer text-xl select-none flex items-center justify-center ${paginatedItems.length === 0 ? 'cursor-not-allowed opacity-50' : ''}`}
+                    className={`cursor-pointer select-none flex items-center justify-center ${paginatedItems.length === 0 ? 'cursor-not-allowed opacity-50' : ''}`}
                     role="checkbox"
                     aria-checked={selectedTasks.length > 0 && selectedTasks.length === paginatedItems.length}
                     aria-label="Selecionar todos os itens na página"
                   >
-                    {selectedTasks.length > 0 && selectedTasks.length === paginatedItems.length ? '✅' : '☐'}
+                    {selectedTasks.length > 0 && selectedTasks.length === paginatedItems.length ? (
+                      <CheckSquare className="w-5 h-5 text-primary" />
+                    ) : (
+                      <Square className="w-5 h-5 text-gray-400" />
+                    )}
                   </div>
                 </TableHead>
                 <TableHead>Tipo</TableHead>
