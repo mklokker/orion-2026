@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Eye, MoreVertical, Plus, CheckCircle2, ChevronLeft, ChevronRight, HardHat, FileText } from "lucide-react";
+import { Search, Eye, MoreVertical, Plus, CheckCircle2, ChevronLeft, ChevronRight, HardHat, FileText, Square, CheckSquare } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
