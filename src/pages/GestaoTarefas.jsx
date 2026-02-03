@@ -727,12 +727,16 @@ export default function GestaoTarefas() {
                       <TableCell className="px-4">
                         <div
                           onClick={() => toggleTaskSelection(item.id)}
-                          className="cursor-pointer text-xl select-none flex items-center justify-center"
+                          className="cursor-pointer select-none flex items-center justify-center"
                           role="checkbox"
                           aria-checked={selectedTasks.includes(item.id)}
                           aria-label={`Selecionar item ${item.protocol}`}
                         >
-                          {selectedTasks.includes(item.id) ? '✅' : '☐'}
+                          {selectedTasks.includes(item.id) ? (
+                            <CheckSquare className="w-5 h-5 text-primary" />
+                          ) : (
+                            <Square className="w-5 h-5 text-gray-400 hover:text-gray-600" />
+                          )}
                         </div>
                       </TableCell>
                       <TableCell>
