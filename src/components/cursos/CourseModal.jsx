@@ -846,6 +846,58 @@ export default function CourseModal({
               )}
             </TabsContent>
 
+            <TabsContent value="sites" className="py-4">
+              {orderedSites.length === 0 ? (
+                <div className="text-center py-12">
+                  <Globe className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                  <p className="text-gray-500">Nenhum site adicionado ainda.</p>
+                  {isAdmin && (
+                    <Button onClick={handleAddSite} className="mt-4 gap-2">
+                      <Plus className="w-4 h-4" />
+                      Adicionar Site
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {orderedSites.map((site, index) => (
+                    <Card key={site.id} className="border-2">
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-100 text-blue-700">
+                            <Globe className="w-5 h-5" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-semibold truncate">{site.title}</h4>
+                            {site.description && (
+                              <p className="text-xs text-gray-500 truncate">{site.description}</p>
+                            )}
+                            <p className="text-xs text-blue-600 truncate">{site.url}</p>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button size="sm" onClick={() => window.open(site.url, '_blank')} className="gap-2">
+                              <ExternalLink className="w-4 h-4" />
+                              Acessar
+                            </Button>
+                            {isAdmin && (
+                              <>
+                                <Button size="sm" variant="outline" onClick={() => handleEditSite(site)}>
+                                  <Edit className="w-4 h-4" />
+                                </Button>
+                                <Button size="sm" variant="outline" className="text-red-600" onClick={() => { setSiteToDelete(site); setShowDeleteSiteDialog(true); }}>
+                                  <Trash2 className="w-4 h-4" />
+                                </Button>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+
             <TabsContent value="quizzes" className="py-4">
               {quizzes.length === 0 ? (
                 <div className="text-center py-12">
