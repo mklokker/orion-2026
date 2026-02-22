@@ -517,6 +517,70 @@ export default function CourseModal({
 
   const isDocumentRead = (docId) => userProgress?.documents_read?.includes(docId);
 
+  // Site functions
+  const handleAddSite = () => {
+    setEditingSite(null);
+    setSiteTitle("");
+    setSiteUrl("");
+    setSiteDescription("");
+    setShowAddSite(true);
+  };
+
+  const handleEditSite = (site) => {
+    setEditingSite(site);
+    setSiteTitle(site.title);
+    setSiteUrl(site.url);
+    setSiteDescription(site.description || "");
+    setShowAddSite(true);
+  };
+
+  const handleSaveSite = async () => {
+    if (!siteTitle.trim() || !siteUrl.trim()) {
+      toast({ title: "Preencha título e URL.", variant: "destructive" });
+      return;
+    }
+    try {
+      if (editingSite) {
+        await CourseSite.update(editingSite.id, {
+          title: siteTitle.trim(),
+          url: siteUrl.trim(),
+          description: siteDescription.trim()
+        });
+        toast({ title: "Site atualizado!" });
+      } else {
+        await CourseSite.create({
+          course_id: course.id,
+          title: siteTitle.trim(),
+          url: siteUrl.trim(),
+          description: siteDescription.trim(),
+          order: orderedSites.length
+        });
+        toast({ title: "Site adicionado!" });
+      }
+      setShowAddSite(false);
+      setSiteTitle("");
+      setSiteUrl("");
+      setSiteDescription("");
+      setEditingSite(null);
+      onUpdate();
+    } catch (error) {
+      toast({ title: "Erro ao salvar site.", variant: "destructive" });
+    }
+  };
+
+  const handleDeleteSite = async () => {
+    if (!siteToDelete) return;
+    try {
+      await CourseSite.delete(siteToDelete.id);
+      toast({ title: "Site excluído!" });
+      setShowDeleteSiteDialog(false);
+      setSiteToDelete(null);
+      onUpdate();
+    } catch (error) {
+      toast({ title: "Erro ao excluir.", variant: "destructive" });
+    }
+  };
+
   return (
     <>
       <Dialog open={open} onOpenChange={onClose}>
