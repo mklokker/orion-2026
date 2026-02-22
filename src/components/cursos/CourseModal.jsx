@@ -1183,6 +1183,47 @@ export default function CourseModal({
 
       {/* Document Viewer */}
       <DocumentViewer open={!!viewingDocument} onClose={() => setViewingDocument(null)} document={viewingDocument} />
+
+      {/* Add/Edit Site Modal */}
+      <VideoDialog open={showAddSite} onOpenChange={setShowAddSite}>
+        <VideoDialogContent>
+          <VideoDialogHeader>
+            <VideoDialogTitle>{editingSite ? "Editar Site" : "Adicionar Site"}</VideoDialogTitle>
+          </VideoDialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Título *</Label>
+              <Input placeholder="Ex: Documentação Oficial" value={siteTitle} onChange={(e) => setSiteTitle(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label>URL *</Label>
+              <Input placeholder="https://exemplo.com" value={siteUrl} onChange={(e) => setSiteUrl(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label>Descrição (opcional)</Label>
+              <Input placeholder="Breve descrição do site" value={siteDescription} onChange={(e) => setSiteDescription(e.target.value)} />
+            </div>
+          </div>
+          <div className="flex justify-end gap-3">
+            <Button variant="outline" onClick={() => { setShowAddSite(false); setSiteTitle(""); setSiteUrl(""); setSiteDescription(""); setEditingSite(null); }}>Cancelar</Button>
+            <Button onClick={handleSaveSite}>{editingSite ? "Salvar" : "Adicionar"}</Button>
+          </div>
+        </VideoDialogContent>
+      </VideoDialog>
+
+      {/* Delete Site Dialog */}
+      <AlertDialog open={showDeleteSiteDialog} onOpenChange={setShowDeleteSiteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Site</AlertDialogTitle>
+            <AlertDialogDescription>Tem certeza que deseja excluir "{siteToDelete?.title}"?</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteSite} className="bg-red-600 hover:bg-red-700">Excluir</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
