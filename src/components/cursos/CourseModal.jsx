@@ -605,6 +605,10 @@ export default function CourseModal({
                     <FileQuestion className="w-3 h-3" />
                     {quizzes.length} {quizzes.length === 1 ? 'prova' : 'provas'}
                   </Badge>
+                  <Badge variant="outline" className="gap-1">
+                    <Globe className="w-3 h-3" />
+                    {orderedSites.length} {orderedSites.length === 1 ? 'site' : 'sites'}
+                  </Badge>
                 </div>
               </div>
               {isAdmin && (
@@ -616,6 +620,10 @@ export default function CourseModal({
                   <Button variant="outline" onClick={() => setShowAddDocument(true)} className="gap-2">
                     <FileText className="w-4 h-4" />
                     Documento
+                  </Button>
+                  <Button variant="outline" onClick={handleAddSite} className="gap-2">
+                    <Globe className="w-4 h-4" />
+                    Site
                   </Button>
                   <Button onClick={handleAddVideo} className="gap-2">
                     <Plus className="w-4 h-4" />
@@ -654,7 +662,7 @@ export default function CourseModal({
           )}
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="videos" className="gap-2">
                 <Video className="w-4 h-4" />
                 Vídeos ({orderedVideos.length})
@@ -662,6 +670,10 @@ export default function CourseModal({
               <TabsTrigger value="documents" className="gap-2">
                 <FileText className="w-4 h-4" />
                 Documentos ({orderedDocuments.length})
+              </TabsTrigger>
+              <TabsTrigger value="sites" className="gap-2">
+                <Globe className="w-4 h-4" />
+                Sites ({orderedSites.length})
               </TabsTrigger>
               <TabsTrigger value="quizzes" className="gap-2">
                 <FileQuestion className="w-4 h-4" />
