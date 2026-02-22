@@ -47,6 +47,7 @@ export default function CourseModal({
   course, 
   videos, 
   documents = [],
+  sites = [],
   quizzes = [],
   userProgress,
   userAttempts = [],
@@ -84,6 +85,16 @@ export default function CourseModal({
   const [viewingDocument, setViewingDocument] = useState(null);
   const [documentToDelete, setDocumentToDelete] = useState(null);
   const [showDeleteDocDialog, setShowDeleteDocDialog] = useState(false);
+  
+  // Site states
+  const [orderedSites, setOrderedSites] = useState(sites);
+  const [showAddSite, setShowAddSite] = useState(false);
+  const [siteTitle, setSiteTitle] = useState("");
+  const [siteUrl, setSiteUrl] = useState("");
+  const [siteDescription, setSiteDescription] = useState("");
+  const [editingSite, setEditingSite] = useState(null);
+  const [siteToDelete, setSiteToDelete] = useState(null);
+  const [showDeleteSiteDialog, setShowDeleteSiteDialog] = useState(false);
 
   React.useEffect(() => {
     setOrderedVideos(videos);
@@ -92,6 +103,10 @@ export default function CourseModal({
   React.useEffect(() => {
     setOrderedDocuments(documents);
   }, [documents]);
+
+  React.useEffect(() => {
+    setOrderedSites(sites);
+  }, [sites]);
 
   // Load user certificate
   React.useEffect(() => {
