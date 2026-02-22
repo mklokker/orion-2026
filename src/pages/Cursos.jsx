@@ -3,6 +3,7 @@ import { Course } from "@/entities/Course";
 import { CourseVideo } from "@/entities/CourseVideo";
 import { CourseDocument } from "@/entities/CourseDocument";
 import { CourseQuiz } from "@/entities/CourseQuiz";
+import { CourseSite } from "@/entities/CourseSite";
 import { CourseProgress } from "@/entities/CourseProgress";
 import { QuizAttempt } from "@/entities/QuizAttempt";
 import { User } from "@/entities/User";
@@ -57,6 +58,7 @@ export default function Cursos() {
   const [courseVideos, setCourseVideos] = useState({});
   const [courseDocuments, setCourseDocuments] = useState({});
   const [courseQuizzes, setCourseQuizzes] = useState({});
+  const [courseSites, setCourseSites] = useState({});
   const [userProgress, setUserProgress] = useState({});
   const [userAttempts, setUserAttempts] = useState({});
   const [currentUser, setCurrentUser] = useState(null);
@@ -84,11 +86,12 @@ export default function Cursos() {
       const userData = await User.me();
       setCurrentUser(userData);
 
-      const [coursesData, videosData, documentsData, quizzesData, progressData, attemptsData] = await Promise.all([
+      const [coursesData, videosData, documentsData, quizzesData, sitesData, progressData, attemptsData] = await Promise.all([
         Course.list("-created_date"),
         CourseVideo.list("order"),
         CourseDocument.list("order"),
         CourseQuiz.list("order"),
+        CourseSite.list("order"),
         CourseProgress.filter({ user_email: userData.email }),
         QuizAttempt.filter({ user_email: userData.email })
       ]);
@@ -124,6 +127,16 @@ export default function Cursos() {
         quizzesByCourse[quiz.course_id].push(quiz);
       });
       setCourseQuizzes(quizzesByCourse);
+
+      // Agrupar sites por curso
+      const sitesByCourse = {};
+      sitesData.forEach(site => {
+        if (!sitesByCourse[site.course_id]) {
+          sitesByCourse[site.course_id] = [];
+        }
+        sitesByCourse[site.course_id].push(site);
+      });
+      setCourseSites(sitesByCourse);
 
       // Progresso do usuário por curso
       const progressByCourse = {};
@@ -584,6 +597,7 @@ export default function Cursos() {
           course={selectedCourse}
           videos={courseVideos[selectedCourse.id] || []}
           documents={courseDocuments[selectedCourse.id] || []}
+          sites={courseSites[selectedCourse.id] || []}
           quizzes={courseQuizzes[selectedCourse.id] || []}
           userProgress={userProgress[selectedCourse.id]}
           userAttempts={userAttempts[selectedCourse.id] || []}
