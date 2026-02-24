@@ -189,27 +189,29 @@ export default function CreateAlinhamentoModal({
                   </div>
                   <ScrollArea className="h-48">
                     {users
-                      .filter((u) =>
-                        (u.full_name || u.email)
-                          .toLowerCase()
-                          .includes(userSearch.toLowerCase())
-                      )
-                      .map((user) => (
-                        <div
-                          key={user.id}
-                          className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-gray-100"
-                          onClick={() => {
-                            setForm({ ...form, responsible: user.full_name || user.email });
-                            setUserPopoverOpen(false);
-                            setUserSearch("");
-                          }}
-                        >
-                          {form.responsible === (user.full_name || user.email) && (
-                            <Check className="w-4 h-4 text-green-500" />
-                          )}
-                          <span>{user.full_name || user.email}</span>
-                        </div>
-                      ))}
+                      .filter((u) => {
+                        const displayName = u.display_name || u.full_name || u.email;
+                        return displayName.toLowerCase().includes(userSearch.toLowerCase());
+                      })
+                      .map((user) => {
+                        const displayName = user.display_name || user.full_name || user.email;
+                        return (
+                          <div
+                            key={user.id}
+                            className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-gray-100"
+                            onClick={() => {
+                              setForm({ ...form, responsible: displayName });
+                              setUserPopoverOpen(false);
+                              setUserSearch("");
+                            }}
+                          >
+                            {form.responsible === displayName && (
+                              <Check className="w-4 h-4 text-green-500" />
+                            )}
+                            <span>{displayName}</span>
+                          </div>
+                        );
+                      })}
                   </ScrollArea>
                 </PopoverContent>
               </Popover>

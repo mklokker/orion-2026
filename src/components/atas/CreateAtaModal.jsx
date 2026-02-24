@@ -195,27 +195,29 @@ export default function CreateAtaModal({
                   </div>
                   <ScrollArea className="h-48">
                     {users
-                      .filter((u) =>
-                        (u.full_name || u.email)
-                          .toLowerCase()
-                          .includes(userSearch.toLowerCase())
-                      )
-                      .map((user) => (
-                        <div
-                          key={user.id}
-                          className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-gray-100"
-                          onClick={() => {
-                            setForm({ ...form, responsible: user.full_name || user.email });
-                            setUserPopoverOpen(false);
-                            setUserSearch("");
-                          }}
-                        >
-                          {form.responsible === (user.full_name || user.email) && (
-                            <Check className="w-4 h-4 text-green-500" />
-                          )}
-                          <span>{user.full_name || user.email}</span>
-                        </div>
-                      ))}
+                      .filter((u) => {
+                        const displayName = u.display_name || u.full_name || u.email;
+                        return displayName.toLowerCase().includes(userSearch.toLowerCase());
+                      })
+                      .map((user) => {
+                        const displayName = user.display_name || user.full_name || user.email;
+                        return (
+                          <div
+                            key={user.id}
+                            className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-gray-100"
+                            onClick={() => {
+                              setForm({ ...form, responsible: displayName });
+                              setUserPopoverOpen(false);
+                              setUserSearch("");
+                            }}
+                          >
+                            {form.responsible === displayName && (
+                              <Check className="w-4 h-4 text-green-500" />
+                            )}
+                            <span>{displayName}</span>
+                          </div>
+                        );
+                      })}
                   </ScrollArea>
                 </PopoverContent>
               </Popover>
@@ -294,24 +296,29 @@ export default function CreateAtaModal({
                 </div>
                 <ScrollArea className="h-48">
                   {users
-                    .filter((u) => !form.participants.includes(u.full_name || u.email))
-                    .filter((u) =>
-                      (u.full_name || u.email)
-                        .toLowerCase()
-                        .includes(participantSearch.toLowerCase())
-                    )
-                    .map((user) => (
-                      <div
-                        key={user.id}
-                        className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-gray-100"
-                        onClick={() => {
-                          addParticipant(user.full_name || user.email);
-                          setParticipantSearch("");
-                        }}
-                      >
-                        <span>{user.full_name || user.email}</span>
-                      </div>
-                    ))}
+                    .filter((u) => {
+                      const displayName = u.display_name || u.full_name || u.email;
+                      return !form.participants.includes(displayName);
+                    })
+                    .filter((u) => {
+                      const displayName = u.display_name || u.full_name || u.email;
+                      return displayName.toLowerCase().includes(participantSearch.toLowerCase());
+                    })
+                    .map((user) => {
+                      const displayName = user.display_name || user.full_name || user.email;
+                      return (
+                        <div
+                          key={user.id}
+                          className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-gray-100"
+                          onClick={() => {
+                            addParticipant(displayName);
+                            setParticipantSearch("");
+                          }}
+                        >
+                          <span>{displayName}</span>
+                        </div>
+                      );
+                    })}
                 </ScrollArea>
               </PopoverContent>
             </Popover>
