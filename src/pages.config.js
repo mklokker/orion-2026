@@ -49,7 +49,6 @@
  */
 import Acervo from './pages/Acervo';
 import Admin from './pages/Admin';
-import AtasAlinhamentos from './pages/AtasAlinhamentos';
 import CargaDiaria from './pages/CargaDiaria';
 import Chat from './pages/Chat';
 import Cursos from './pages/Cursos';
@@ -67,7 +66,6 @@ import __Layout from './Layout.jsx';
 export const PAGES = {
     "Acervo": Acervo,
     "Admin": Admin,
-    "AtasAlinhamentos": AtasAlinhamentos,
     "CargaDiaria": CargaDiaria,
     "Chat": Chat,
     "Cursos": Cursos,
