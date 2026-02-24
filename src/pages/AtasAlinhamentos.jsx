@@ -298,7 +298,10 @@ export default function AtasAlinhamentos() {
             ) : (
               <div className="grid gap-4">
                 {filteredAlignments.map(alignment => {
-                  const isAcknowledged = alignment.acknowledged_by?.includes(currentUser?.email);
+                  const alignmentTopics = allTopics.filter(t => t.alignment_id === alignment.id);
+                  const vigentTopicsForAlignment = alignmentTopics.filter(t => t.status === 'vigente');
+                  const acknowledgedCount = vigentTopicsForAlignment.filter(t => t.acknowledged_by?.includes(currentUser?.email)).length;
+                  const isFullyAcknowledged = vigentTopicsForAlignment.length > 0 && acknowledgedCount === vigentTopicsForAlignment.length;
                   const topicsCount = getTopicsCount(alignment.id);
                   return (
                     <Card 
@@ -326,10 +329,10 @@ export default function AtasAlinhamentos() {
                                   )}
                                 </Badge>
                               )}
-                              {isAcknowledged && (
-                                <Badge variant="outline" className="gap-1 text-green-600 border-green-600">
+                              {vigentTopicsForAlignment.length > 0 && (
+                                <Badge variant="outline" className={`gap-1 ${isFullyAcknowledged ? 'text-green-600 border-green-600' : 'text-orange-600 border-orange-600'}`}>
                                   <CheckCircle2 className="w-3 h-3" />
-                                  Lido
+                                  {acknowledgedCount}/{vigentTopicsForAlignment.length} lido(s)
                                 </Badge>
                               )}
                             </div>
@@ -346,10 +349,7 @@ export default function AtasAlinhamentos() {
                                 <Users className="w-3 h-3" />
                                 {alignment.responsible}
                               </span>
-                              <span className="flex items-center gap-1">
-                                <CheckCircle2 className="w-3 h-3" />
-                                {alignment.acknowledged_by?.length || 0} confirmaram
-                              </span>
+
                             </div>
                           </div>
                           <ChevronRight className="w-5 h-5 text-gray-400 flex-shrink-0" />
