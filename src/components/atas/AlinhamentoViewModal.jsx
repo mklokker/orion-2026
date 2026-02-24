@@ -345,7 +345,8 @@ export default function AlinhamentoViewModal({
                   return (
                     <div
                       key={topico.id}
-                      className={`p-4 rounded-lg border ${
+                      id={`topico-${topico.id}`}
+                      className={`p-4 rounded-lg border transition-all duration-300 ${
                         acknowledged ? "bg-green-50 border-green-200" : "bg-white border-gray-200"
                       }`}
                     >
@@ -434,9 +435,19 @@ export default function AlinhamentoViewModal({
                         </p>
                       )}
                       {topico.replaced_by_topic_id && (
-                        <p className="text-xs text-blue-600 mt-1">
-                          → Substituído por novo tópico
-                        </p>
+                        <button
+                          onClick={() => {
+                            const el = document.getElementById(`topico-${topico.replaced_by_topic_id}`);
+                            if (el) {
+                              el.scrollIntoView({ behavior: "smooth", block: "center" });
+                              el.classList.add("ring-2", "ring-blue-500");
+                              setTimeout(() => el.classList.remove("ring-2", "ring-blue-500"), 2000);
+                            }
+                          }}
+                          className="text-xs text-blue-600 mt-1 hover:underline flex items-center gap-1"
+                        >
+                          → Ir para novo tópico
+                        </button>
                       )}
                     </div>
                   ))}
