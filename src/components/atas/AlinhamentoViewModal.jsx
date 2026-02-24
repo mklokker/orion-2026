@@ -58,6 +58,11 @@ export default function AlinhamentoViewModal({
   const [editingTopic, setEditingTopic] = useState(null);
   const [topicForm, setTopicForm] = useState({ title: "", content: "" });
   const [loading, setLoading] = useState(false);
+  const [showRevokeModal, setShowRevokeModal] = useState(false);
+  const [topicToRevoke, setTopicToRevoke] = useState(null);
+  const [revokeReason, setRevokeReason] = useState("");
+  const [createReplacementTopic, setCreateReplacementTopic] = useState(false);
+  const [replacementTopicForm, setReplacementTopicForm] = useState({ title: "", content: "" });
 
   const vigentes = topicos.filter((t) => t.status === "vigente");
   const revogados = topicos.filter((t) => t.status === "revogado");
@@ -126,15 +131,53 @@ export default function AlinhamentoViewModal({
     }
   };
 
-  const handleRevokeTopic = async (topicoId) => {
+  const openRevokeModal = (topico) => {
+    setTopicToRevoke(topico);
+    setRevokeReason("");
+    setCreateReplacementTopic(false);
+    setReplacementTopicForm({ title: "", content: "" });
+    setShowRevokeModal(true);
+  };
+
+  const handleRevokeTopic = async () => {
+    if (!topicToRevoke) return;
+    
     setLoading(true);
     try {
-      await base44.entities.AlinhamentoTopico.update(topicoId, {
+      let replacementTopicId = null;
+
+      // Cria o tópico de substituição primeiro, se selecionado
+      if (createReplacementTopic && replacementTopicForm.title && replacementTopicForm.content) {
+        const newTopic = await base44.entities.AlinhamentoTopico.create({
+          alignment_id: alinhamento.id,
+          title: replacementTopicForm.title,
+          content: replacementTopicForm.content,
+          order: vigentes.length,
+          status: "vigente",
+          acknowledged_by: [],
+          replaces_topic_id: topicToRevoke.id,
+        });
+        replacementTopicId = newTopic.id;
+      }
+
+      // Revoga o tópico antigo
+      await base44.entities.AlinhamentoTopico.update(topicToRevoke.id, {
         status: "revogado",
         revoked_at: new Date().toISOString(),
         revoked_by: currentUser?.email,
+        revoked_reason: revokeReason || null,
+        replaced_by_topic_id: replacementTopicId || null,
       });
-      toast({ title: "Sucesso", description: "Tópico revogado!" });
+
+      toast({ 
+        title: "Sucesso", 
+        description: createReplacementTopic && replacementTopicId 
+          ? "Tópico revogado e novo tópico criado!" 
+          : "Tópico revogado!" 
+      });
+      
+      setShowRevokeModal(false);
+      setTopicToRevoke(null);
       onUpdate();
     } catch (error) {
       toast({ title: "Erro", description: "Erro ao revogar.", variant: "destructive" });
@@ -342,7 +385,7 @@ export default function AlinhamentoViewModal({
                               <Button
                                 size="icon"
                                 variant="ghost"
-                                onClick={() => handleRevokeTopic(topico.id)}
+                                onClick={() => openRevokeModal(topico)}
                               >
                                 <XCircle className="w-4 h-4 text-orange-500" />
                               </Button>
@@ -387,6 +430,12 @@ export default function AlinhamentoViewModal({
                         <p className="text-xs text-gray-500 mt-2">
                           Revogado em {format(new Date(topico.revoked_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
                           {topico.revoked_by && ` por ${getUserName(topico.revoked_by)}`}
+                          {topico.revoked_reason && ` - Motivo: ${topico.revoked_reason}`}
+                        </p>
+                      )}
+                      {topico.replaced_by_topic_id && (
+                        <p className="text-xs text-blue-600 mt-1">
+                          → Substituído por novo tópico
                         </p>
                       )}
                     </div>
@@ -412,6 +461,84 @@ export default function AlinhamentoViewModal({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Modal de Revogação */}
+      <Dialog open={showRevokeModal} onOpenChange={setShowRevokeModal}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Revogar Tópico</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="p-3 bg-gray-50 rounded-lg">
+              <p className="text-sm font-medium text-gray-700">Tópico a ser revogado:</p>
+              <p className="text-sm text-gray-600 mt-1">{topicToRevoke?.title}</p>
+            </div>
+
+            <div>
+              <Label>Motivo da revogação (opcional)</Label>
+              <Textarea
+                value={revokeReason}
+                onChange={(e) => setRevokeReason(e.target.value)}
+                placeholder="Descreva o motivo da revogação..."
+                rows={2}
+              />
+            </div>
+
+            <Separator />
+
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  id="createReplacement"
+                  checked={createReplacementTopic}
+                  onChange={(e) => setCreateReplacementTopic(e.target.checked)}
+                  className="w-4 h-4 rounded border-gray-300"
+                />
+                <Label htmlFor="createReplacement" className="cursor-pointer">
+                  Criar novo tópico de substituição
+                </Label>
+              </div>
+
+              {createReplacementTopic && (
+                <div className="p-4 bg-blue-50 rounded-lg space-y-3 ml-7">
+                  <div>
+                    <Label>Título do novo tópico *</Label>
+                    <Input
+                      value={replacementTopicForm.title}
+                      onChange={(e) => setReplacementTopicForm({ ...replacementTopicForm, title: e.target.value })}
+                      placeholder="Título do novo tópico"
+                    />
+                  </div>
+                  <div>
+                    <Label>Conteúdo *</Label>
+                    <Textarea
+                      value={replacementTopicForm.content}
+                      onChange={(e) => setReplacementTopicForm({ ...replacementTopicForm, content: e.target.value })}
+                      placeholder="Conteúdo atualizado..."
+                      rows={3}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4">
+              <Button variant="outline" onClick={() => setShowRevokeModal(false)}>
+                Cancelar
+              </Button>
+              <Button
+                onClick={handleRevokeTopic}
+                disabled={loading || (createReplacementTopic && (!replacementTopicForm.title || !replacementTopicForm.content))}
+                className="bg-orange-600 hover:bg-orange-700"
+              >
+                {loading ? "Revogando..." : createReplacementTopic ? "Revogar e Criar Novo" : "Apenas Revogar"}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
