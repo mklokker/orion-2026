@@ -60,6 +60,7 @@ import ProdutividadeGeral from './pages/ProdutividadeGeral';
 import Ranking from './pages/Ranking';
 import Relatorios from './pages/Relatorios';
 import Removedor from './pages/Removedor';
+import AtasAlinhamentos from './pages/AtasAlinhamentos';
 import __Layout from './Layout.jsx';
 
 
@@ -77,6 +78,7 @@ export const PAGES = {
     "Ranking": Ranking,
     "Relatorios": Relatorios,
     "Removedor": Removedor,
+    "AtasAlinhamentos": AtasAlinhamentos,
 }
 
 export const pagesConfig = {
