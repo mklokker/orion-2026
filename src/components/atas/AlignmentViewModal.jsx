@@ -91,10 +91,12 @@ export default function AlignmentViewModal({
 
   if (!alignment) return null;
 
-  const isAcknowledged = alignment.acknowledged_by?.includes(currentUser?.email);
   const sortedTopics = [...topics].sort((a, b) => (a.order || 0) - (b.order || 0));
   const vigentTopics = sortedTopics.filter(t => t.status === 'vigente');
   const revokedTopics = sortedTopics.filter(t => t.status === 'revogado');
+  
+  const acknowledgedTopicsCount = vigentTopics.filter(t => t.acknowledged_by?.includes(currentUser?.email)).length;
+  const isFullyAcknowledged = vigentTopics.length > 0 && acknowledgedTopicsCount === vigentTopics.length;
 
   const handleDelete = async () => {
     try {
@@ -111,14 +113,30 @@ export default function AlignmentViewModal({
     }
   };
 
-  const handleAcknowledge = async () => {
-    if (isAcknowledged) return;
+  const handleAcknowledgeTopic = async (topic) => {
+    if (topic.acknowledged_by?.includes(currentUser?.email)) return;
+    
+    try {
+      const newAcknowledged = [...(topic.acknowledged_by || []), currentUser.email];
+      await AlignmentTopic.update(topic.id, { acknowledged_by: newAcknowledged });
+      toast({ title: "Leitura do tópico confirmada!" });
+      onAcknowledge();
+    } catch (error) {
+      toast({ title: "Erro ao confirmar leitura", variant: "destructive" });
+    }
+  };
+
+  const handleAcknowledgeAll = async () => {
+    const unacknowledgedTopics = vigentTopics.filter(t => !t.acknowledged_by?.includes(currentUser?.email));
+    if (unacknowledgedTopics.length === 0) return;
     
     setAcknowledging(true);
     try {
-      const newAcknowledged = [...(alignment.acknowledged_by || []), currentUser.email];
-      await TeamAlignment.update(alignment.id, { acknowledged_by: newAcknowledged });
-      toast({ title: "Leitura confirmada!" });
+      for (const topic of unacknowledgedTopics) {
+        const newAcknowledged = [...(topic.acknowledged_by || []), currentUser.email];
+        await AlignmentTopic.update(topic.id, { acknowledged_by: newAcknowledged });
+      }
+      toast({ title: `${unacknowledgedTopics.length} tópico(s) confirmado(s)!` });
       onAcknowledge();
     } catch (error) {
       toast({ title: "Erro ao confirmar leitura", variant: "destructive" });
@@ -265,10 +283,10 @@ export default function AlignmentViewModal({
                     {priorityLabels[alignment.priority]}
                   </Badge>
                   <Badge variant="outline">{alignment.category}</Badge>
-                  {isAcknowledged && (
-                    <Badge variant="outline" className="gap-1 text-green-600 border-green-600">
+                  {vigentTopics.length > 0 && (
+                    <Badge variant="outline" className={`gap-1 ${isFullyAcknowledged ? 'text-green-600 border-green-600' : 'text-orange-600 border-orange-600'}`}>
                       <CheckCircle2 className="w-3 h-3" />
-                      Lido
+                      {acknowledgedTopicsCount}/{vigentTopics.length} tópico(s) lido(s)
                     </Badge>
                   )}
                 </div>
@@ -359,48 +377,79 @@ export default function AlignmentViewModal({
                   <p className="text-gray-500 text-center py-4">Nenhum tópico vigente</p>
                 ) : (
                   <div className="space-y-3">
-                    {vigentTopics.map((topic, idx) => (
-                      <div 
-                        key={topic.id} 
-                        id={`topic-${topic.id}`}
-                        className="p-4 border rounded-lg bg-white transition-all"
-                      >
-                        <div className="flex items-start justify-between gap-2 mb-2">
-                          <h4 className="font-medium text-gray-900">{idx + 1}. {topic.title}</h4>
-                          {isAdmin && (
+                    {vigentTopics.map((topic, idx) => {
+                      const isTopicAcknowledged = topic.acknowledged_by?.includes(currentUser?.email);
+                      return (
+                        <div 
+                          key={topic.id} 
+                          id={`topic-${topic.id}`}
+                          className={`p-4 border rounded-lg transition-all ${isTopicAcknowledged ? 'bg-green-50 border-green-200' : 'bg-white'}`}
+                        >
+                          <div className="flex items-start justify-between gap-2 mb-2">
+                            <div className="flex items-center gap-2">
+                              <h4 className="font-medium text-gray-900">{idx + 1}. {topic.title}</h4>
+                              {isTopicAcknowledged && (
+                                <Badge variant="outline" className="text-green-600 border-green-300 text-xs">
+                                  <CheckCircle2 className="w-3 h-3 mr-1" />
+                                  Lido
+                                </Badge>
+                              )}
+                            </div>
                             <div className="flex gap-1">
-                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEditTopic(topic)}>
-                                <Edit className="w-3 h-3" />
-                              </Button>
-                              <Button 
-                                variant="ghost" 
-                                size="icon" 
-                                className="h-7 w-7 text-orange-600" 
-                                onClick={() => openRevokeDialog(topic)}
-                                title="Revogar tópico"
-                              >
-                                <AlertTriangle className="w-3 h-3" />
-                              </Button>
-                              <Button 
-                                variant="ghost" 
-                                size="icon" 
-                                className="h-7 w-7 text-red-600" 
-                                onClick={() => handleDeleteTopic(topic)}
-                              >
-                                <Trash2 className="w-3 h-3" />
-                              </Button>
+                              {!isTopicAcknowledged && (
+                                <Button 
+                                  variant="outline" 
+                                  size="sm" 
+                                  className="h-7 text-xs text-green-600 border-green-300 hover:bg-green-50"
+                                  onClick={() => handleAcknowledgeTopic(topic)}
+                                >
+                                  <CheckCircle2 className="w-3 h-3 mr-1" />
+                                  Confirmar
+                                </Button>
+                              )}
+                              {isAdmin && (
+                                <>
+                                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEditTopic(topic)}>
+                                    <Edit className="w-3 h-3" />
+                                  </Button>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="h-7 w-7 text-orange-600" 
+                                    onClick={() => openRevokeDialog(topic)}
+                                    title="Revogar tópico"
+                                  >
+                                    <AlertTriangle className="w-3 h-3" />
+                                  </Button>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="h-7 w-7 text-red-600" 
+                                    onClick={() => handleDeleteTopic(topic)}
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                  </Button>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                          <p className="text-gray-700 whitespace-pre-wrap">{topic.content}</p>
+                          {topic.replaces_topic_id && (
+                            <p className="text-xs text-blue-600 mt-2 flex items-center gap-1">
+                              <ArrowRight className="w-3 h-3" />
+                              Este tópico substitui um tópico anterior revogado
+                            </p>
+                          )}
+                          {topic.acknowledged_by?.length > 0 && (
+                            <div className="mt-3 pt-2 border-t border-gray-100">
+                              <p className="text-xs text-gray-500">
+                                {topic.acknowledged_by.length} pessoa(s) confirmaram: {topic.acknowledged_by.map(e => getUserName(e)).join(', ')}
+                              </p>
                             </div>
                           )}
                         </div>
-                        <p className="text-gray-700 whitespace-pre-wrap">{topic.content}</p>
-                        {topic.replaces_topic_id && (
-                          <p className="text-xs text-blue-600 mt-2 flex items-center gap-1">
-                            <ArrowRight className="w-3 h-3" />
-                            Este tópico substitui um tópico anterior revogado
-                          </p>
-                        )}
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -460,39 +509,20 @@ export default function AlignmentViewModal({
                 </>
               )}
 
-              <Separator />
 
-              {/* Confirmações de leitura */}
-              <div>
-                <h3 className="font-semibold text-gray-900 mb-3">
-                  Confirmações de Leitura ({alignment.acknowledged_by?.length || 0})
-                </h3>
-                {alignment.acknowledged_by?.length > 0 ? (
-                  <div className="flex flex-wrap gap-2">
-                    {alignment.acknowledged_by.map((email, idx) => (
-                      <Badge key={idx} variant="secondary" className="gap-1">
-                        <CheckCircle2 className="w-3 h-3 text-green-600" />
-                        {getUserName(email)}
-                      </Badge>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-gray-500">Nenhuma confirmação ainda</p>
-                )}
-              </div>
             </div>
           </ScrollArea>
 
-          {/* Botão de confirmação */}
-          {!isAcknowledged && (
+          {/* Botão de confirmação de todos */}
+          {!isFullyAcknowledged && vigentTopics.length > 0 && (
             <div className="pt-4 border-t">
               <Button 
-                onClick={handleAcknowledge} 
+                onClick={handleAcknowledgeAll} 
                 disabled={acknowledging}
                 className="w-full gap-2 bg-green-600 hover:bg-green-700"
               >
                 <CheckCircle2 className="w-4 h-4" />
-                {acknowledging ? "Confirmando..." : "Confirmar Leitura"}
+                {acknowledging ? "Confirmando..." : `Confirmar Todos os Tópicos (${vigentTopics.length - acknowledgedTopicsCount} pendente(s))`}
               </Button>
             </div>
           )}
