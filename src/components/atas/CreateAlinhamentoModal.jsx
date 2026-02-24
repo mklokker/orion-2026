@@ -16,6 +16,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Search, Check } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -29,6 +36,8 @@ export default function CreateAlinhamentoModal({
 }) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [userSearch, setUserSearch] = useState("");
+  const [userPopoverOpen, setUserPopoverOpen] = useState(false);
   const [form, setForm] = useState({
     title: "",
     category: "",
@@ -156,21 +165,54 @@ export default function CreateAlinhamentoModal({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label>Responsável *</Label>
-              <Select
-                value={form.responsible}
-                onValueChange={(v) => setForm({ ...form, responsible: v })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione" />
-                </SelectTrigger>
-                <SelectContent>
-                  {users.map((user) => (
-                    <SelectItem key={user.id} value={user.full_name || user.email}>
-                      {user.full_name || user.email}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Popover open={userPopoverOpen} onOpenChange={setUserPopoverOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    className="w-full justify-between font-normal"
+                  >
+                    {form.responsible || "Selecione"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64 p-0">
+                  <div className="p-2 border-b">
+                    <div className="flex items-center gap-2 px-2">
+                      <Search className="w-4 h-4 text-gray-400" />
+                      <Input
+                        placeholder="Buscar usuário..."
+                        value={userSearch}
+                        onChange={(e) => setUserSearch(e.target.value)}
+                        className="border-0 p-0 h-8 focus-visible:ring-0"
+                      />
+                    </div>
+                  </div>
+                  <ScrollArea className="h-48">
+                    {users
+                      .filter((u) =>
+                        (u.full_name || u.email)
+                          .toLowerCase()
+                          .includes(userSearch.toLowerCase())
+                      )
+                      .map((user) => (
+                        <div
+                          key={user.id}
+                          className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-gray-100"
+                          onClick={() => {
+                            setForm({ ...form, responsible: user.full_name || user.email });
+                            setUserPopoverOpen(false);
+                            setUserSearch("");
+                          }}
+                        >
+                          {form.responsible === (user.full_name || user.email) && (
+                            <Check className="w-4 h-4 text-green-500" />
+                          )}
+                          <span>{user.full_name || user.email}</span>
+                        </div>
+                      ))}
+                  </ScrollArea>
+                </PopoverContent>
+              </Popover>
             </div>
 
             <div>
