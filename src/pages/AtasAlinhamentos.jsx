@@ -160,23 +160,21 @@ export default function AtasAlinhamentos() {
             </p>
           </div>
 
-          <div className="flex gap-2">
-            {isAdmin && (
-              <>
-                <Button variant="outline" onClick={() => setShowCategoryManager(true)} className="gap-2">
-                  <Settings className="w-4 h-4" />
-                  Categorias
-                </Button>
-                <Button
-                  onClick={() => activeTab === "atas" ? setShowCreateMeeting(true) : setShowCreateAlignment(true)}
-                  className="gap-2 bg-gradient-to-r from-blue-600 to-indigo-600"
-                >
-                  <Plus className="w-4 h-4" />
-                  {activeTab === "atas" ? "Nova Ata" : "Novo Alinhamento"}
-                </Button>
-              </>
-            )}
-          </div>
+          {isAdmin && (
+            <div className="flex gap-2">
+              <Button variant="outline" onClick={() => setShowCategoryManager(true)} className="gap-2">
+                <Settings className="w-4 h-4" />
+                Categorias
+              </Button>
+              <Button
+                onClick={() => activeTab === "atas" ? setShowCreateMeeting(true) : setShowCreateAlignment(true)}
+                className="gap-2 bg-gradient-to-r from-blue-600 to-indigo-600"
+              >
+                <Plus className="w-4 h-4" />
+                {activeTab === "atas" ? "Nova Ata" : "Novo Alinhamento"}
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Busca Global de Tópicos */}
@@ -287,12 +285,6 @@ export default function AtasAlinhamentos() {
                 <CardContent className="py-12 text-center">
                   <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                   <p className="text-gray-500 text-lg">Nenhum alinhamento encontrado</p>
-                  {isAdmin && (
-                    <Button onClick={() => setShowCreateAlignment(true)} className="mt-4 gap-2">
-                      <Plus className="w-4 h-4" />
-                      Criar Primeiro Alinhamento
-                    </Button>
-                  )}
                 </CardContent>
               </Card>
             ) : (
@@ -369,12 +361,6 @@ export default function AtasAlinhamentos() {
                 <CardContent className="py-12 text-center">
                   <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                   <p className="text-gray-500 text-lg">Nenhuma ata de reunião encontrada</p>
-                  {isAdmin && (
-                    <Button onClick={() => setShowCreateMeeting(true)} className="mt-4 gap-2">
-                      <Plus className="w-4 h-4" />
-                      Criar Primeira Ata
-                    </Button>
-                  )}
                 </CardContent>
               </Card>
             ) : (
