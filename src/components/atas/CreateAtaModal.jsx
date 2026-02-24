@@ -193,11 +193,12 @@ export default function CreateAtaModal({
                       />
                     </div>
                   </div>
-                  <ScrollArea className="h-48">
+                  <div className="max-h-48 overflow-y-auto">
                     {users
                       .filter((u) => {
-                        const displayName = u.display_name || u.full_name || u.email;
-                        return displayName.toLowerCase().includes(userSearch.toLowerCase());
+                        const displayName = u.display_name || u.full_name || u.email || "";
+                        const search = userSearch || "";
+                        return displayName.toLowerCase().includes(search.toLowerCase());
                       })
                       .map((user) => {
                         const displayName = user.display_name || user.full_name || user.email;
@@ -218,7 +219,7 @@ export default function CreateAtaModal({
                           </div>
                         );
                       })}
-                  </ScrollArea>
+                  </div>
                 </PopoverContent>
               </Popover>
             </div>
@@ -294,15 +295,16 @@ export default function CreateAtaModal({
                     />
                   </div>
                 </div>
-                <ScrollArea className="h-48">
+                <div className="max-h-48 overflow-y-auto">
                   {users
                     .filter((u) => {
-                      const displayName = u.display_name || u.full_name || u.email;
+                      const displayName = u.display_name || u.full_name || u.email || "";
                       return !form.participants.includes(displayName);
                     })
                     .filter((u) => {
-                      const displayName = u.display_name || u.full_name || u.email;
-                      return displayName.toLowerCase().includes(participantSearch.toLowerCase());
+                      const displayName = u.display_name || u.full_name || u.email || "";
+                      const search = participantSearch || "";
+                      return displayName.toLowerCase().includes(search.toLowerCase());
                     })
                     .map((user) => {
                       const displayName = user.display_name || user.full_name || user.email;
@@ -319,7 +321,7 @@ export default function CreateAtaModal({
                         </div>
                       );
                     })}
-                </ScrollArea>
+                </div>
               </PopoverContent>
             </Popover>
             {form.participants.length > 0 && (
