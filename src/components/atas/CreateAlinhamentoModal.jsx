@@ -24,6 +24,10 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Search, Check } from "lucide-react";
 import { base44 } from "@/api/base44Client";
+
+const normalizeText = (text) => {
+  return (text || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+};
 import { useToast } from "@/components/ui/use-toast";
 
 export default function CreateAlinhamentoModal({
@@ -192,7 +196,7 @@ export default function CreateAlinhamentoModal({
                       .filter((u) => {
                         const displayName = u.display_name || u.full_name || u.email || "";
                         const search = userSearch || "";
-                        return displayName.toLowerCase().includes(search.toLowerCase());
+                        return normalizeText(displayName).includes(normalizeText(search));
                       })
                       .map((user) => {
                         const displayName = user.display_name || user.full_name || user.email;

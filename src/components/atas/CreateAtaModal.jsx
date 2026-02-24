@@ -26,6 +26,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { X, Search, Check } from "lucide-react";
 import { base44 } from "@/api/base44Client";
+
+const normalizeText = (text) => {
+  return (text || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+};
 import { useToast } from "@/components/ui/use-toast";
 
 export default function CreateAtaModal({
@@ -198,7 +202,7 @@ export default function CreateAtaModal({
                       .filter((u) => {
                         const displayName = u.display_name || u.full_name || u.email || "";
                         const search = userSearch || "";
-                        return displayName.toLowerCase().includes(search.toLowerCase());
+                        return normalizeText(displayName).includes(normalizeText(search));
                       })
                       .map((user) => {
                         const displayName = user.display_name || user.full_name || user.email;
@@ -304,7 +308,7 @@ export default function CreateAtaModal({
                     .filter((u) => {
                       const displayName = u.display_name || u.full_name || u.email || "";
                       const search = participantSearch || "";
-                      return displayName.toLowerCase().includes(search.toLowerCase());
+                      return normalizeText(displayName).includes(normalizeText(search));
                     })
                     .map((user) => {
                       const displayName = user.display_name || user.full_name || user.email;
