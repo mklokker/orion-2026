@@ -17,6 +17,7 @@ import {
   GraduationCap,
   Eraser,
   Users,
+  ScrollText,
 } from "lucide-react";
 import {
   Sidebar,
@@ -132,6 +133,7 @@ export default function Layout({ children }) {
     { title: "Chat", url: createPageUrl("Chat"), icon: MessageSquare, badge: unreadChatCount },
     { title: "Acervo", url: createPageUrl("Acervo"), icon: Files },
     { title: "Cursos", url: createPageUrl("Cursos"), icon: GraduationCap },
+    { title: "Atas e Alinhamentos", url: createPageUrl("AtasAlinhamentos"), icon: ScrollText },
     { title: "Removedor", url: createPageUrl("Removedor"), icon: Eraser },
     { title: "Produtividade Geral", url: createPageUrl("ProdutividadeGeral"), icon: TrendingUp },
     { title: "Ranking", url: createPageUrl("Ranking"), icon: Star },
