@@ -1,10 +1,14 @@
-import React from "react";
+import React, { useState } from "react";
 import { TeamAlignment } from "@/entities/TeamAlignment";
+import { AlignmentTopic } from "@/entities/AlignmentTopic";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -14,7 +18,11 @@ import {
   Edit, 
   Trash2,
   CheckCircle2,
-  AlertCircle
+  Plus,
+  AlertTriangle,
+  ArrowRight,
+  X,
+  Tag
 } from "lucide-react";
 import {
   AlertDialog,
@@ -26,6 +34,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const priorityColors = {
   baixa: "bg-gray-100 text-gray-700",
@@ -41,17 +56,52 @@ const priorityLabels = {
   urgente: "Urgente"
 };
 
-export default function AlignmentViewModal({ open, onClose, alignment, currentUser, users, isAdmin, onEdit, onDelete, onAcknowledge }) {
+export default function AlignmentViewModal({ 
+  open, 
+  onClose, 
+  alignment, 
+  topics = [], 
+  allTopics = [],
+  currentUser, 
+  users, 
+  isAdmin, 
+  onEdit, 
+  onDelete, 
+  onAcknowledge,
+  onTopicsChange
+}) {
   const { toast } = useToast();
-  const [showDeleteDialog, setShowDeleteDialog] = React.useState(false);
-  const [acknowledging, setAcknowledging] = React.useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [acknowledging, setAcknowledging] = useState(false);
+  
+  // Topic management
+  const [showTopicForm, setShowTopicForm] = useState(false);
+  const [editingTopic, setEditingTopic] = useState(null);
+  const [topicTitle, setTopicTitle] = useState("");
+  const [topicContent, setTopicContent] = useState("");
+  const [savingTopic, setSavingTopic] = useState(false);
+  
+  // Revoke management
+  const [showRevokeDialog, setShowRevokeDialog] = useState(false);
+  const [topicToRevoke, setTopicToRevoke] = useState(null);
+  const [revokeReason, setRevokeReason] = useState("");
+  const [createReplacement, setCreateReplacement] = useState(false);
+  const [replacementTitle, setReplacementTitle] = useState("");
+  const [replacementContent, setReplacementContent] = useState("");
 
   if (!alignment) return null;
 
   const isAcknowledged = alignment.acknowledged_by?.includes(currentUser?.email);
+  const sortedTopics = [...topics].sort((a, b) => (a.order || 0) - (b.order || 0));
+  const vigentTopics = sortedTopics.filter(t => t.status === 'vigente');
+  const revokedTopics = sortedTopics.filter(t => t.status === 'revogado');
 
   const handleDelete = async () => {
     try {
+      // Delete all topics first
+      for (const topic of topics) {
+        await AlignmentTopic.delete(topic.id);
+      }
       await TeamAlignment.delete(alignment.id);
       toast({ title: "Alinhamento excluído com sucesso!" });
       onDelete();
@@ -82,14 +132,135 @@ export default function AlignmentViewModal({ open, onClose, alignment, currentUs
     return user?.display_name || user?.full_name || email;
   };
 
+  // Topic CRUD
+  const handleAddTopic = () => {
+    setEditingTopic(null);
+    setTopicTitle("");
+    setTopicContent("");
+    setShowTopicForm(true);
+  };
+
+  const handleEditTopic = (topic) => {
+    setEditingTopic(topic);
+    setTopicTitle(topic.title);
+    setTopicContent(topic.content);
+    setShowTopicForm(true);
+  };
+
+  const handleSaveTopic = async () => {
+    if (!topicTitle.trim() || !topicContent.trim()) {
+      toast({ title: "Preencha título e conteúdo", variant: "destructive" });
+      return;
+    }
+
+    setSavingTopic(true);
+    try {
+      if (editingTopic) {
+        await AlignmentTopic.update(editingTopic.id, {
+          title: topicTitle.trim(),
+          content: topicContent.trim()
+        });
+        toast({ title: "Tópico atualizado!" });
+      } else {
+        await AlignmentTopic.create({
+          alignment_id: alignment.id,
+          title: topicTitle.trim(),
+          content: topicContent.trim(),
+          order: topics.length,
+          status: "vigente"
+        });
+        toast({ title: "Tópico adicionado!" });
+      }
+      setShowTopicForm(false);
+      setEditingTopic(null);
+      setTopicTitle("");
+      setTopicContent("");
+      onTopicsChange();
+    } catch (error) {
+      toast({ title: "Erro ao salvar tópico", variant: "destructive" });
+    } finally {
+      setSavingTopic(false);
+    }
+  };
+
+  const handleDeleteTopic = async (topic) => {
+    try {
+      await AlignmentTopic.delete(topic.id);
+      toast({ title: "Tópico excluído!" });
+      onTopicsChange();
+    } catch (error) {
+      toast({ title: "Erro ao excluir tópico", variant: "destructive" });
+    }
+  };
+
+  // Revoke
+  const openRevokeDialog = (topic) => {
+    setTopicToRevoke(topic);
+    setRevokeReason("");
+    setCreateReplacement(false);
+    setReplacementTitle(topic.title + " (Atualizado)");
+    setReplacementContent("");
+    setShowRevokeDialog(true);
+  };
+
+  const handleRevoke = async () => {
+    if (!topicToRevoke) return;
+
+    try {
+      let replacementTopicId = null;
+
+      // Create replacement topic if requested
+      if (createReplacement && replacementTitle.trim() && replacementContent.trim()) {
+        const newTopic = await AlignmentTopic.create({
+          alignment_id: alignment.id,
+          title: replacementTitle.trim(),
+          content: replacementContent.trim(),
+          order: topicToRevoke.order,
+          status: "vigente",
+          replaces_topic_id: topicToRevoke.id
+        });
+        replacementTopicId = newTopic.id;
+      }
+
+      // Revoke the original topic
+      await AlignmentTopic.update(topicToRevoke.id, {
+        status: "revogado",
+        revoked_at: new Date().toISOString(),
+        revoked_by: currentUser.email,
+        revoked_reason: revokeReason.trim() || null,
+        replaced_by_topic_id: replacementTopicId
+      });
+
+      toast({ title: createReplacement ? "Tópico revogado e substituído!" : "Tópico revogado!" });
+      setShowRevokeDialog(false);
+      setTopicToRevoke(null);
+      onTopicsChange();
+    } catch (error) {
+      toast({ title: "Erro ao revogar tópico", variant: "destructive" });
+    }
+  };
+
+  const getReplacementTopic = (topicId) => {
+    return allTopics.find(t => t.id === topicId);
+  };
+
+  const scrollToTopic = (topicId) => {
+    const element = document.getElementById(`topic-${topicId}`);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      element.classList.add('ring-2', 'ring-blue-500');
+      setTimeout(() => element.classList.remove('ring-2', 'ring-blue-500'), 2000);
+    }
+  };
+
   return (
     <>
       <Dialog open={open} onOpenChange={onClose}>
-        <DialogContent className="max-w-3xl max-h-[90vh] flex flex-col">
+        <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col">
           <DialogHeader>
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1">
-                <div className="flex items-center gap-2 mb-2">
+                <div className="flex items-center gap-2 mb-2 flex-wrap">
                   <Badge className={priorityColors[alignment.priority]}>
                     {priorityLabels[alignment.priority]}
                   </Badge>
@@ -130,15 +301,164 @@ export default function AlignmentViewModal({ open, onClose, alignment, currentUs
                 </div>
               </div>
 
-              <Separator />
+              {/* Descrição geral */}
+              {alignment.description && (
+                <>
+                  <div className="p-4 bg-gray-50 rounded-lg border">
+                    <p className="text-gray-800 whitespace-pre-wrap">{alignment.description}</p>
+                  </div>
+                  <Separator />
+                </>
+              )}
 
-              {/* Conteúdo */}
+              {/* Tópicos Vigentes */}
               <div>
-                <h3 className="font-semibold text-gray-900 mb-3">Conteúdo do Alinhamento</h3>
-                <div className="p-4 bg-gray-50 rounded-lg border">
-                  <p className="text-gray-800 whitespace-pre-wrap">{alignment.description}</p>
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                    <Tag className="w-4 h-4" />
+                    Tópicos Vigentes ({vigentTopics.length})
+                  </h3>
+                  {isAdmin && (
+                    <Button size="sm" onClick={handleAddTopic} className="gap-1">
+                      <Plus className="w-4 h-4" />
+                      Novo Tópico
+                    </Button>
+                  )}
                 </div>
+
+                {/* Topic Form */}
+                {showTopicForm && (
+                  <div className="p-4 border rounded-lg bg-blue-50 mb-4 space-y-4">
+                    <div className="space-y-2">
+                      <Label>Título do Tópico *</Label>
+                      <Input 
+                        value={topicTitle} 
+                        onChange={(e) => setTopicTitle(e.target.value)}
+                        placeholder="Título do tópico"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Conteúdo *</Label>
+                      <Textarea 
+                        value={topicContent} 
+                        onChange={(e) => setTopicContent(e.target.value)}
+                        placeholder="Conteúdo do tópico..."
+                        rows={5}
+                      />
+                    </div>
+                    <div className="flex gap-2 justify-end">
+                      <Button variant="outline" onClick={() => setShowTopicForm(false)}>Cancelar</Button>
+                      <Button onClick={handleSaveTopic} disabled={savingTopic}>
+                        {savingTopic ? "Salvando..." : (editingTopic ? "Atualizar" : "Adicionar")}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {vigentTopics.length === 0 ? (
+                  <p className="text-gray-500 text-center py-4">Nenhum tópico vigente</p>
+                ) : (
+                  <div className="space-y-3">
+                    {vigentTopics.map((topic, idx) => (
+                      <div 
+                        key={topic.id} 
+                        id={`topic-${topic.id}`}
+                        className="p-4 border rounded-lg bg-white transition-all"
+                      >
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <h4 className="font-medium text-gray-900">{idx + 1}. {topic.title}</h4>
+                          {isAdmin && (
+                            <div className="flex gap-1">
+                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEditTopic(topic)}>
+                                <Edit className="w-3 h-3" />
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-7 w-7 text-orange-600" 
+                                onClick={() => openRevokeDialog(topic)}
+                                title="Revogar tópico"
+                              >
+                                <AlertTriangle className="w-3 h-3" />
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-7 w-7 text-red-600" 
+                                onClick={() => handleDeleteTopic(topic)}
+                              >
+                                <Trash2 className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                        <p className="text-gray-700 whitespace-pre-wrap">{topic.content}</p>
+                        {topic.replaces_topic_id && (
+                          <p className="text-xs text-blue-600 mt-2 flex items-center gap-1">
+                            <ArrowRight className="w-3 h-3" />
+                            Este tópico substitui um tópico anterior revogado
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
+
+              {/* Tópicos Revogados */}
+              {revokedTopics.length > 0 && (
+                <>
+                  <Separator />
+                  <div>
+                    <h3 className="font-semibold text-gray-500 flex items-center gap-2 mb-4">
+                      <AlertTriangle className="w-4 h-4" />
+                      Tópicos Revogados ({revokedTopics.length})
+                    </h3>
+                    <div className="space-y-3">
+                      {revokedTopics.map((topic) => {
+                        const replacement = topic.replaced_by_topic_id ? getReplacementTopic(topic.replaced_by_topic_id) : null;
+                        return (
+                          <div 
+                            key={topic.id} 
+                            id={`topic-${topic.id}`}
+                            className="p-4 border border-red-200 rounded-lg bg-red-50 transition-all"
+                          >
+                            <div className="flex items-start justify-between gap-2 mb-2">
+                              <h4 className="font-medium text-gray-500 line-through">{topic.title}</h4>
+                              <Badge variant="outline" className="text-red-600 border-red-300">Revogado</Badge>
+                            </div>
+                            <p className="text-gray-500 whitespace-pre-wrap line-through">{topic.content}</p>
+                            
+                            {topic.revoked_at && (
+                              <p className="text-xs text-gray-400 mt-2">
+                                Revogado em {format(new Date(topic.revoked_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                                {topic.revoked_by && ` por ${getUserName(topic.revoked_by)}`}
+                              </p>
+                            )}
+                            {topic.revoked_reason && (
+                              <p className="text-xs text-gray-500 mt-1">
+                                <strong>Motivo:</strong> {topic.revoked_reason}
+                              </p>
+                            )}
+                            
+                            {replacement && (
+                              <Button 
+                                variant="link" 
+                                size="sm" 
+                                className="mt-2 text-blue-600 p-0 h-auto"
+                                onClick={() => scrollToTopic(replacement.id)}
+                              >
+                                <ArrowRight className="w-3 h-3 mr-1" />
+                                Ver tópico substituto: {replacement.title}
+                              </Button>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </>
+              )}
 
               <Separator />
 
@@ -179,18 +499,91 @@ export default function AlignmentViewModal({ open, onClose, alignment, currentUs
         </DialogContent>
       </Dialog>
 
+      {/* Delete Alignment Dialog */}
       <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir Alinhamento</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem certeza que deseja excluir este alinhamento? Esta ação não pode ser desfeita.
+              Tem certeza que deseja excluir este alinhamento e todos os seus tópicos? Esta ação não pode ser desfeita.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
             <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
               Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Revoke Topic Dialog */}
+      <AlertDialog open={showRevokeDialog} onOpenChange={setShowRevokeDialog}>
+        <AlertDialogContent className="max-w-lg">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-orange-500" />
+              Revogar Tópico
+            </AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-4 text-left">
+                <p>Você está revogando o tópico: <strong>{topicToRevoke?.title}</strong></p>
+                <p className="text-sm">O texto original será mantido, porém marcado como revogado (cortado).</p>
+                
+                <div className="space-y-2">
+                  <Label>Motivo da Revogação (opcional)</Label>
+                  <Textarea 
+                    value={revokeReason}
+                    onChange={(e) => setRevokeReason(e.target.value)}
+                    placeholder="Ex: Atualizado conforme nova normativa..."
+                    rows={2}
+                  />
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <input 
+                    type="checkbox" 
+                    id="createReplacement"
+                    checked={createReplacement}
+                    onChange={(e) => setCreateReplacement(e.target.checked)}
+                    className="rounded"
+                  />
+                  <label htmlFor="createReplacement" className="text-sm font-medium">
+                    Criar tópico substituto
+                  </label>
+                </div>
+
+                {createReplacement && (
+                  <div className="space-y-3 p-3 bg-blue-50 rounded-lg">
+                    <div className="space-y-2">
+                      <Label>Título do Novo Tópico *</Label>
+                      <Input 
+                        value={replacementTitle}
+                        onChange={(e) => setReplacementTitle(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Conteúdo do Novo Tópico *</Label>
+                      <Textarea 
+                        value={replacementContent}
+                        onChange={(e) => setReplacementContent(e.target.value)}
+                        placeholder="Novo conteúdo..."
+                        rows={4}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleRevoke} 
+              className="bg-orange-600 hover:bg-orange-700"
+              disabled={createReplacement && (!replacementTitle.trim() || !replacementContent.trim())}
+            >
+              Revogar
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

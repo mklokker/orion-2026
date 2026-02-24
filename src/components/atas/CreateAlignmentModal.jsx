@@ -6,11 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
-import { X, Users } from "lucide-react";
-import { Checkbox } from "@/components/ui/checkbox";
 
 export default function CreateAlignmentModal({ open, onClose, alignment, categories, users, onSave }) {
   const { toast } = useToast();
@@ -22,8 +19,6 @@ export default function CreateAlignmentModal({ open, onClose, alignment, categor
   const [alignmentDate, setAlignmentDate] = useState("");
   const [description, setDescription] = useState("");
   const [priority, setPriority] = useState("media");
-  const [targetAudience, setTargetAudience] = useState([]);
-  const [selectAll, setSelectAll] = useState(false);
 
   useEffect(() => {
     if (alignment) {
@@ -33,7 +28,6 @@ export default function CreateAlignmentModal({ open, onClose, alignment, categor
       setAlignmentDate(alignment.alignment_date || "");
       setDescription(alignment.description || "");
       setPriority(alignment.priority || "media");
-      setTargetAudience(alignment.target_audience || []);
     } else {
       resetForm();
     }
@@ -46,34 +40,10 @@ export default function CreateAlignmentModal({ open, onClose, alignment, categor
     setAlignmentDate(new Date().toISOString().split('T')[0]);
     setDescription("");
     setPriority("media");
-    setTargetAudience([]);
-    setSelectAll(false);
-  };
-
-  const handleSelectAll = (checked) => {
-    setSelectAll(checked);
-    if (checked) {
-      setTargetAudience(users.map(u => u.email));
-    } else {
-      setTargetAudience([]);
-    }
-  };
-
-  const handleToggleUser = (email) => {
-    if (targetAudience.includes(email)) {
-      setTargetAudience(targetAudience.filter(e => e !== email));
-      setSelectAll(false);
-    } else {
-      const newAudience = [...targetAudience, email];
-      setTargetAudience(newAudience);
-      if (newAudience.length === users.length) {
-        setSelectAll(true);
-      }
-    }
   };
 
   const handleSave = async () => {
-    if (!title.trim() || !category || !responsible.trim() || !alignmentDate || !description.trim()) {
+    if (!title.trim() || !category || !responsible.trim() || !alignmentDate) {
       toast({ title: "Preencha todos os campos obrigatórios", variant: "destructive" });
       return;
     }
@@ -85,9 +55,8 @@ export default function CreateAlignmentModal({ open, onClose, alignment, categor
         category,
         responsible: responsible.trim(),
         alignment_date: alignmentDate,
-        description: description.trim(),
+        description: description.trim() || null,
         priority,
-        target_audience: targetAudience,
         status: "publicado",
         acknowledged_by: alignment?.acknowledged_by || []
       };
@@ -171,49 +140,25 @@ export default function CreateAlignmentModal({ open, onClose, alignment, categor
             </div>
 
             <div className="space-y-2">
-              <Label>Descrição/Conteúdo *</Label>
+              <Label>Descrição Geral (opcional)</Label>
               <Textarea 
                 value={description} 
                 onChange={(e) => setDescription(e.target.value)} 
-                placeholder="Descreva o conteúdo do alinhamento..."
-                rows={8}
+                placeholder="Descrição geral do alinhamento. Os tópicos específicos podem ser adicionados após criar o alinhamento."
+                rows={4}
               />
             </div>
 
-            <div className="space-y-3">
-              <Label className="flex items-center gap-2">
-                <Users className="w-4 h-4" />
-                Público-Alvo (opcional)
-              </Label>
-              <p className="text-xs text-gray-500">Selecione os usuários que devem receber este alinhamento. Se nenhum for selecionado, será visível para todos.</p>
-              
-              <div className="flex items-center space-x-2 pb-2 border-b">
-                <Checkbox id="select_all" checked={selectAll} onCheckedChange={handleSelectAll} />
-                <label htmlFor="select_all" className="text-sm font-medium">Selecionar todos</label>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-[200px] overflow-y-auto">
-                {users.map(user => (
-                  <div key={user.id} className="flex items-center space-x-2">
-                    <Checkbox 
-                      id={user.id} 
-                      checked={targetAudience.includes(user.email)} 
-                      onCheckedChange={() => handleToggleUser(user.email)} 
-                    />
-                    <label htmlFor={user.id} className="text-sm truncate">
-                      {user.display_name || user.full_name || user.email}
-                    </label>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <p className="text-sm text-gray-500 bg-blue-50 p-3 rounded-lg">
+              💡 Após criar o alinhamento, você poderá adicionar tópicos específicos que podem ser revogados e atualizados ao longo do tempo.
+            </p>
           </div>
         </ScrollArea>
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>Cancelar</Button>
           <Button onClick={handleSave} disabled={loading}>
-            {loading ? "Salvando..." : (alignment ? "Salvar" : "Publicar Alinhamento")}
+            {loading ? "Salvando..." : (alignment ? "Salvar" : "Criar Alinhamento")}
           </Button>
         </DialogFooter>
       </DialogContent>

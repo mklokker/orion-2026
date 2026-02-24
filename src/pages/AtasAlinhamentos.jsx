@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { MeetingMinutes } from "@/entities/MeetingMinutes";
 import { TeamAlignment } from "@/entities/TeamAlignment";
+import { AlignmentTopic } from "@/entities/AlignmentTopic";
 import { AlignmentCategory } from "@/entities/AlignmentCategory";
 import { User } from "@/entities/User";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Search,
   Plus,
@@ -20,9 +20,9 @@ import {
   Filter,
   ChevronRight,
   CheckCircle2,
-  AlertCircle,
   Tag,
-  Settings
+  Settings,
+  AlertTriangle
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { format } from "date-fns";
@@ -59,9 +59,11 @@ export default function AtasAlinhamentos() {
   const [activeTab, setActiveTab] = useState("alinhamentos");
   const [searchQuery, setSearchQuery] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
+  const [searchTopics, setSearchTopics] = useState("");
   
   const [meetings, setMeetings] = useState([]);
   const [alignments, setAlignments] = useState([]);
+  const [allTopics, setAllTopics] = useState([]);
   const [categories, setCategories] = useState([]);
   const [users, setUsers] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
@@ -82,16 +84,18 @@ export default function AtasAlinhamentos() {
 
   const loadData = async () => {
     try {
-      const [userData, meetingsData, alignmentsData, categoriesData, usersData] = await Promise.all([
+      const [userData, meetingsData, alignmentsData, topicsData, categoriesData, usersData] = await Promise.all([
         User.me(),
         MeetingMinutes.list("-meeting_date"),
         TeamAlignment.list("-alignment_date"),
+        AlignmentTopic.list("order"),
         AlignmentCategory.list(),
         User.list()
       ]);
       setCurrentUser(userData);
       setMeetings(meetingsData);
       setAlignments(alignmentsData);
+      setAllTopics(topicsData);
       setCategories(categoriesData);
       setUsers(usersData);
     } catch (error) {
@@ -101,22 +105,44 @@ export default function AtasAlinhamentos() {
   };
 
   const filteredMeetings = meetings.filter(m => {
-    const matchesSearch = m.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          m.responsible?.toLowerCase().includes(searchQuery.toLowerCase());
+    const searchLower = searchQuery.toLowerCase();
+    const matchesSearch = m.title?.toLowerCase().includes(searchLower) ||
+                          m.responsible?.toLowerCase().includes(searchLower);
     const matchesCategory = filterCategory === "all" || m.category === filterCategory;
     return matchesSearch && matchesCategory;
   });
 
   const filteredAlignments = alignments.filter(a => {
-    const matchesSearch = a.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                          a.description?.toLowerCase().includes(searchQuery.toLowerCase());
+    const searchLower = searchQuery.toLowerCase();
+    const matchesSearch = a.title?.toLowerCase().includes(searchLower) ||
+                          a.description?.toLowerCase().includes(searchLower);
     const matchesCategory = filterCategory === "all" || a.category === filterCategory;
     return matchesSearch && matchesCategory;
   });
 
+  // Busca de tópicos
+  const searchedTopics = searchTopics.trim() ? allTopics.filter(t => {
+    const searchLower = searchTopics.toLowerCase();
+    return t.title?.toLowerCase().includes(searchLower) ||
+           t.content?.toLowerCase().includes(searchLower);
+  }) : [];
+
+  const getAlignmentForTopic = (topicId) => {
+    const topic = allTopics.find(t => t.id === topicId);
+    if (!topic) return null;
+    return alignments.find(a => a.id === topic.alignment_id);
+  };
+
   const getCategoryColor = (categoryName) => {
     const cat = categories.find(c => c.name === categoryName);
     return cat?.color || "#3B82F6";
+  };
+
+  const getTopicsCount = (alignmentId) => {
+    const topics = allTopics.filter(t => t.alignment_id === alignmentId);
+    const vigentes = topics.filter(t => t.status === 'vigente').length;
+    const revogados = topics.filter(t => t.status === 'revogado').length;
+    return { vigentes, revogados, total: topics.length };
   };
 
   return (
@@ -136,20 +162,76 @@ export default function AtasAlinhamentos() {
 
           <div className="flex gap-2">
             {isAdmin && (
-              <Button variant="outline" onClick={() => setShowCategoryManager(true)} className="gap-2">
-                <Settings className="w-4 h-4" />
-                Categorias
-              </Button>
+              <>
+                <Button variant="outline" onClick={() => setShowCategoryManager(true)} className="gap-2">
+                  <Settings className="w-4 h-4" />
+                  Categorias
+                </Button>
+                <Button
+                  onClick={() => activeTab === "atas" ? setShowCreateMeeting(true) : setShowCreateAlignment(true)}
+                  className="gap-2 bg-gradient-to-r from-blue-600 to-indigo-600"
+                >
+                  <Plus className="w-4 h-4" />
+                  {activeTab === "atas" ? "Nova Ata" : "Novo Alinhamento"}
+                </Button>
+              </>
             )}
-            <Button
-              onClick={() => activeTab === "atas" ? setShowCreateMeeting(true) : setShowCreateAlignment(true)}
-              className="gap-2 bg-gradient-to-r from-blue-600 to-indigo-600"
-            >
-              <Plus className="w-4 h-4" />
-              {activeTab === "atas" ? "Nova Ata" : "Novo Alinhamento"}
-            </Button>
           </div>
         </div>
+
+        {/* Busca Global de Tópicos */}
+        <Card>
+          <CardContent className="pt-4">
+            <div className="space-y-3">
+              <label className="text-sm font-medium text-gray-700 flex items-center gap-2">
+                <Search className="w-4 h-4" />
+                Buscar Tópicos em Todos os Alinhamentos
+              </label>
+              <Input
+                placeholder="Digite para buscar tópicos específicos..."
+                value={searchTopics}
+                onChange={(e) => setSearchTopics(e.target.value)}
+              />
+              {searchedTopics.length > 0 && (
+                <div className="mt-3 space-y-2 max-h-[300px] overflow-y-auto">
+                  <p className="text-sm text-gray-500">{searchedTopics.length} tópico(s) encontrado(s)</p>
+                  {searchedTopics.map(topic => {
+                    const alignment = getAlignmentForTopic(topic.id);
+                    return (
+                      <div 
+                        key={topic.id} 
+                        className={`p-3 border rounded-lg cursor-pointer hover:bg-gray-50 ${topic.status === 'revogado' ? 'bg-red-50 border-red-200' : ''}`}
+                        onClick={() => alignment && setViewingAlignment(alignment)}
+                      >
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className={`font-medium ${topic.status === 'revogado' ? 'line-through text-gray-500' : ''}`}>
+                                {topic.title}
+                              </span>
+                              {topic.status === 'revogado' && (
+                                <Badge variant="outline" className="text-red-600 border-red-300 text-xs">
+                                  Revogado
+                                </Badge>
+                              )}
+                            </div>
+                            <p className="text-sm text-gray-500 truncate">{topic.content}</p>
+                            {alignment && (
+                              <p className="text-xs text-blue-600 mt-1">
+                                Alinhamento: {alignment.title}
+                              </p>
+                            )}
+                          </div>
+                          <ChevronRight className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -205,16 +287,19 @@ export default function AtasAlinhamentos() {
                 <CardContent className="py-12 text-center">
                   <Users className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                   <p className="text-gray-500 text-lg">Nenhum alinhamento encontrado</p>
-                  <Button onClick={() => setShowCreateAlignment(true)} className="mt-4 gap-2">
-                    <Plus className="w-4 h-4" />
-                    Criar Primeiro Alinhamento
-                  </Button>
+                  {isAdmin && (
+                    <Button onClick={() => setShowCreateAlignment(true)} className="mt-4 gap-2">
+                      <Plus className="w-4 h-4" />
+                      Criar Primeiro Alinhamento
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
             ) : (
               <div className="grid gap-4">
                 {filteredAlignments.map(alignment => {
                   const isAcknowledged = alignment.acknowledged_by?.includes(currentUser?.email);
+                  const topicsCount = getTopicsCount(alignment.id);
                   return (
                     <Card 
                       key={alignment.id} 
@@ -225,13 +310,22 @@ export default function AtasAlinhamentos() {
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between gap-4">
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-2">
+                            <div className="flex items-center gap-2 mb-2 flex-wrap">
                               <Badge style={{ backgroundColor: getCategoryColor(alignment.category) }} className="text-white">
                                 {alignment.category}
                               </Badge>
                               <Badge className={priorityColors[alignment.priority]}>
                                 {priorityLabels[alignment.priority]}
                               </Badge>
+                              {topicsCount.total > 0 && (
+                                <Badge variant="outline" className="gap-1">
+                                  <Tag className="w-3 h-3" />
+                                  {topicsCount.vigentes} tópico(s)
+                                  {topicsCount.revogados > 0 && (
+                                    <span className="text-red-500">({topicsCount.revogados} revogado(s))</span>
+                                  )}
+                                </Badge>
+                              )}
                               {isAcknowledged && (
                                 <Badge variant="outline" className="gap-1 text-green-600 border-green-600">
                                   <CheckCircle2 className="w-3 h-3" />
@@ -240,7 +334,9 @@ export default function AtasAlinhamentos() {
                               )}
                             </div>
                             <h3 className="font-semibold text-lg truncate">{alignment.title}</h3>
-                            <p className="text-sm text-gray-500 line-clamp-2 mt-1">{alignment.description}</p>
+                            {alignment.description && (
+                              <p className="text-sm text-gray-500 line-clamp-2 mt-1">{alignment.description}</p>
+                            )}
                             <div className="flex items-center gap-4 mt-3 text-xs text-gray-500">
                               <span className="flex items-center gap-1">
                                 <Calendar className="w-3 h-3" />
@@ -273,10 +369,12 @@ export default function AtasAlinhamentos() {
                 <CardContent className="py-12 text-center">
                   <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                   <p className="text-gray-500 text-lg">Nenhuma ata de reunião encontrada</p>
-                  <Button onClick={() => setShowCreateMeeting(true)} className="mt-4 gap-2">
-                    <Plus className="w-4 h-4" />
-                    Criar Primeira Ata
-                  </Button>
+                  {isAdmin && (
+                    <Button onClick={() => setShowCreateMeeting(true)} className="mt-4 gap-2">
+                      <Plus className="w-4 h-4" />
+                      Criar Primeira Ata
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
             ) : (
@@ -364,12 +462,15 @@ export default function AtasAlinhamentos() {
         open={!!viewingAlignment}
         onClose={() => setViewingAlignment(null)}
         alignment={viewingAlignment}
+        topics={allTopics.filter(t => t.alignment_id === viewingAlignment?.id)}
+        allTopics={allTopics}
         currentUser={currentUser}
         users={users}
         isAdmin={isAdmin}
         onEdit={(a) => { setEditingAlignment(a); setShowCreateAlignment(true); setViewingAlignment(null); }}
         onDelete={loadData}
         onAcknowledge={loadData}
+        onTopicsChange={loadData}
       />
 
       <CategoryManagerModal
