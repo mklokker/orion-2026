@@ -32,36 +32,9 @@ svg,
   -webkit-tap-highlight-color: transparent;
 }
 
-/* System dark mode sync - improved dark mode colors */
-@media (prefers-color-scheme: dark) {
-  :root:not(.light) {
-    color-scheme: dark;
-    --background: 222 47% 11%;
-    --foreground: 210 40% 98%;
-    --card: 222 47% 14%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222 47% 14%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 217 91% 60%;
-    --primary-foreground: 222 47% 11%;
-    --secondary: 217 33% 25%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217 33% 20%;
-    --muted-foreground: 215 20% 65%;
-    --accent: 217 33% 25%;
-    --accent-foreground: 210 40% 98%;
-    --destructive: 0 63% 31%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217 33% 25%;
-    --input: 217 33% 25%;
-    --ring: 217 91% 60%;
-  }
-}
-
-@media (prefers-color-scheme: light) {
-  :root:not(.dark) {
-    color-scheme: light;
-  }
+/* Light mode - default colors (no special overrides needed) */
+:root:not(.dark) {
+  color-scheme: light;
 }
 
 /* Dark mode specific overrides - Modern dark theme inspired by analytics dashboards */
