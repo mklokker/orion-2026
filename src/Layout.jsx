@@ -148,13 +148,13 @@ export default function Layout({ children }) {
     { title: "Ranking", url: createPageUrl("Ranking"), icon: Star },
   ];
 
-  const gestaoRIItems = [
+  const gestaoRIItems = isAdmin ? [
     { title: "Plano de Ação", url: createPageUrl("PlanoAcao"), icon: Target },
     { title: "Produtividade Geral", url: createPageUrl("ProdutividadeGeral"), icon: TrendingUp },
     { title: "Relatórios", url: createPageUrl("Relatorios"), icon: BarChart3 },
     { title: "Mapa de Funcionários", url: createPageUrl("MapaFuncionarios"), icon: Users },
-    ...(isAdmin ? [{ title: "Administração", url: createPageUrl("Admin"), icon: Settings }] : [])
-  ];
+    { title: "Administração", url: createPageUrl("Admin"), icon: Settings }
+  ] : [];
 
   const isGestaoRIActive = gestaoRIItems.some(item => location.pathname === item.url);
   const [gestaoRIOpen, setGestaoRIOpen] = React.useState(isGestaoRIActive);
@@ -372,41 +372,43 @@ export default function Layout({ children }) {
                     </SidebarMenuItem>
                   ))}
                   
-                  {/* Gestão RI - Menu com sub-itens */}
-                  <Collapsible open={gestaoRIOpen} onOpenChange={setGestaoRIOpen}>
-                    <SidebarMenuItem>
-                      <CollapsibleTrigger asChild>
-                        <SidebarMenuButton
-                          className={`hover:bg-blue-50 hover:text-primary transition-all duration-200 rounded-lg mb-1 w-full ${
-                            isGestaoRIActive ? 'bg-gradient-to-r from-primary to-primary-accent text-white hover:text-white' : ''
-                          }`}
-                        >
-                          <Building2 className="w-5 h-5" />
-                          <span className="font-medium flex-1">Gestão RI</span>
-                          <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${gestaoRIOpen ? 'rotate-180' : ''}`} />
-                        </SidebarMenuButton>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent>
-                        <SidebarMenuSub>
-                          {gestaoRIItems.map((subItem) => (
-                            <SidebarMenuSubItem key={subItem.title}>
-                              <SidebarMenuSubButton
-                                asChild
-                                className={`hover:bg-blue-50 hover:text-primary transition-all duration-200 rounded-lg ${
-                                  location.pathname === subItem.url ? 'bg-blue-100 text-primary font-semibold' : ''
-                                }`}
-                              >
-                                <Link to={subItem.url} className="flex items-center gap-2">
-                                  <subItem.icon className="w-4 h-4" />
-                                  <span>{subItem.title}</span>
-                                </Link>
-                              </SidebarMenuSubButton>
-                            </SidebarMenuSubItem>
-                          ))}
-                        </SidebarMenuSub>
-                      </CollapsibleContent>
-                    </SidebarMenuItem>
-                  </Collapsible>
+                  {/* Gestão RI - Menu com sub-itens (apenas para admins) */}
+                  {isAdmin && (
+                    <Collapsible open={gestaoRIOpen} onOpenChange={setGestaoRIOpen}>
+                      <SidebarMenuItem>
+                        <CollapsibleTrigger asChild>
+                          <SidebarMenuButton
+                            className={`hover:bg-blue-50 hover:text-primary transition-all duration-200 rounded-lg mb-1 w-full ${
+                              isGestaoRIActive ? 'bg-gradient-to-r from-primary to-primary-accent text-white hover:text-white' : ''
+                            }`}
+                          >
+                            <Building2 className="w-5 h-5" />
+                            <span className="font-medium flex-1">Gestão RI</span>
+                            <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${gestaoRIOpen ? 'rotate-180' : ''}`} />
+                          </SidebarMenuButton>
+                        </CollapsibleTrigger>
+                        <CollapsibleContent>
+                          <SidebarMenuSub>
+                            {gestaoRIItems.map((subItem) => (
+                              <SidebarMenuSubItem key={subItem.title}>
+                                <SidebarMenuSubButton
+                                  asChild
+                                  className={`hover:bg-blue-50 hover:text-primary transition-all duration-200 rounded-lg ${
+                                    location.pathname === subItem.url ? 'bg-blue-100 text-primary font-semibold' : ''
+                                  }`}
+                                >
+                                  <Link to={subItem.url} className="flex items-center gap-2">
+                                    <subItem.icon className="w-4 h-4" />
+                                    <span>{subItem.title}</span>
+                                  </Link>
+                                </SidebarMenuSubButton>
+                              </SidebarMenuSubItem>
+                            ))}
+                          </SidebarMenuSub>
+                        </CollapsibleContent>
+                      </SidebarMenuItem>
+                    </Collapsible>
+                  )}
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
