@@ -33,6 +33,7 @@ import TaskViewEditModal from "../components/tasks/TaskViewEditModal";
 import ServiceViewEditModal from "../components/services/ServiceViewEditModal";
 import BulkActionsModal from "../components/gestao/BulkActionsModal";
 import BulkTextLaunchModal from "../components/gestao/BulkTextLaunchModal";
+import MobileTaskCard from "../components/gestao/MobileTaskCard";
 import { TaskInteraction } from "@/entities/TaskInteraction";
 import { ServiceInteraction } from "@/entities/ServiceInteraction";
 import { useQueryClient } from "@tanstack/react-query";
@@ -537,18 +538,19 @@ export default function GestaoTarefas() {
       <AutoStatusUpdater />
       <div className="max-w-full mx-auto space-y-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
-            Gestão de Tarefas e Serviços
+          <h1 className="text-xl md:text-4xl font-bold text-gray-900">
+            Gestão de Tarefas
           </h1>
 
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-2 md:gap-3">
             {isAdmin && selectedTasks.length > 0 && (
               <Button
                 variant="outline"
                 onClick={() => setShowBulkActionsModal(true)}
-                className="gap-2 bg-white"
+                className="gap-2 bg-white text-xs md:text-sm"
+                size="sm"
               >
-                Ações em Lote ({selectedTasks.length})
+                Lote ({selectedTasks.length})
               </Button>
             )}
             {isAdmin && (
@@ -556,25 +558,31 @@ export default function GestaoTarefas() {
                 <Button
                   variant="outline"
                   onClick={() => setShowBulkTextModal(true)}
-                  className="gap-2 bg-white"
+                  className="gap-1.5 md:gap-2 bg-white text-xs md:text-sm hidden md:flex"
+                  size="sm"
                 >
                   <FileText className="w-4 h-4" />
-                  Lançar em Lote (Texto)
+                  <span className="hidden lg:inline">Lançar em Lote (Texto)</span>
+                  <span className="lg:hidden">Texto</span>
                 </Button>
                 <Button
                   variant="outline"
                   onClick={() => setShowServiceModal(true)}
-                  className="gap-2 bg-white"
+                  className="gap-1.5 md:gap-2 bg-white text-xs md:text-sm"
+                  size="sm"
                 >
                   <Plus className="w-4 h-4" />
-                  Novo Serviço
+                  <span className="hidden md:inline">Novo Serviço</span>
+                  <span className="md:hidden">Serviço</span>
                 </Button>
                 <Button
                   onClick={() => setShowTasksModal(true)}
-                  className="gap-2 bg-gray-900 hover:bg-gray-800"
+                  className="gap-1.5 md:gap-2 bg-gray-900 hover:bg-gray-800 text-xs md:text-sm"
+                  size="sm"
                 >
                   <Plus className="w-4 h-4" />
-                  Adicionar Nova Tarefa
+                  <span className="hidden md:inline">Nova Tarefa</span>
+                  <span className="md:hidden">Tarefa</span>
                 </Button>
               </>
             )}
@@ -677,7 +685,37 @@ export default function GestaoTarefas() {
           </div>
         </Card>
 
-        <div className="bg-white rounded-lg shadow-sm border overflow-hidden">
+        {/* Mobile: Cards view */}
+        <div className="md:hidden space-y-2">
+          {paginatedItems.length === 0 ? (
+            <div className="text-center py-8 text-gray-500 bg-white rounded-lg border">
+              Nenhum item encontrado
+            </div>
+          ) : (
+            paginatedItems.map((item) => {
+              const department = departments.find(d => d.id === item.department_id);
+              const isMyItem = item.assigned_to === currentUser?.email;
+              const canComplete = (isMyItem || isAdmin) && item.status !== "Concluída";
+
+              return (
+                <MobileTaskCard
+                  key={item.id}
+                  item={item}
+                  department={department}
+                  assignedName={getUserDisplayName(item.assigned_to, users)}
+                  onView={() => handleViewItem(item)}
+                  onComplete={() => handleCompleteItem(item)}
+                  canComplete={canComplete}
+                  isSelected={selectedTasks.includes(item.id)}
+                  onToggleSelect={() => toggleTaskSelection(item.id)}
+                />
+              );
+            })
+          )}
+        </div>
+
+        {/* Desktop: Table view */}
+        <div className="hidden md:block bg-white rounded-lg shadow-sm border overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow className="bg-gray-50">

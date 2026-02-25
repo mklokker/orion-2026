@@ -253,85 +253,89 @@ export default function Ranking() {
     <div className="p-4 md:p-8 min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
       <div className="max-w-6xl mx-auto space-y-6">
         <div className="text-center space-y-2">
-          <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">
-            🏆 Ranking de Estrelas por Departamento
+          <h1 className="text-2xl md:text-5xl font-bold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">
+            🏆 Ranking de Estrelas
           </h1>
-          <p className="text-gray-600 text-lg">
+          <p className="text-gray-600 text-sm md:text-lg hidden md:block">
             Competição entre usuários do mesmo departamento
           </p>
         </div>
 
         <Card className="shadow-lg border-2">
-          <CardHeader className="border-b bg-gradient-to-r from-gray-50 to-blue-50">
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="w-5 h-5" />
-              Filtrar por Período
+          <CardHeader className="border-b bg-gradient-to-r from-gray-50 to-blue-50 py-3 md:py-6">
+            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+              <Calendar className="w-4 h-4 md:w-5 md:h-5" />
+              Filtros
             </CardTitle>
           </CardHeader>
-          <CardContent className="pt-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Buscar Usuário</label>
+          <CardContent className="pt-4 md:pt-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mb-4">
+              <div className="space-y-1 md:space-y-2">
+                <label className="text-xs md:text-sm font-medium">Buscar Usuário</label>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <Input
                     placeholder="Nome ou email..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-9"
+                    className="pl-9 h-9 md:h-10"
                   />
                 </div>
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Data Inicial</label>
-                <Input
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Data Final</label>
-                <Input
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                />
+              <div className="grid grid-cols-2 gap-2 md:contents">
+                <div className="space-y-1 md:space-y-2">
+                  <label className="text-xs md:text-sm font-medium">De</label>
+                  <Input
+                    type="date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="h-9 md:h-10"
+                  />
+                </div>
+                <div className="space-y-1 md:space-y-2">
+                  <label className="text-xs md:text-sm font-medium">Até</label>
+                  <Input
+                    type="date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="h-9 md:h-10"
+                  />
+                </div>
               </div>
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1.5 md:gap-2">
               <Badge 
-                className="cursor-pointer hover:opacity-80 bg-blue-600 text-white px-4 py-2"
+                className="cursor-pointer hover:opacity-80 bg-blue-600 text-white px-2.5 py-1 md:px-4 md:py-2 text-xs md:text-sm"
                 onClick={() => setPeriod("thisMonth")}
               >
                 Este Mês
               </Badge>
               <Badge 
-                className="cursor-pointer hover:opacity-80 bg-purple-600 text-white px-4 py-2"
+                className="cursor-pointer hover:opacity-80 bg-purple-600 text-white px-2.5 py-1 md:px-4 md:py-2 text-xs md:text-sm"
                 onClick={() => setPeriod("lastMonth")}
               >
                 Mês Passado
               </Badge>
               <Badge 
-                className="cursor-pointer hover:opacity-80 bg-indigo-600 text-white px-4 py-2"
+                className="cursor-pointer hover:opacity-80 bg-indigo-600 text-white px-2.5 py-1 md:px-4 md:py-2 text-xs md:text-sm"
                 onClick={() => setPeriod("thisYear")}
               >
                 Este Ano
               </Badge>
               <Badge 
-                className="cursor-pointer hover:opacity-80 bg-gray-600 text-white px-4 py-2"
+                className="cursor-pointer hover:opacity-80 bg-gray-600 text-white px-2.5 py-1 md:px-4 md:py-2 text-xs md:text-sm"
                 onClick={() => setPeriod("all")}
               >
-                Todo o Período
+                Tudo
               </Badge>
             </div>
           </CardContent>
         </Card>
 
         {/* Top 3 de cada Departamento - VISÍVEL PARA TODOS */}
-        <div className="space-y-6">
-          <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-            <Trophy className="w-6 h-6 text-yellow-500" />
+        <div className="space-y-4 md:space-y-6">
+          <h2 className="text-lg md:text-2xl font-bold text-gray-900 flex items-center gap-2">
+            <Trophy className="w-5 h-5 md:w-6 md:h-6 text-yellow-500" />
             Destaques por Departamento
           </h2>
           
@@ -389,7 +393,38 @@ export default function Ranking() {
                   ) : (
                     <div className="space-y-4">
                       {/* Top 3 - SEMPRE VISÍVEL PARA TODOS */}
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      {/* Mobile: Layout horizontal compacto */}
+                      <div className="md:hidden space-y-2">
+                        {ranking.slice(0, 3).map((item, index) => (
+                          <div 
+                            key={item.user_email} 
+                            className={`flex items-center gap-3 p-3 rounded-xl border-2 ${
+                              index === 0 ? 'border-yellow-400 bg-gradient-to-r from-yellow-50 to-yellow-100' :
+                              index === 1 ? 'border-gray-300 bg-gradient-to-r from-gray-50 to-gray-100' :
+                              'border-orange-300 bg-gradient-to-r from-orange-50 to-orange-100'
+                            }`}
+                          >
+                            <div className="flex-shrink-0 w-8 flex justify-center">
+                              {getRankIcon(index + 1)}
+                            </div>
+                            <Avatar className="w-12 h-12 border-2 border-white shadow">
+                              <AvatarImage src={item.profile_picture} alt={item.user_name} />
+                              <AvatarFallback className="bg-gradient-to-br from-blue-600 to-indigo-600 text-white text-sm font-bold">
+                                {getInitials(item.user_name)}
+                              </AvatarFallback>
+                            </Avatar>
+                            <div className="flex-1 min-w-0">
+                              <h3 className="text-sm font-bold text-gray-900 truncate">{item.user_name}</h3>
+                            </div>
+                            <div className="flex items-center gap-1 bg-yellow-100 px-2 py-1 rounded-full">
+                              <Star className="w-4 h-4 text-yellow-600 fill-yellow-600" />
+                              <span className="text-lg font-bold text-yellow-800">{item.total_stars}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                      {/* Desktop: Cards grandes */}
+                      <div className="hidden md:grid md:grid-cols-3 gap-4">
                         {ranking.slice(0, 3).map((item, index) => (
                           <Card 
                             key={item.user_email} 
@@ -475,7 +510,7 @@ export default function Ranking() {
           )}
         </div>
 
-        <Card className="shadow-lg border-2 bg-blue-50">
+        <Card className="shadow-lg border-2 bg-blue-50 hidden md:block">
           <CardContent className="pt-6">
             <h3 className="font-bold text-lg mb-3 flex items-center gap-2">
               <Star className="w-5 h-5 text-yellow-600" />
