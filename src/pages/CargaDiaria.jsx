@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Task } from "@/entities/Task";
 import { Service } from "@/entities/Service";
@@ -394,18 +393,18 @@ export default function CargaDiaria() {
 
   return (
     <>
-      <div className="p-4 md:p-8 min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+      <div className="p-4 md:p-8 min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
         <div className="max-w-full mx-auto space-y-6">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 no-print">
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
+              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white">
                 Carga Diária - Kanban
               </h1>
-              <p className="text-gray-600 mt-1">Arraste itens e colunas para reorganizar</p>
+              <p className="text-gray-600 dark:text-gray-400 mt-1">Arraste itens e colunas para reorganizar</p>
             </div>
             <Button
               onClick={handlePrint}
-              className="gap-2 bg-white text-gray-900 border-2 border-gray-900 hover:bg-gray-900 hover:text-white"
+              className="gap-2 bg-white dark:bg-slate-800 text-gray-900 dark:text-white border-2 border-gray-900 dark:border-slate-600 hover:bg-gray-900 hover:text-white dark:hover:bg-slate-700"
             >
               <Printer className="w-4 h-4" />
               Imprimir
@@ -413,8 +412,8 @@ export default function CargaDiaria() {
           </div>
 
           {orderedUsers.length === 0 ? (
-            <Card className="p-12 text-center">
-              <p className="text-gray-500 font-medium">
+            <Card className="p-12 text-center dark:bg-slate-800 dark:border-slate-700">
+              <p className="text-gray-500 dark:text-gray-400 font-medium">
                 Nenhum item pendente encontrado
               </p>
             </Card>
@@ -442,23 +441,23 @@ export default function CargaDiaria() {
                                 snapshot.isDragging ? 'opacity-70 rotate-1' : ''
                               }`}
                             >
-                              <Card className={`border-2 shadow-lg flex-1 flex flex-col transition-all ${
-                                snapshot.isDragging ? 'border-blue-400 shadow-2xl' : 'border-gray-200'
+                              <Card className={`border-2 shadow-lg flex-1 flex flex-col transition-all dark:bg-slate-800 ${
+                                snapshot.isDragging ? 'border-blue-400 shadow-2xl' : 'border-gray-200 dark:border-slate-700'
                               }`}>
                                 <CardHeader 
-                                  className="pb-3 border-b bg-gradient-to-r from-blue-50 to-indigo-50 cursor-pointer hover:from-blue-100 hover:to-indigo-100 transition-colors"
+                                  className="pb-3 border-b dark:border-slate-700 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-700 dark:to-slate-600 cursor-pointer hover:from-blue-100 hover:to-indigo-100 dark:hover:from-slate-600 dark:hover:to-slate-500 transition-colors"
                                   onClick={() => handleViewAllItems(user.email)}
                                 >
                                   <div className="flex items-center gap-2">
                                     <div
                                       {...provided.dragHandleProps}
-                                      className="cursor-grab active:cursor-grabbing p-1 hover:bg-blue-200 rounded transition-colors"
+                                      className="cursor-grab active:cursor-grabbing p-1 hover:bg-blue-200 dark:hover:bg-slate-500 rounded transition-colors"
                                       onClick={(e) => e.stopPropagation()}
                                     >
-                                      <GripVertical className="w-5 h-5 text-gray-500" />
+                                      <GripVertical className="w-5 h-5 text-gray-500 dark:text-gray-400" />
                                     </div>
                                     <div className="flex-1 flex items-center justify-between">
-                                      <CardTitle className="text-lg font-bold text-gray-900">
+                                      <CardTitle className="text-lg font-bold text-gray-900 dark:text-white">
                                         {user.display_name || user.full_name}
                                       </CardTitle>
                                       <Badge className="bg-blue-600 text-white text-base px-3 py-1">
@@ -466,7 +465,7 @@ export default function CargaDiaria() {
                                       </Badge>
                                     </div>
                                   </div>
-                                  <p className="text-xs text-blue-600 font-medium mt-1">
+                                  <p className="text-xs text-blue-600 dark:text-blue-400 font-medium mt-1">
                                     Clique para ver todos • Arraste pela alça para mover coluna
                                   </p>
                                 </CardHeader>
@@ -477,7 +476,7 @@ export default function CargaDiaria() {
                                       ref={provided.innerRef}
                                       {...provided.droppableProps}
                                       className={`pt-4 space-y-2 flex-1 transition-colors ${
-                                        snapshot.isDraggingOver ? 'bg-blue-50' : ''
+                                        snapshot.isDraggingOver ? 'bg-blue-50 dark:bg-slate-700' : ''
                                       }`}
                                     >
                                       {visibleItems.map((item, index) => (
@@ -487,8 +486,8 @@ export default function CargaDiaria() {
                                               ref={provided.innerRef}
                                               {...provided.draggableProps}
                                               {...provided.dragHandleProps}
-                                              className={`p-3 bg-white rounded-lg border-2 cursor-move hover:shadow-md transition-all ${
-                                                snapshot.isDragging ? 'shadow-lg border-blue-400 rotate-2' : 'border-gray-200'
+                                              className={`p-3 bg-white dark:bg-slate-700 rounded-lg border-2 cursor-move hover:shadow-md transition-all ${
+                                                snapshot.isDragging ? 'shadow-lg border-blue-400 rotate-2' : 'border-gray-200 dark:border-slate-600'
                                               }`}
                                               onClick={(e) => {
                                                 if (!snapshot.isDragging) {
@@ -497,7 +496,7 @@ export default function CargaDiaria() {
                                               }}
                                             >
                                               <div className="flex items-center justify-between mb-2">
-                                                <span className="font-bold text-gray-900 text-sm">
+                                                <span className="font-bold text-gray-900 dark:text-white text-sm">
                                                   {item.displayProtocol}
                                                 </span>
                                                 <Badge className={`${priorityColors[item.priority]} text-xs px-2 py-0.5`}>
@@ -505,7 +504,7 @@ export default function CargaDiaria() {
                                                 </Badge>
                                               </div>
                                               <div className="flex items-center justify-between text-xs">
-                                                <span className="text-gray-600">
+                                                <span className="text-gray-600 dark:text-gray-400">
                                                   {item.end_date ? format(parseDateAsLocal(item.end_date), "dd/MM", { locale: ptBR }) : '-'}
                                                 </span>
                                                 <Badge className={`${statusColors[item.status]} text-xs px-2 py-0.5`}>
@@ -520,7 +519,7 @@ export default function CargaDiaria() {
                                       {hasMore && (
                                         <button
                                           onClick={() => handleViewAllItems(user.email)}
-                                          className="w-full text-center text-sm text-blue-600 hover:text-blue-800 font-medium py-2 hover:bg-blue-50 rounded transition-colors"
+                                          className="w-full text-center text-sm text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 font-medium py-2 hover:bg-blue-50 dark:hover:bg-slate-700 rounded transition-colors"
                                         >
                                           + {userItems.length - 15} itens adicionais
                                         </button>
