@@ -37,8 +37,8 @@ import CreateAtaModal from "@/components/atas/CreateAtaModal";
 import AlinhamentoViewModal from "@/components/atas/AlinhamentoViewModal";
 import AtaViewModal from "@/components/atas/AtaViewModal";
 import CategoriaManagerModal from "@/components/atas/CategoriaManagerModal";
-import AuditLogModal from "@/components/atas/AuditLogModal";
-import DeletedItemsTab from "@/components/atas/DeletedItemsTab";
+import AuditLogModal from "@/components/atas/AuditLogModal.jsx";
+import DeletedItemsTab from "@/components/atas/DeletedItemsTab.jsx";
 
 export default function AtasAlinhamentos() {
   const { toast } = useToast();
