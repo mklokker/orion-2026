@@ -383,7 +383,7 @@ export default function CreateAtaModal({
                 { key: "agenda_fulfilled", label: "Pauta foi cumprida" },
                 { key: "all_participants_present", label: "Todos presentes" },
               ].map(({ key, label }) => (
-                <div key={key} className="flex items-center justify-between p-2 rounded-lg border bg-gray-50">
+                <div key={key} className={`flex items-center justify-between p-2 rounded-lg border ${form.controls[key] ? 'bg-green-50 border-green-200' : 'bg-gray-50'}`}>
                   <Label htmlFor={`control-${key}`} className="text-sm cursor-pointer">{label}</Label>
                   <Switch
                     id={`control-${key}`}
@@ -394,6 +394,7 @@ export default function CreateAtaModal({
                         controls: { ...form.controls, [key]: checked === true },
                       })
                     }
+                    className="data-[state=checked]:bg-green-500"
                   />
                 </div>
               ))}
