@@ -290,17 +290,27 @@ export default function CreatePlanoModal({ open, onClose, onSave, plano, categor
                     return (
                       <div
                         key={program.id}
-                        onClick={() => toggleProgram(program.name)}
-                        className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors ${
-                          isSelected ? 'bg-green-100 border border-green-300' : 'bg-white border border-gray-200 hover:bg-gray-50'
+                        className={`flex items-center justify-between p-2 rounded-lg transition-colors ${
+                          isSelected ? 'bg-green-100 border border-green-300' : 'bg-white border border-gray-200'
                         }`}
                       >
-                        <span className={`text-sm ${isSelected ? 'text-green-800 font-medium' : 'text-gray-700'}`}>
+                        <label 
+                          htmlFor={`switch-${program.id}`}
+                          className={`text-sm cursor-pointer flex-1 ${isSelected ? 'text-green-800 font-medium' : 'text-gray-700'}`}
+                        >
                           {program.name}
-                        </span>
+                        </label>
                         <Switch
+                          id={`switch-${program.id}`}
                           checked={isSelected}
-                          onCheckedChange={() => toggleProgram(program.name)}
+                          onCheckedChange={(checked) => {
+                            setForm(prev => ({
+                              ...prev,
+                              programs: checked
+                                ? [...prev.programs, program.name]
+                                : prev.programs.filter(p => p !== program.name)
+                            }));
+                          }}
                           className={isSelected ? 'data-[state=checked]:bg-green-500' : ''}
                         />
                       </div>
