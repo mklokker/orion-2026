@@ -22,7 +22,6 @@ import {
   Clock,
   AlertTriangle,
   Settings,
-  Eye,
   Edit,
 } from "lucide-react";
 import { format } from "date-fns";
