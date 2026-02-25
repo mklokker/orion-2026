@@ -281,7 +281,7 @@ export default function Acervo() {
   const uncategorizedDocs = filteredDocuments.filter(doc => !doc.category_id);
 
   return (
-    <div className="p-4 md:p-8 min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+    <div className="p-4 md:p-8 min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -290,7 +290,7 @@ export default function Acervo() {
               <Files className="w-6 h-6 md:w-10 md:h-10 text-blue-600" />
               Acervo
             </h1>
-            <p className="text-gray-600 text-xs md:text-base mt-1 md:mt-2 hidden md:block">
+            <p className="text-gray-600 dark:text-gray-400 text-xs md:text-base mt-1 md:mt-2 hidden md:block">
               Repositório central de documentos, POPs e materiais de referência
             </p>
           </div>
@@ -336,36 +336,36 @@ export default function Acervo() {
 
         {/* Stats */}
         <div className="grid grid-cols-3 gap-2 md:gap-4">
-          <Card>
+          <Card className="dark:bg-slate-800 dark:border-slate-700">
             <CardContent className="pt-3 md:pt-6 px-3 md:px-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs md:text-sm text-gray-600">Documentos</p>
-                  <p className="text-xl md:text-3xl font-bold text-gray-900">{documents.length}</p>
+                  <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400">Documentos</p>
+                  <p className="text-xl md:text-3xl font-bold text-gray-900 dark:text-white">{documents.length}</p>
                 </div>
                 <FileText className="w-6 h-6 md:w-10 md:h-10 text-blue-600 opacity-20 hidden md:block" />
               </div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="dark:bg-slate-800 dark:border-slate-700">
             <CardContent className="pt-3 md:pt-6 px-3 md:px-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs md:text-sm text-gray-600">Categorias</p>
-                  <p className="text-xl md:text-3xl font-bold text-gray-900">{categories.length}</p>
+                  <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400">Categorias</p>
+                  <p className="text-xl md:text-3xl font-bold text-gray-900 dark:text-white">{categories.length}</p>
                 </div>
                 <FolderOpen className="w-6 h-6 md:w-10 md:h-10 text-indigo-600 opacity-20 hidden md:block" />
               </div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="dark:bg-slate-800 dark:border-slate-700">
             <CardContent className="pt-3 md:pt-6 px-3 md:px-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs md:text-sm text-gray-600">Visualizações</p>
-                  <p className="text-xl md:text-3xl font-bold text-gray-900">
+                  <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400">Visualizações</p>
+                  <p className="text-xl md:text-3xl font-bold text-gray-900 dark:text-white">
                     {documents.reduce((acc, doc) => acc + (doc.views_count || 0), 0)}
                   </p>
                 </div>
@@ -376,7 +376,7 @@ export default function Acervo() {
         </div>
 
         {/* Filtros */}
-        <Card>
+        <Card className="dark:bg-slate-800 dark:border-slate-700">
           <CardContent className="pt-4 md:pt-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
               <div className="relative">
@@ -430,11 +430,11 @@ export default function Acervo() {
 
         {/* Documentos por Categoria */}
         {groupedByCategory.length === 0 && uncategorizedDocs.length === 0 ? (
-          <Card>
+          <Card className="dark:bg-slate-800 dark:border-slate-700">
             <CardContent className="py-12 text-center">
-              <FileText className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 text-lg">Nenhum documento encontrado</p>
-              <p className="text-gray-400 text-sm mt-2">
+              <FileText className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+              <p className="text-gray-500 dark:text-gray-400 text-lg">Nenhum documento encontrado</p>
+              <p className="text-gray-400 dark:text-gray-500 text-sm mt-2">
                 {searchQuery || selectedCategory !== "all" 
                   ? "Tente ajustar os filtros de busca" 
                   : "Comece adicionando seu primeiro documento"}
@@ -450,7 +450,7 @@ export default function Acervo() {
                     className="w-1 h-8 rounded-full"
                     style={{ backgroundColor: category.color }}
                   />
-                  <h2 className="text-2xl font-bold text-gray-900">{category.name}</h2>
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{category.name}</h2>
                   <Badge variant="outline">{catDocs.length}</Badge>
                 </div>
 
@@ -458,12 +458,12 @@ export default function Acervo() {
                   {catDocs.map(doc => (
                     <Card 
                       key={doc.id} 
-                      className="hover:shadow-lg transition-all cursor-pointer border-2 hover:border-blue-300 relative"
+                      className="hover:shadow-lg transition-all cursor-pointer border-2 hover:border-blue-300 dark:hover:border-blue-600 relative dark:bg-slate-800 dark:border-slate-700"
                       onClick={() => handleViewDocument(doc)}
                     >
                       <button
                         onClick={(e) => toggleFavorite(doc, e)}
-                        className="absolute top-3 right-3 z-10 p-2 rounded-full hover:bg-gray-100 transition-colors"
+                        className="absolute top-3 right-3 z-10 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
                       >
                         <Star 
                           className={`w-5 h-5 ${
@@ -483,9 +483,9 @@ export default function Acervo() {
                             )}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <CardTitle className="text-base truncate">{doc.title}</CardTitle>
+                            <CardTitle className="text-base truncate dark:text-white">{doc.title}</CardTitle>
                             {doc.description && (
-                              <p className="text-sm text-gray-600 line-clamp-2 mt-1">
+                              <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mt-1">
                                 {doc.description}
                               </p>
                             )}
@@ -494,21 +494,21 @@ export default function Acervo() {
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-2">
-                          <div className="flex items-center justify-between text-xs text-gray-500">
+                          <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
                             <span>Por: {doc.uploaded_by_name}</span>
                             <span>{format(new Date(doc.created_date), "dd/MM/yyyy", { locale: ptBR })}</span>
                           </div>
                           
                           {doc.document_type === 'file' && (
                             <div className="flex items-center justify-between text-xs">
-                              <span className="text-gray-500">{formatFileSize(doc.file_size)}</span>
+                              <span className="text-gray-500 dark:text-gray-400">{formatFileSize(doc.file_size)}</span>
                               <Badge variant="outline" className="text-xs">
                                 {doc.file_name?.split('.').pop()?.toUpperCase()}
                               </Badge>
                             </div>
                           )}
 
-                          <div className="flex items-center gap-1 text-xs text-gray-500">
+                          <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
                             <Eye className="w-3 h-3" />
                             <span>{doc.views_count || 0} visualizações</span>
                           </div>
@@ -548,7 +548,7 @@ export default function Acervo() {
               <div>
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-1 h-8 rounded-full bg-gray-400" />
-                  <h2 className="text-2xl font-bold text-gray-900">Sem Categoria</h2>
+                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Sem Categoria</h2>
                   <Badge variant="outline">{uncategorizedDocs.length}</Badge>
                 </div>
 
@@ -556,12 +556,12 @@ export default function Acervo() {
                   {uncategorizedDocs.map(doc => (
                     <Card 
                       key={doc.id} 
-                      className="hover:shadow-lg transition-all cursor-pointer border-2 hover:border-blue-300 relative"
+                      className="hover:shadow-lg transition-all cursor-pointer border-2 hover:border-blue-300 dark:hover:border-blue-600 relative dark:bg-slate-800 dark:border-slate-700"
                       onClick={() => handleViewDocument(doc)}
                     >
                       <button
                         onClick={(e) => toggleFavorite(doc, e)}
-                        className="absolute top-3 right-3 z-10 p-2 rounded-full hover:bg-gray-100 transition-colors"
+                        className="absolute top-3 right-3 z-10 p-2 rounded-full hover:bg-gray-100 dark:hover:bg-slate-700 transition-colors"
                       >
                         <Star 
                           className={`w-5 h-5 ${
@@ -581,9 +581,9 @@ export default function Acervo() {
                             )}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <CardTitle className="text-base truncate">{doc.title}</CardTitle>
+                            <CardTitle className="text-base truncate dark:text-white">{doc.title}</CardTitle>
                             {doc.description && (
-                              <p className="text-sm text-gray-600 line-clamp-2 mt-1">
+                              <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mt-1">
                                 {doc.description}
                               </p>
                             )}
@@ -592,21 +592,21 @@ export default function Acervo() {
                       </CardHeader>
                       <CardContent>
                         <div className="space-y-2">
-                          <div className="flex items-center justify-between text-xs text-gray-500">
+                          <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
                             <span>Por: {doc.uploaded_by_name}</span>
                             <span>{format(new Date(doc.created_date), "dd/MM/yyyy", { locale: ptBR })}</span>
                           </div>
                           
                           {doc.document_type === 'file' && (
                             <div className="flex items-center justify-between text-xs">
-                              <span className="text-gray-500">{formatFileSize(doc.file_size)}</span>
+                              <span className="text-gray-500 dark:text-gray-400">{formatFileSize(doc.file_size)}</span>
                               <Badge variant="outline" className="text-xs">
                                 {doc.file_name?.split('.').pop()?.toUpperCase()}
                               </Badge>
                             </div>
                           )}
 
-                          <div className="flex items-center gap-1 text-xs text-gray-500">
+                          <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
                             <Eye className="w-3 h-3" />
                             <span>{doc.views_count || 0} visualizações</span>
                           </div>
