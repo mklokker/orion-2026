@@ -1,6 +1,7 @@
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard,
   ClipboardList,
@@ -20,6 +21,7 @@ import {
   ScrollText,
   Building2,
   ChevronDown,
+  ChevronLeft,
   Target,
 } from "lucide-react";
 import {
@@ -114,8 +116,9 @@ const setCachedSettings = (settings) => {
   }
 };
 
-export default function Layout({ children }) {
+export default function Layout({ children, currentPageName }) {
   const location = useLocation();
+  const navigate = useNavigate();
   const [user, setUser] = React.useState(null);
   const [showProfileModal, setShowProfileModal] = React.useState(false);
   const [appSettings, setAppSettings] = React.useState(null);
@@ -126,6 +129,29 @@ export default function Layout({ children }) {
   );
   
   const unreadChatCount = 0;
+  
+  // Check if we're on the dashboard (home) page
+  const isDashboard = location.pathname === '/Dashboard' || location.pathname === '/' || location.pathname === '';
+  
+  // System theme detection
+  React.useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    
+    const handleThemeChange = (e) => {
+      if (e.matches) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    };
+    
+    // Set initial theme
+    handleThemeChange(mediaQuery);
+    
+    // Listen for changes
+    mediaQuery.addEventListener('change', handleThemeChange);
+    return () => mediaQuery.removeEventListener('change', handleThemeChange);
+  }, []);
 
 
 
@@ -494,24 +520,35 @@ export default function Layout({ children }) {
 
         <main className="flex-1 flex flex-col">
           <header 
-            className="bg-white/80 backdrop-blur-xl border-b border-gray-200/50 px-4 py-2 flex items-center justify-center md:hidden shadow-sm relative sticky top-0 z-40 select-none"
+            className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-700/50 px-4 py-2 flex items-center justify-center md:hidden shadow-sm relative sticky top-0 z-40 select-none touch-none-select"
             style={{ paddingTop: 'max(env(safe-area-inset-top, 0px), 8px)' }}
           >
             <div className="absolute left-4 top-1/2 -translate-y-1/2">
-                <SidebarTrigger className="hover:bg-gray-100 active:bg-gray-200 p-2 rounded-lg transition-colors duration-200 touch-manipulation" />
+              {!isDashboard ? (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => navigate(-1)}
+                  className="hover:bg-gray-100 dark:hover:bg-gray-800 active:bg-gray-200 dark:active:bg-gray-700 p-2 rounded-lg transition-colors duration-200 touch-manipulation touch-none-select"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </Button>
+              ) : (
+                <SidebarTrigger className="hover:bg-gray-100 dark:hover:bg-gray-800 active:bg-gray-200 dark:active:bg-gray-700 p-2 rounded-lg transition-colors duration-200 touch-manipulation touch-none-select" />
+              )}
             </div>
             <div className="h-10">
                 {appSettings?.logo_url ? (
                     <img src={appSettings.logo_url} alt="Logo" className="h-full w-auto object-contain" />
                 ) : (
-                    <h1 className="text-xl font-bold text-gray-900">Orion</h1>
+                    <h1 className="text-xl font-bold text-gray-900 dark:text-white">Orion</h1>
                 )}
             </div>
             <div className="absolute right-4 top-1/2 -translate-y-1/2">
               <Button
                 variant="ghost"
                 size="icon"
-                className="relative touch-manipulation"
+                className="relative touch-manipulation touch-none-select"
                 onClick={handleOpenNotifications}
               >
                 <Bell className="w-5 h-5" />
@@ -528,7 +565,18 @@ export default function Layout({ children }) {
           </header>
 
           <div className="flex-1 overflow-auto pb-20 md:pb-0">
-            {children}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={location.pathname}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.2, ease: "easeInOut" }}
+                className="h-full"
+              >
+                {children}
+              </motion.div>
+            </AnimatePresence>
           </div>
         </main>
         
