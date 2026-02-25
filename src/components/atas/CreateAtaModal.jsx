@@ -22,7 +22,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { X, Search, Check } from "lucide-react";
 import { base44 } from "@/api/base44Client";
@@ -375,7 +375,7 @@ export default function CreateAtaModal({
 
           <div>
             <Label className="mb-2 block">Controles</Label>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-4">
               {[
                 { key: "on_time", label: "Reunião no horário" },
                 { key: "started_on_time", label: "Iniciou no horário" },
@@ -383,8 +383,9 @@ export default function CreateAtaModal({
                 { key: "agenda_fulfilled", label: "Pauta foi cumprida" },
                 { key: "all_participants_present", label: "Todos presentes" },
               ].map(({ key, label }) => (
-                <div key={key} className="flex items-center gap-2">
-                  <Checkbox
+                <div key={key} className="flex items-center justify-between p-2 rounded-lg border bg-gray-50">
+                  <Label htmlFor={`control-${key}`} className="text-sm cursor-pointer">{label}</Label>
+                  <Switch
                     id={`control-${key}`}
                     checked={form.controls[key] === true}
                     onCheckedChange={(checked) =>
@@ -394,7 +395,6 @@ export default function CreateAtaModal({
                       })
                     }
                   />
-                  <Label htmlFor={`control-${key}`} className="text-sm cursor-pointer">{label}</Label>
                 </div>
               ))}
             </div>
