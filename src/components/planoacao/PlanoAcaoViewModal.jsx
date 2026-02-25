@@ -160,43 +160,43 @@ export default function PlanoAcaoViewModal({ open, onClose, plano, items, users,
           <ScrollArea className="max-h-[70vh] pr-4">
             <div className="space-y-6">
               {/* Info Grid */}
-              <div className="grid grid-cols-3 gap-4 p-4 bg-gray-50 rounded-lg text-sm">
+              <div className="grid grid-cols-3 gap-4 p-4 bg-gray-50 dark:bg-[#1a1a1a] rounded-lg text-sm">
                 <div>
-                  <p className="text-gray-500">Data de Criação</p>
-                  <p className="font-medium">{plano.start_date && format(new Date(plano.start_date), "dd/MM/yyyy", { locale: ptBR })}</p>
+                  <p className="text-gray-500 dark:text-[#6b6b6b]">Data de Criação</p>
+                  <p className="font-medium dark:text-white">{plano.start_date && format(new Date(plano.start_date), "dd/MM/yyyy", { locale: ptBR })}</p>
                 </div>
                 <div>
-                  <p className="text-gray-500">Até Quando</p>
-                  <p className="font-medium">{plano.due_date && format(new Date(plano.due_date), "dd/MM/yyyy", { locale: ptBR })}</p>
+                  <p className="text-gray-500 dark:text-[#6b6b6b]">Até Quando</p>
+                  <p className="font-medium dark:text-white">{plano.due_date && format(new Date(plano.due_date), "dd/MM/yyyy", { locale: ptBR })}</p>
                 </div>
                 <div>
-                  <p className="text-gray-500">Recursos (R$)</p>
-                  <p className="font-medium">{plano.resources?.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) || "R$ 0,00"}</p>
+                  <p className="text-gray-500 dark:text-[#6b6b6b]">Recursos (R$)</p>
+                  <p className="font-medium dark:text-white">{plano.resources?.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) || "R$ 0,00"}</p>
                 </div>
                 <div>
-                  <p className="text-gray-500">Responsável</p>
-                  <p className="font-medium">{getUserName(plano.responsible)}</p>
+                  <p className="text-gray-500 dark:text-[#6b6b6b]">Responsável</p>
+                  <p className="font-medium dark:text-white">{getUserName(plano.responsible)}</p>
                 </div>
                 <div>
-                  <p className="text-gray-500">Categoria/Fundamento</p>
-                  <p className="font-medium">{getCategoryName(plano.category_id)}</p>
+                  <p className="text-gray-500 dark:text-[#6b6b6b]">Categoria/Fundamento</p>
+                  <p className="font-medium dark:text-white">{getCategoryName(plano.category_id)}</p>
                 </div>
                 <div>
-                  <p className="text-gray-500">Tipo</p>
-                  <Badge variant="outline">
+                  <p className="text-gray-500 dark:text-[#6b6b6b]">Tipo</p>
+                  <Badge variant="outline" className="dark:border-[#2e2e2e] dark:text-[#a1a1a1]">
                     {plano.type === "estrategico" ? "Estratégico" : plano.type === "tatico" ? "Tático" : "Operacional"}
                   </Badge>
                 </div>
                 {plano.indicator_id && (
                   <div>
-                    <p className="text-gray-500">Indicador</p>
-                    <p className="font-medium">{getIndicatorName(plano.indicator_id)}</p>
+                    <p className="text-gray-500 dark:text-[#6b6b6b]">Indicador</p>
+                    <p className="font-medium dark:text-white">{getIndicatorName(plano.indicator_id)}</p>
                   </div>
                 )}
                 {plano.ata_id && (
                   <div className="col-span-2">
-                    <p className="text-gray-500">Ata de Reunião</p>
-                    <p className="font-medium text-blue-600">{getAtaTitle(plano.ata_id)}</p>
+                    <p className="text-gray-500 dark:text-[#6b6b6b]">Ata de Reunião</p>
+                    <p className="font-medium text-blue-600 dark:text-blue-400">{getAtaTitle(plano.ata_id)}</p>
                   </div>
                 )}
               </div>
@@ -204,24 +204,24 @@ export default function PlanoAcaoViewModal({ open, onClose, plano, items, users,
               {/* Programs */}
               {plano.programs?.length > 0 && (
                 <div>
-                  <p className="text-sm text-gray-500 mb-2">Programas e NBRs:</p>
+                  <p className="text-sm text-gray-500 dark:text-[#6b6b6b] mb-2">Programas e NBRs:</p>
                   <div className="flex flex-wrap gap-2">
                     {plano.programs.map((prog, idx) => (
-                      <Badge key={idx} variant="secondary">(X) {prog}</Badge>
+                      <Badge key={idx} variant="secondary" className="dark:bg-[#2a2a2a] dark:text-[#a1a1a1]">(X) {prog}</Badge>
                     ))}
                   </div>
                   {plano.programs_outros && (
-                    <p className="text-sm mt-2">Outros: {plano.programs_outros}</p>
+                    <p className="text-sm mt-2 dark:text-[#a1a1a1]">Outros: {plano.programs_outros}</p>
                   )}
                 </div>
               )}
 
               {/* Objective */}
               {plano.objective_id && (
-                <Card className="border-indigo-200 bg-indigo-50">
+                <Card className="border-indigo-200 dark:border-indigo-900/50 bg-indigo-50 dark:bg-indigo-900/20">
                   <CardContent className="p-4">
-                    <p className="text-sm font-medium text-indigo-600 mb-1">Objetivo Estratégico:</p>
-                    <p className="text-indigo-900">{getObjectiveName(plano.objective_id)}</p>
+                    <p className="text-sm font-medium text-indigo-600 dark:text-indigo-400 mb-1">Objetivo Estratégico:</p>
+                    <p className="text-indigo-900 dark:text-indigo-300">{getObjectiveName(plano.objective_id)}</p>
                   </CardContent>
                 </Card>
               )}
@@ -229,14 +229,14 @@ export default function PlanoAcaoViewModal({ open, onClose, plano, items, users,
               {/* Progress */}
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <p className="font-medium">Progresso das Ações</p>
+                  <p className="font-medium dark:text-white">Progresso das Ações</p>
                   <Badge className={statusConfig.color}>
                     <StatusIcon className="w-3 h-3 mr-1" />
                     {statusConfig.label}
                   </Badge>
                 </div>
                 <Progress value={progress} className="h-3" />
-                <p className="text-sm text-gray-500 mt-1">{completedItems} de {items.length} ações concluídas ({progress}%)</p>
+                <p className="text-sm text-gray-500 dark:text-[#6b6b6b] mt-1">{completedItems} de {items.length} ações concluídas ({progress}%)</p>
               </div>
 
               <Separator />
@@ -244,7 +244,7 @@ export default function PlanoAcaoViewModal({ open, onClose, plano, items, users,
               {/* Actions Table */}
               <div>
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="font-semibold">Ações (5W2H)</h3>
+                  <h3 className="font-semibold dark:text-white">Ações (5W2H)</h3>
                   <Button size="sm" onClick={handleAddItem}>
                     <Plus className="w-4 h-4 mr-1" />
                     Nova Ação
@@ -252,8 +252,8 @@ export default function PlanoAcaoViewModal({ open, onClose, plano, items, users,
                 </div>
 
                 {items.length === 0 ? (
-                  <Card>
-                    <CardContent className="p-8 text-center text-gray-500">
+                  <Card className="dark:bg-[#1a1a1a] dark:border-[#2e2e2e]">
+                    <CardContent className="p-8 text-center text-gray-500 dark:text-[#6b6b6b]">
                       Nenhuma ação cadastrada. Adicione a primeira ação.
                     </CardContent>
                   </Card>
@@ -264,10 +264,10 @@ export default function PlanoAcaoViewModal({ open, onClose, plano, items, users,
                       const isExpanded = expandedItems.includes(item.id);
                       
                       return (
-                        <div key={item.id} className="border rounded-lg overflow-hidden">
+                        <div key={item.id} className="border dark:border-[#2e2e2e] rounded-lg overflow-hidden">
                           {/* Linha resumida - clicável */}
                           <div 
-                            className="flex items-center gap-3 p-3 bg-white hover:bg-gray-50 cursor-pointer"
+                            className="flex items-center gap-3 p-3 bg-white dark:bg-[#1a1a1a] hover:bg-gray-50 dark:hover:bg-[#2a2a2a] cursor-pointer"
                             onClick={() => setExpandedItems(prev => 
                               prev.includes(item.id) 
                                 ? prev.filter(id => id !== item.id) 
@@ -276,14 +276,14 @@ export default function PlanoAcaoViewModal({ open, onClose, plano, items, users,
                           >
                             <div className="flex-shrink-0">
                               {isExpanded ? (
-                                <ChevronDown className="w-4 h-4 text-gray-500" />
+                                <ChevronDown className="w-4 h-4 text-gray-500 dark:text-[#6b6b6b]" />
                               ) : (
-                                <ChevronRight className="w-4 h-4 text-gray-500" />
+                                <ChevronRight className="w-4 h-4 text-gray-500 dark:text-[#6b6b6b]" />
                               )}
                             </div>
                             <div className="flex-1 min-w-0">
-                              <p className="font-medium text-sm truncate">{item.what}</p>
-                              <p className="text-xs text-gray-500">
+                              <p className="font-medium text-sm truncate dark:text-white">{item.what}</p>
+                              <p className="text-xs text-gray-500 dark:text-[#6b6b6b]">
                                 {getUserName(item.who)} • {item.due_date && format(new Date(item.due_date), "dd/MM/yyyy", { locale: ptBR })}
                               </p>
                             </div>
@@ -310,39 +310,39 @@ export default function PlanoAcaoViewModal({ open, onClose, plano, items, users,
                           
                           {/* Detalhes expandidos */}
                           {isExpanded && (
-                            <div className="border-t bg-gray-50 p-4">
+                            <div className="border-t dark:border-[#2e2e2e] bg-gray-50 dark:bg-[#121212] p-4">
                               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
                                 <div>
-                                  <p className="text-gray-500 text-xs mb-1">O que fazer?</p>
-                                  <p className="font-medium">{item.what}</p>
+                                  <p className="text-gray-500 dark:text-[#6b6b6b] text-xs mb-1">O que fazer?</p>
+                                  <p className="font-medium dark:text-white">{item.what}</p>
                                 </div>
                                 <div>
-                                  <p className="text-gray-500 text-xs mb-1">Como?</p>
-                                  <p>{item.how || "-"}</p>
+                                  <p className="text-gray-500 dark:text-[#6b6b6b] text-xs mb-1">Como?</p>
+                                  <p className="dark:text-[#a1a1a1]">{item.how || "-"}</p>
                                 </div>
                                 <div>
-                                  <p className="text-gray-500 text-xs mb-1">Onde?</p>
-                                  <p>{item.where || "-"}</p>
+                                  <p className="text-gray-500 dark:text-[#6b6b6b] text-xs mb-1">Onde?</p>
+                                  <p className="dark:text-[#a1a1a1]">{item.where || "-"}</p>
                                 </div>
                                 <div>
-                                  <p className="text-gray-500 text-xs mb-1">Quem?</p>
-                                  <p className="font-medium">{getUserName(item.who)}</p>
+                                  <p className="text-gray-500 dark:text-[#6b6b6b] text-xs mb-1">Quem?</p>
+                                  <p className="font-medium dark:text-white">{getUserName(item.who)}</p>
                                 </div>
                                 <div>
-                                  <p className="text-gray-500 text-xs mb-1">Delegado</p>
-                                  <p>{item.delegate ? getUserName(item.delegate) : "-"}</p>
+                                  <p className="text-gray-500 dark:text-[#6b6b6b] text-xs mb-1">Delegado</p>
+                                  <p className="dark:text-[#a1a1a1]">{item.delegate ? getUserName(item.delegate) : "-"}</p>
                                 </div>
                                 <div>
-                                  <p className="text-gray-500 text-xs mb-1">Nível</p>
-                                  <p>{item.level === "determinar" ? "Determinar" : "Recomendar"}</p>
+                                  <p className="text-gray-500 dark:text-[#6b6b6b] text-xs mb-1">Nível</p>
+                                  <p className="dark:text-[#a1a1a1]">{item.level === "determinar" ? "Determinar" : "Recomendar"}</p>
                                 </div>
                                 <div>
-                                  <p className="text-gray-500 text-xs mb-1">Quando?</p>
-                                  <p>{item.due_date && format(new Date(item.due_date), "dd/MM/yyyy", { locale: ptBR })}</p>
+                                  <p className="text-gray-500 dark:text-[#6b6b6b] text-xs mb-1">Quando?</p>
+                                  <p className="dark:text-[#a1a1a1]">{item.due_date && format(new Date(item.due_date), "dd/MM/yyyy", { locale: ptBR })}</p>
                                 </div>
                                 <div className="col-span-2">
-                                  <p className="text-gray-500 text-xs mb-1">Materiais</p>
-                                  <p>{item.materials || "-"}</p>
+                                  <p className="text-gray-500 dark:text-[#6b6b6b] text-xs mb-1">Materiais</p>
+                                  <p className="dark:text-[#a1a1a1]">{item.materials || "-"}</p>
                                 </div>
                               </div>
                             </div>
@@ -356,12 +356,12 @@ export default function PlanoAcaoViewModal({ open, onClose, plano, items, users,
 
               {/* Efficacy */}
               {plano.status === "concluido" && plano.efficacy_description && (
-                <Card className="border-green-200 bg-green-50">
+                <Card className="border-green-200 dark:border-[#22946E]/50 bg-green-50 dark:bg-[#22946E]/10">
                   <CardContent className="p-4">
-                    <p className="text-sm font-medium text-green-700 mb-2">Eficácia:</p>
-                    <p className="text-green-900">{plano.efficacy_description}</p>
+                    <p className="text-sm font-medium text-green-700 dark:text-[#22946E] mb-2">Eficácia:</p>
+                    <p className="text-green-900 dark:text-green-300">{plano.efficacy_description}</p>
                     {plano.efficacy_date && (
-                      <p className="text-sm text-green-600 mt-2">Data Eficácia: {format(new Date(plano.efficacy_date), "dd/MM/yyyy", { locale: ptBR })}</p>
+                      <p className="text-sm text-green-600 dark:text-[#22946E] mt-2">Data Eficácia: {format(new Date(plano.efficacy_date), "dd/MM/yyyy", { locale: ptBR })}</p>
                     )}
                   </CardContent>
                 </Card>
@@ -375,9 +375,9 @@ export default function PlanoAcaoViewModal({ open, onClose, plano, items, users,
               )}
 
               {showEfficacy && (
-                <Card className="border-green-200">
+                <Card className="border-green-200 dark:border-[#22946E]/50 dark:bg-[#1a1a1a]">
                   <CardContent className="p-4 space-y-4">
-                    <h4 className="font-medium text-green-700">Registrar Eficácia</h4>
+                    <h4 className="font-medium text-green-700 dark:text-[#22946E]">Registrar Eficácia</h4>
                     <div>
                       <Label>Descrição da Eficácia *</Label>
                       <Textarea
