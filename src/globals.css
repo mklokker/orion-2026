@@ -65,31 +65,140 @@ svg,
 }
 
 /* Dark mode specific overrides for better contrast */
-@media (prefers-color-scheme: dark) {
-  :root:not(.light) {
-    /* Ensure inputs and selects have proper backgrounds */
-    input, select, textarea {
-      background-color: hsl(222, 47%, 14%) !important;
-      border-color: hsl(217, 33%, 30%) !important;
-      color: hsl(210, 40%, 98%) !important;
-    }
-    
-    /* Tables */
-    table {
-      background-color: hsl(222, 47%, 14%);
-    }
-    
-    th {
-      background-color: hsl(222, 47%, 17%) !important;
-      color: hsl(210, 40%, 98%) !important;
-    }
-    
-    td {
-      border-color: hsl(217, 33%, 25%) !important;
-    }
-    
-    tr:hover {
-      background-color: hsl(222, 47%, 17%) !important;
-    }
-  }
+.dark {
+  /* Cards and surfaces */
+  --dark-surface-1: hsl(222.2 84% 4.9%);
+  --dark-surface-2: hsl(217.2 32.6% 12%);
+  --dark-surface-3: hsl(217.2 32.6% 17.5%);
+  --dark-border: hsl(217.2 32.6% 22%);
+  --dark-text-primary: hsl(210 40% 98%);
+  --dark-text-secondary: hsl(215 20.2% 65.1%);
+  --dark-text-muted: hsl(215 20.2% 50%);
+}
+
+/* Dark mode component styles */
+.dark .bg-white {
+  background-color: var(--dark-surface-2) !important;
+}
+
+.dark .bg-gray-50,
+.dark .bg-gray-100 {
+  background-color: var(--dark-surface-1) !important;
+}
+
+.dark .border-gray-200,
+.dark .border-gray-300 {
+  border-color: var(--dark-border) !important;
+}
+
+.dark .text-gray-900 {
+  color: var(--dark-text-primary) !important;
+}
+
+.dark .text-gray-700,
+.dark .text-gray-600 {
+  color: var(--dark-text-secondary) !important;
+}
+
+.dark .text-gray-500,
+.dark .text-gray-400 {
+  color: var(--dark-text-muted) !important;
+}
+
+/* Dark mode hover states */
+.dark .hover\:bg-gray-50:hover,
+.dark .hover\:bg-gray-100:hover {
+  background-color: var(--dark-surface-3) !important;
+}
+
+/* Dark mode gradients */
+.dark .bg-gradient-to-br.from-gray-50,
+.dark .bg-gradient-to-r.from-gray-50 {
+  --tw-gradient-from: var(--dark-surface-1) !important;
+}
+
+.dark .to-blue-50,
+.dark .to-gray-100 {
+  --tw-gradient-to: var(--dark-surface-2) !important;
+}
+
+/* Modal and dialog backgrounds */
+.dark [role="dialog"],
+.dark [data-radix-portal] > div {
+  background-color: var(--dark-surface-2);
+}
+
+/* Input and form elements in dark mode */
+.dark input:not([type="checkbox"]):not([type="radio"]),
+.dark select,
+.dark textarea {
+  background-color: var(--dark-surface-1) !important;
+  border-color: var(--dark-border) !important;
+  color: var(--dark-text-primary) !important;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: var(--dark-text-muted) !important;
+}
+
+/* Tables in dark mode */
+.dark table {
+  background-color: var(--dark-surface-2);
+}
+
+.dark th {
+  background-color: var(--dark-surface-3) !important;
+  color: var(--dark-text-primary) !important;
+  border-color: var(--dark-border) !important;
+}
+
+.dark td {
+  border-color: var(--dark-border) !important;
+  color: var(--dark-text-secondary);
+}
+
+.dark tr:hover {
+  background-color: var(--dark-surface-3) !important;
+}
+
+/* Badge improvements for dark mode */
+.dark .bg-blue-50 {
+  background-color: hsl(217.2 91.2% 20%) !important;
+}
+
+.dark .bg-green-50 {
+  background-color: hsl(142.1 76.2% 15%) !important;
+}
+
+.dark .bg-red-50 {
+  background-color: hsl(0 72.2% 15%) !important;
+}
+
+.dark .bg-yellow-50 {
+  background-color: hsl(47.9 95.8% 15%) !important;
+}
+
+.dark .bg-purple-50 {
+  background-color: hsl(262.1 83.3% 15%) !important;
+}
+
+.dark .bg-indigo-50 {
+  background-color: hsl(226.5 76.3% 15%) !important;
+}
+
+/* Scroll areas in dark mode */
+.dark [data-radix-scroll-area-viewport] {
+  background-color: transparent;
+}
+
+/* Dropdown menus in dark mode */
+.dark [data-radix-popper-content-wrapper] > div {
+  background-color: var(--dark-surface-2) !important;
+  border-color: var(--dark-border) !important;
+}
+
+/* Card hover states */
+.dark .hover\:border-blue-300:hover {
+  border-color: hsl(217.2 91.2% 50%) !important;
 }
