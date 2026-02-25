@@ -1,4 +1,3 @@
-
 import React from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -53,13 +52,13 @@ export default function TaskCard({ task, departments, users, onTaskClick }) {
 
   return (
     <Card 
-      className="hover:shadow-lg transition-all duration-200 border-2 hover:border-blue-300 cursor-pointer"
+      className="hover:shadow-lg transition-all duration-200 border-2 hover:border-blue-300 dark:hover:border-blue-600 cursor-pointer dark:bg-slate-800 dark:border-slate-700"
       onClick={() => onTaskClick(task)}
     >
       <CardContent className="p-4 space-y-3">
         {/* Header com protocolo e prioridade */}
         <div className="flex items-start justify-between">
-          <h3 className="text-2xl font-bold text-gray-900">{task.protocol}</h3>
+          <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{task.protocol}</h3>
           <div className="flex items-center gap-2">
             <Badge className={`${priorityColors[task.priority]} border-0 font-semibold px-2 py-1`}>
               {task.priority}
@@ -80,31 +79,31 @@ export default function TaskCard({ task, departments, users, onTaskClick }) {
 
         {/* Data e Responsável */}
         <div className="space-y-2">
-          <div className="flex items-center gap-2 text-sm text-gray-600">
+          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
             <Calendar className="w-4 h-4" />
             <span>{formattedEndDate}</span>
           </div>
-          <div className="flex items-center gap-2 text-sm text-gray-600">
+          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
             <User className="w-4 h-4" />
             <span>{assignedUserName}</span>
           </div>
         </div>
 
         {/* Protocolo repetido menor */}
-        <p className="text-sm text-gray-500 font-medium">{task.protocol}</p>
+        <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">{task.protocol}</p>
 
         {/* Descrição da tarefa */}
         {task.description && (
-          <p className="text-sm text-gray-700 line-clamp-2">
+          <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">
             Tarefa {task.description}
           </p>
         )}
 
         {/* Departamento */}
         {department && (
-          <div className="pt-2 border-t">
-            <p className="text-xs text-gray-500 uppercase tracking-wide">
-              DEPARTAMENTO: <span className="font-semibold text-gray-700">{department.name}</span>
+          <div className="pt-2 border-t dark:border-slate-600">
+            <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+              DEPARTAMENTO: <span className="font-semibold text-gray-700 dark:text-gray-300">{department.name}</span>
             </p>
           </div>
         )}
@@ -114,7 +113,7 @@ export default function TaskCard({ task, departments, users, onTaskClick }) {
           <Badge className={`${statusColors[task.status]} border-0 text-xs px-3 py-1`}>
             {task.status}
           </Badge>
-          <div className="flex items-center gap-1 text-xs text-gray-500">
+          <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
             <Clock className="w-3 h-3" />
             <span>Início: {formattedStartDate}</span>
           </div>
