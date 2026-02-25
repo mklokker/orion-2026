@@ -149,45 +149,57 @@ export default function CreatePlanoModal({ open, onClose, onSave, plano, categor
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Responsável *</Label>
-                <div className="space-y-2">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <Input
-                      placeholder="Buscar usuário..."
-                      value={userSearch}
-                      onChange={(e) => setUserSearch(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
-                  <Select value={form.responsible} onValueChange={(v) => setForm({ ...form, responsible: v })}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione o responsável">
-                        {form.responsible && getUserName(form.responsible)}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {filteredUsers.map(user => (
-                        <SelectItem key={user.email} value={user.email}>
-                          {user.display_name || user.full_name || user.email}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 z-10" />
+                  <Input
+                    placeholder="Buscar usuário..."
+                    value={userSearch}
+                    onChange={(e) => setUserSearch(e.target.value)}
+                    className="pl-10 mb-2"
+                  />
                 </div>
+                <div className="max-h-32 overflow-y-auto border rounded-md">
+                  {filteredUsers.length === 0 ? (
+                    <p className="p-2 text-sm text-gray-500">Nenhum usuário encontrado</p>
+                  ) : (
+                    filteredUsers.map(user => (
+                      <div
+                        key={user.email}
+                        onClick={() => setForm({ ...form, responsible: user.email })}
+                        className={`p-2 cursor-pointer hover:bg-gray-100 text-sm ${
+                          form.responsible === user.email ? 'bg-indigo-100 text-indigo-700 font-medium' : ''
+                        }`}
+                      >
+                        {user.display_name || user.full_name || user.email}
+                      </div>
+                    ))
+                  )}
+                </div>
+                {form.responsible && (
+                  <p className="text-xs text-indigo-600 mt-1">
+                    Selecionado: {getUserName(form.responsible)}
+                  </p>
+                )}
               </div>
 
               <div>
                 <Label>Categoria/Fundamento</Label>
-                <Select value={form.category} onValueChange={(v) => setForm({ ...form, category: v })}>
+                <Select value={form.category || "none"} onValueChange={(v) => setForm({ ...form, category: v === "none" ? "" : v })}>
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione a categoria" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="none">-- Selecione --</SelectItem>
                     {categories.map(cat => (
                       <SelectItem key={cat.id} value={cat.name}>{cat.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+                {categories.length === 0 && (
+                  <p className="text-xs text-amber-600 mt-1">
+                    Nenhuma categoria cadastrada. Acesse Configurações para criar.
+                  </p>
+                )}
               </div>
             </div>
 
@@ -201,6 +213,7 @@ export default function CreatePlanoModal({ open, onClose, onSave, plano, categor
                   <SelectContent>
                     <SelectItem value="estrategico">Estratégico</SelectItem>
                     <SelectItem value="operacional">Operacional</SelectItem>
+                    <SelectItem value="tatico">Tático</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -237,10 +250,10 @@ export default function CreatePlanoModal({ open, onClose, onSave, plano, categor
               </div>
             </div>
 
-            {programs.length > 0 && (
-              <div>
-                <Label>Programas e NBRs</Label>
-                <div className="grid grid-cols-2 gap-2 mt-2 p-3 border rounded-lg bg-gray-50">
+            <div>
+              <Label>Programas e NBRs</Label>
+              {programs.length > 0 ? (
+                <div className="grid grid-cols-1 gap-2 mt-2 p-3 border rounded-lg bg-gray-50 max-h-40 overflow-y-auto">
                   {programs.map(program => (
                     <div key={program.id} className="flex items-center gap-2">
                       <Checkbox
@@ -254,8 +267,12 @@ export default function CreatePlanoModal({ open, onClose, onSave, plano, categor
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
+              ) : (
+                <p className="text-xs text-amber-600 mt-1">
+                  Nenhum programa/NBR cadastrado. Acesse Configurações para criar.
+                </p>
+              )}
+            </div>
 
             <div>
               <Label>Memória de Reunião (Referência)</Label>
