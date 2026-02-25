@@ -50,6 +50,7 @@ export default function PlanoAcaoViewModal({ open, onClose, plano, items, users,
   const [showItemModal, setShowItemModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [showEfficacy, setShowEfficacy] = useState(false);
+  const [expandedItems, setExpandedItems] = useState([]);
   const [efficacyForm, setEfficacyForm] = useState({
     efficacy_description: "",
     efficacy_date: new Date().toISOString().split("T")[0],
