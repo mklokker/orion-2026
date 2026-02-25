@@ -239,13 +239,13 @@ export default function CreateServicesModal({ open, onClose, users, departments,
           </div>
 
           {/* Individual Services */}
-          <div className="border rounded-lg p-4 space-y-4 bg-gray-50">
-            <h3 className="font-semibold text-lg">Serviços</h3>
+          <div className="border dark:border-[#2e2e2e] rounded-lg p-4 space-y-4 bg-gray-50 dark:bg-[#121212]">
+            <h3 className="font-semibold text-lg dark:text-white">Serviços</h3>
             
             {services.map((service, index) => (
-              <div key={index} className="bg-white border rounded-lg p-4 space-y-3">
+              <div key={index} className="bg-white dark:bg-[#1a1a1a] border dark:border-[#2e2e2e] rounded-lg p-4 space-y-3">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-500">Serviço {index + 1}</span>
+                  <span className="text-sm font-medium text-gray-500 dark:text-[#a1a1a1]">Serviço {index + 1}</span>
                   {services.length > 1 && (
                     <Button
                       variant="ghost"
@@ -287,7 +287,7 @@ export default function CreateServicesModal({ open, onClose, users, departments,
                         onChange={(e) => handleServiceChange(index, "end_date", e.target.value)}
                         maxLength={4}
                       />
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-gray-500 dark:text-[#6b6b6b]">
                         Ano: {new Date().getFullYear()}
                       </p>
                     </div>
