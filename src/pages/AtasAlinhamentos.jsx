@@ -212,25 +212,23 @@ export default function AtasAlinhamentos() {
           <p className="text-gray-500 mt-1">Gerencie atas de reunião e alinhamentos da equipe</p>
         </div>
 
-        {isAdmin && (
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setShowCategoriaManager(true)}>
-              <Settings className="w-4 h-4 mr-2" />
-              Categorias
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={() => setShowCategoriaManager(true)}>
+            <Settings className="w-4 h-4 mr-2" />
+            Categorias
+          </Button>
+          {activeTab === "alinhamentos" ? (
+            <Button onClick={() => setShowCreateAlinhamento(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              Novo Alinhamento
             </Button>
-            {activeTab === "alinhamentos" ? (
-              <Button onClick={() => setShowCreateAlinhamento(true)}>
-                <Plus className="w-4 h-4 mr-2" />
-                Novo Alinhamento
-              </Button>
-            ) : (
-              <Button onClick={() => setShowCreateAta(true)}>
-                <Plus className="w-4 h-4 mr-2" />
-                Nova Ata
-              </Button>
-            )}
-          </div>
-        )}
+          ) : (
+            <Button onClick={() => setShowCreateAta(true)}>
+              <Plus className="w-4 h-4 mr-2" />
+              Nova Ata
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Filtros */}
@@ -432,7 +430,7 @@ export default function AtasAlinhamentos() {
           alinhamento={selectedAlinhamento}
           topicos={getTopicosForAlinhamento(selectedAlinhamento.id)}
           currentUser={currentUser}
-          isAdmin={isAdmin}
+          isAdmin={true}
           users={users}
           categorias={categorias}
           onEdit={() => {
@@ -451,7 +449,7 @@ export default function AtasAlinhamentos() {
           open={!!selectedAta}
           onClose={() => setSelectedAta(null)}
           ata={selectedAta}
-          isAdmin={isAdmin}
+          isAdmin={true}
           users={users}
           onEdit={() => {
             setEditingAta(selectedAta);
