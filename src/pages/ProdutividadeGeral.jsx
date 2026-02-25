@@ -310,12 +310,12 @@ export default function ProdutividadeGeral() {
     : [];
 
   return (
-    <div className="p-4 md:p-8 min-h-screen bg-gray-50">
+    <div className="p-4 md:p-8 min-h-screen bg-gray-50 dark:bg-slate-900">
       <div className="max-w-full mx-auto space-y-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 md:gap-4">
           <div>
-            <h1 className="text-xl md:text-4xl font-bold text-gray-900">Produtividade</h1>
-            <p className="text-gray-600 text-xs md:text-base mt-1 hidden md:block">Análise de itens concluídos por usuário em um período.</p>
+            <h1 className="text-xl md:text-4xl font-bold text-gray-900 dark:text-white">Produtividade</h1>
+            <p className="text-gray-600 dark:text-gray-400 text-xs md:text-base mt-1 hidden md:block">Análise de itens concluídos por usuário em um período.</p>
           </div>
           {view === 'details' && (
             <Button variant="outline" onClick={handleBackToSummary} size="sm" className="text-xs md:text-sm h-8 md:h-10">
@@ -325,15 +325,15 @@ export default function ProdutividadeGeral() {
         </div>
 
         {/* Filters */}
-        <Card className="shadow-sm border-2">
+        <Card className="shadow-sm border-2 dark:bg-slate-800 dark:border-slate-700">
           <CardHeader className="pb-2 md:pb-4">
-            <CardTitle className="text-base md:text-lg">Filtros</CardTitle>
+            <CardTitle className="text-base md:text-lg dark:text-white">Filtros</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
               {/* Period Date Range Filter */}
               <div className="space-y-1 md:space-y-2">
-                <label className="text-xs md:text-sm font-medium text-gray-700">De</label>
+                <label className="text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300">De</label>
                 <Input
                   type="date"
                   value={filters.startDate}
@@ -342,7 +342,7 @@ export default function ProdutividadeGeral() {
                 />
               </div>
               <div className="space-y-1 md:space-y-2">
-                <label className="text-xs md:text-sm font-medium text-gray-700">Até</label>
+                <label className="text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300">Até</label>
                 <Input
                   type="date"
                   value={filters.endDate}
@@ -354,7 +354,7 @@ export default function ProdutividadeGeral() {
               {/* User Filter - Conditionally rendered based on role */}
               {currentUserData?.role === 'admin' && (
                 <div className="space-y-1 md:space-y-2 col-span-2 md:col-span-1">
-                  <label className="text-xs md:text-sm font-medium text-gray-700">Usuário</label>
+                  <label className="text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300">Usuário</label>
                   <Select value={filters.user} onValueChange={(value) => setFilters({...filters, user: value})}>
                     <SelectTrigger className="h-9 md:h-10 text-sm">
                       <SelectValue />
@@ -381,9 +381,9 @@ export default function ProdutividadeGeral() {
         </Card>
         
         {view === 'summary' && (
-          <Card className="shadow-sm border-2">
-            <CardHeader className="border-b bg-gray-50">
-              <CardTitle>Resumo de Produtividade</CardTitle>
+          <Card className="shadow-sm border-2 dark:bg-slate-800 dark:border-slate-700">
+            <CardHeader className="border-b bg-gray-50 dark:bg-slate-700 dark:border-slate-600">
+              <CardTitle className="dark:text-white">Resumo de Produtividade</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               <div className="overflow-x-auto">
@@ -441,9 +441,9 @@ export default function ProdutividadeGeral() {
         )}
 
         {view === 'details' && (
-          <Card className="shadow-sm border-2">
-            <CardHeader className="border-b bg-gray-50">
-              <CardTitle>Detalhes dos Itens Concluídos</CardTitle>
+          <Card className="shadow-sm border-2 dark:bg-slate-800 dark:border-slate-700">
+            <CardHeader className="border-b bg-gray-50 dark:bg-slate-700 dark:border-slate-600">
+              <CardTitle className="dark:text-white">Detalhes dos Itens Concluídos</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               <div className="overflow-x-auto">

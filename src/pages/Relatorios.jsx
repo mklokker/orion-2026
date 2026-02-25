@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Task } from "@/entities/Task";
 import { Service } from "@/entities/Service";
@@ -195,14 +194,14 @@ export default function Relatorios() {
 
   return (
     <>
-      <div className="p-4 md:p-8 min-h-screen no-print">
+      <div className="p-4 md:p-8 min-h-screen no-print dark:bg-slate-900">
         <div className="max-w-7xl mx-auto space-y-8">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-700 to-indigo-700 bg-clip-text text-transparent">
                 Relatórios
               </h1>
-              <p className="text-gray-600 mt-2">Análise e visualização de dados</p>
+              <p className="text-gray-600 dark:text-gray-400 mt-2">Análise e visualização de dados</p>
             </div>
             <Button
               onClick={handlePrint}
@@ -213,9 +212,9 @@ export default function Relatorios() {
             </Button>
           </div>
 
-          <Card className="shadow-lg border-0">
-            <CardHeader className="border-b bg-gradient-to-r from-gray-50 to-blue-50">
-              <CardTitle className="flex items-center gap-2">
+          <Card className="shadow-lg border-0 dark:bg-slate-800 dark:border-slate-700">
+            <CardHeader className="border-b bg-gradient-to-r from-gray-50 to-blue-50 dark:from-slate-700 dark:to-slate-600 dark:border-slate-600">
+              <CardTitle className="flex items-center gap-2 dark:text-white">
                 <FileText className="w-5 h-5" />
                 Filtros de Relatório
               </CardTitle>
@@ -223,7 +222,7 @@ export default function Relatorios() {
             <CardContent className="pt-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Data Inicial</label>
+                  <label className="text-sm font-medium dark:text-gray-300">Data Inicial</label>
                   <Input
                     type="date"
                     value={filters.startDate}
@@ -314,9 +313,9 @@ export default function Relatorios() {
           </Card>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <Card className="shadow-lg border-0">
-              <CardHeader className="border-b bg-gradient-to-r from-gray-50 to-blue-50">
-                <CardTitle>Distribuição por Status</CardTitle>
+            <Card className="shadow-lg border-0 dark:bg-slate-800 dark:border-slate-700">
+              <CardHeader className="border-b bg-gradient-to-r from-gray-50 to-blue-50 dark:from-slate-700 dark:to-slate-600 dark:border-slate-600">
+                <CardTitle className="dark:text-white">Distribuição por Status</CardTitle>
               </CardHeader>
               <CardContent className="pt-6">
                 <ResponsiveContainer width="100%" height={300}>
@@ -341,9 +340,9 @@ export default function Relatorios() {
               </CardContent>
             </Card>
 
-            <Card className="shadow-lg border-0">
-              <CardHeader className="border-b bg-gradient-to-r from-gray-50 to-blue-50">
-                <CardTitle>Distribuição por Prioridade</CardTitle>
+            <Card className="shadow-lg border-0 dark:bg-slate-800 dark:border-slate-700">
+              <CardHeader className="border-b bg-gradient-to-r from-gray-50 to-blue-50 dark:from-slate-700 dark:to-slate-600 dark:border-slate-600">
+                <CardTitle className="dark:text-white">Distribuição por Prioridade</CardTitle>
               </CardHeader>
               <CardContent className="pt-6">
                 <ResponsiveContainer width="100%" height={300}>
@@ -359,9 +358,9 @@ export default function Relatorios() {
               </CardContent>
             </Card>
 
-            <Card className="shadow-lg border-0 lg:col-span-2">
-              <CardHeader className="border-b bg-gradient-to-r from-gray-50 to-blue-50">
-                <CardTitle>Tarefas por Usuário</CardTitle>
+            <Card className="shadow-lg border-0 lg:col-span-2 dark:bg-slate-800 dark:border-slate-700">
+              <CardHeader className="border-b bg-gradient-to-r from-gray-50 to-blue-50 dark:from-slate-700 dark:to-slate-600 dark:border-slate-600">
+                <CardTitle className="dark:text-white">Tarefas por Usuário</CardTitle>
               </CardHeader>
               <CardContent className="pt-6">
                 <ResponsiveContainer width="100%" height={400}>

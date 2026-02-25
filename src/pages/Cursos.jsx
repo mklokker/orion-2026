@@ -266,24 +266,24 @@ export default function Cursos() {
     <>
       {/* Stats */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card>
+          <Card className="dark:bg-slate-800 dark:border-slate-700">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Total de Cursos</p>
-                  <p className="text-3xl font-bold text-gray-900">{courses.length}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Total de Cursos</p>
+                  <p className="text-3xl font-bold text-gray-900 dark:text-white">{courses.length}</p>
                 </div>
                 <GraduationCap className="w-10 h-10 text-blue-600 opacity-20" />
               </div>
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="dark:bg-slate-800 dark:border-slate-700">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Total de Conteúdos</p>
-                  <p className="text-3xl font-bold text-gray-900">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Total de Conteúdos</p>
+                  <p className="text-3xl font-bold text-gray-900 dark:text-white">
                     {Object.values(courseVideos).flat().length + Object.values(courseDocuments).flat().length}
                   </p>
                 </div>
@@ -292,12 +292,12 @@ export default function Cursos() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="dark:bg-slate-800 dark:border-slate-700">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Total de Provas</p>
-                  <p className="text-3xl font-bold text-gray-900">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Total de Provas</p>
+                  <p className="text-3xl font-bold text-gray-900 dark:text-white">
                     {Object.values(courseQuizzes).flat().length}
                   </p>
                 </div>
@@ -306,12 +306,12 @@ export default function Cursos() {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="dark:bg-slate-800 dark:border-slate-700">
             <CardContent className="pt-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Cursos Concluídos</p>
-                  <p className="text-3xl font-bold text-gray-900">
+                  <p className="text-sm text-gray-600 dark:text-gray-400">Cursos Concluídos</p>
+                  <p className="text-3xl font-bold text-gray-900 dark:text-white">
                     {Object.values(userProgress).filter(p => p.status === 'completed').length}
                   </p>
                 </div>
@@ -322,7 +322,7 @@ export default function Cursos() {
         </div>
 
         {/* Busca */}
-        <Card>
+        <Card className="dark:bg-slate-800 dark:border-slate-700">
           <CardContent className="pt-6">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -338,10 +338,10 @@ export default function Cursos() {
 
         {/* Lista de Cursos */}
         {filteredCourses.length === 0 ? (
-          <Card>
+          <Card className="dark:bg-slate-800 dark:border-slate-700">
             <CardContent className="py-12 text-center">
-              <GraduationCap className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 text-lg">Nenhum curso encontrado</p>
+              <GraduationCap className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+              <p className="text-gray-500 dark:text-gray-400 text-lg">Nenhum curso encontrado</p>
               {isAdmin && !searchQuery && (
                 <Button
                   onClick={() => setShowCreateModal(true)}
@@ -515,7 +515,7 @@ export default function Cursos() {
   );
 
   return (
-    <div className="p-4 md:p-8 min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+    <div className="p-4 md:p-8 min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -524,7 +524,7 @@ export default function Cursos() {
               <GraduationCap className="w-10 h-10 text-blue-600" />
               Cursos de Treinamento
             </h1>
-            <p className="text-gray-600 mt-2">
+            <p className="text-gray-600 dark:text-gray-400 mt-2">
               Aprenda com nossos cursos em vídeo
             </p>
           </div>

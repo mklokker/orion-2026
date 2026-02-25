@@ -250,18 +250,18 @@ export default function Ranking() {
   };
 
   return (
-    <div className="p-4 md:p-8 min-h-screen bg-gradient-to-br from-gray-50 to-blue-50">
+    <div className="p-4 md:p-8 min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
       <div className="max-w-6xl mx-auto space-y-6">
         <div className="text-center space-y-2">
           <h1 className="text-2xl md:text-5xl font-bold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">
             🏆 Ranking de Estrelas
           </h1>
-          <p className="text-gray-600 text-sm md:text-lg hidden md:block">
+          <p className="text-gray-600 dark:text-gray-400 text-sm md:text-lg hidden md:block">
             Competição entre usuários do mesmo departamento
           </p>
         </div>
 
-        <Card className="shadow-lg border-2">
+        <Card className="shadow-lg border-2 dark:bg-slate-800 dark:border-slate-700">
           <CardHeader className="border-b bg-gradient-to-r from-gray-50 to-blue-50 py-3 md:py-6">
             <CardTitle className="flex items-center gap-2 text-base md:text-lg">
               <Calendar className="w-4 h-4 md:w-5 md:h-5" />
@@ -334,7 +334,7 @@ export default function Ranking() {
 
         {/* Top 3 de cada Departamento - VISÍVEL PARA TODOS */}
         <div className="space-y-4 md:space-y-6">
-          <h2 className="text-lg md:text-2xl font-bold text-gray-900 flex items-center gap-2">
+          <h2 className="text-lg md:text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <Trophy className="w-5 h-5 md:w-6 md:h-6 text-yellow-500" />
             Destaques por Departamento
           </h2>
@@ -345,15 +345,15 @@ export default function Ranking() {
             </div>
           ) : Object.keys(rankingByDepartment).length === 0 ? (
             <div className="text-center py-12">
-              <Star className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <p className="text-gray-500 text-lg">Nenhuma estrela conquistada em nenhum departamento ainda!</p>
-              <p className="text-gray-400 text-sm mt-2">
+              <Star className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+              <p className="text-gray-500 dark:text-gray-400 text-lg">Nenhuma estrela conquistada em nenhum departamento ainda!</p>
+              <p className="text-gray-400 dark:text-gray-500 text-sm mt-2">
                 Complete tarefas e serviços para ganhar estrelas e aparecer no ranking do seu departamento.
               </p>
             </div>
           ) : (
             Object.entries(rankingByDepartment).map(([deptId, { department, ranking }]) => (
-              <Card key={deptId} className="shadow-lg border-2">
+              <Card key={deptId} className="shadow-lg border-2 dark:bg-slate-800 dark:border-slate-700">
                 <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b py-3 md:py-6">
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 md:gap-3 min-w-0">

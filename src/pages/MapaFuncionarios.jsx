@@ -727,13 +727,13 @@ export default function MapaFuncionarios() {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50" style={{ paddingBottom: 'var(--sab, 0px)' }}>
-      <div className="bg-white border-b p-3 md:p-4">
+    <div className="h-screen flex flex-col bg-gray-50 dark:bg-slate-900" style={{ paddingBottom: 'var(--sab, 0px)' }}>
+      <div className="bg-white dark:bg-slate-800 border-b dark:border-slate-700 p-3 md:p-4">
         <div className="flex flex-col gap-3">
           <div className="flex items-center justify-between gap-3">
             <div className="flex-1 min-w-0">
-              <h1 className="text-xl md:text-2xl font-bold text-gray-900 truncate">Mapa de Funcionários</h1>
-              <p className="text-xs md:text-sm text-gray-500">Organize e visualize as mesas</p>
+              <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white truncate">Mapa de Funcionários</h1>
+              <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400">Organize e visualize as mesas</p>
             </div>
           </div>
           

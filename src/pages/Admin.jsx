@@ -187,14 +187,14 @@ export default function Admin() {
   const isAdmin = currentUser?.role === 'admin';
 
   return (
-    <div className="p-4 md:p-8 min-h-screen">
+    <div className="p-4 md:p-8 min-h-screen dark:bg-slate-900">
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-700 to-indigo-700 bg-clip-text text-transparent">
               Administração
             </h1>
-            <p className="text-gray-600 mt-2">Gerencie o sistema</p>
+            <p className="text-gray-600 dark:text-gray-400 mt-2">Gerencie o sistema</p>
           </div>
           <Button
             onClick={() => setShowImportModal(true)}
@@ -228,9 +228,9 @@ export default function Admin() {
           {/* Departments Tab */}
           <TabsContent value="departments" className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <Card className="shadow-lg border-0">
-                <CardHeader className="border-b bg-gradient-to-r from-gray-50 to-blue-50">
-                  <CardTitle className="flex items-center gap-2">
+              <Card className="shadow-lg border-0 dark:bg-slate-800 dark:border-slate-700">
+                <CardHeader className="border-b bg-gradient-to-r from-gray-50 to-blue-50 dark:from-slate-700 dark:to-slate-600 dark:border-slate-600">
+                  <CardTitle className="flex items-center gap-2 dark:text-white">
                     <Building2 className="w-5 h-5" />
                     Criar Departamento
                   </CardTitle>
@@ -279,16 +279,16 @@ export default function Admin() {
                 </CardContent>
               </Card>
 
-              <Card className="shadow-lg border-0">
-                <CardHeader className="border-b bg-gradient-to-r from-gray-50 to-blue-50">
-                  <CardTitle className="flex items-center gap-2">
+              <Card className="shadow-lg border-0 dark:bg-slate-800 dark:border-slate-700">
+                <CardHeader className="border-b bg-gradient-to-r from-gray-50 to-blue-50 dark:from-slate-700 dark:to-slate-600 dark:border-slate-600">
+                  <CardTitle className="flex items-center gap-2 dark:text-white">
                     <Building2 className="w-5 h-5" />
                     Departamentos ({departments.length})
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="pt-6">
                   {departments.length === 0 ? (
-                    <p className="text-center text-gray-500 py-8">
+                    <p className="text-center text-gray-500 dark:text-gray-400 py-8">
                       Nenhum departamento cadastrado
                     </p>
                   ) : (
@@ -336,9 +336,9 @@ export default function Admin() {
 
           {/* Users Tab */}
           <TabsContent value="users">
-            <Card className="shadow-lg border-0">
-              <CardHeader className="border-b bg-gradient-to-r from-gray-50 to-blue-50">
-                <CardTitle className="flex items-center gap-2">
+            <Card className="shadow-lg border-0 dark:bg-slate-800 dark:border-slate-700">
+              <CardHeader className="border-b bg-gradient-to-r from-gray-50 to-blue-50 dark:from-slate-700 dark:to-slate-600 dark:border-slate-600">
+                <CardTitle className="flex items-center gap-2 dark:text-white">
                   <Users className="w-5 h-5" />
                   Usuários do Sistema ({users.length})
                 </CardTitle>
