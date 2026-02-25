@@ -13,19 +13,21 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
-import { Plus, Trash2, FolderOpen, BarChart3, Target } from "lucide-react";
+import { Plus, Trash2, FolderOpen, BarChart3, Target, FileText } from "lucide-react";
 
 const PlanoAcaoCategoria = base44.entities.PlanoAcaoCategoria;
 const PlanoAcaoIndicador = base44.entities.PlanoAcaoIndicador;
 const PlanoAcaoObjetivo = base44.entities.PlanoAcaoObjetivo;
+const PlanoAcaoPrograma = base44.entities.PlanoAcaoPrograma;
 
-export default function CadastrosModal({ open, onClose, categories, indicators, objectives, onUpdate }) {
+export default function CadastrosModal({ open, onClose, categories, indicators, objectives, programs, onUpdate }) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
 
   const [newCategory, setNewCategory] = useState({ name: "", description: "", color: "#3B82F6" });
   const [newIndicator, setNewIndicator] = useState({ name: "", description: "" });
   const [newObjective, setNewObjective] = useState({ name: "", description: "" });
+  const [newProgram, setNewProgram] = useState({ name: "", description: "" });
 
   // CATEGORIA
   const handleAddCategory = async () => {
@@ -114,6 +116,35 @@ export default function CadastrosModal({ open, onClose, categories, indicators, 
     }
   };
 
+  // PROGRAMA
+  const handleAddProgram = async () => {
+    if (!newProgram.name.trim()) {
+      toast({ title: "Erro", description: "Nome do programa é obrigatório", variant: "destructive" });
+      return;
+    }
+    setLoading(true);
+    try {
+      await PlanoAcaoPrograma.create(newProgram);
+      toast({ title: "Sucesso", description: "Programa criado" });
+      setNewProgram({ name: "", description: "" });
+      onUpdate();
+    } catch (error) {
+      toast({ title: "Erro", description: "Erro ao criar programa", variant: "destructive" });
+    }
+    setLoading(false);
+  };
+
+  const handleDeleteProgram = async (id) => {
+    if (!confirm("Excluir este programa?")) return;
+    try {
+      await PlanoAcaoPrograma.delete(id);
+      toast({ title: "Sucesso", description: "Programa excluído" });
+      onUpdate();
+    } catch (error) {
+      toast({ title: "Erro", description: "Erro ao excluir", variant: "destructive" });
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[85vh]">
@@ -122,18 +153,22 @@ export default function CadastrosModal({ open, onClose, categories, indicators, 
         </DialogHeader>
 
         <Tabs defaultValue="categories">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="categories">
-              <FolderOpen className="w-4 h-4 mr-2" />
+              <FolderOpen className="w-4 h-4 mr-1" />
               Categorias
             </TabsTrigger>
             <TabsTrigger value="indicators">
-              <BarChart3 className="w-4 h-4 mr-2" />
+              <BarChart3 className="w-4 h-4 mr-1" />
               Indicadores
             </TabsTrigger>
             <TabsTrigger value="objectives">
-              <Target className="w-4 h-4 mr-2" />
+              <Target className="w-4 h-4 mr-1" />
               Objetivos
+            </TabsTrigger>
+            <TabsTrigger value="programs">
+              <FileText className="w-4 h-4 mr-1" />
+              Programas
             </TabsTrigger>
           </TabsList>
 
@@ -301,6 +336,56 @@ export default function CadastrosModal({ open, onClose, categories, indicators, 
                     </Card>
                   ))}
                   {objectives.length === 0 && <p className="text-center text-gray-500 py-4">Nenhum objetivo cadastrado</p>}
+                </div>
+              </div>
+            </ScrollArea>
+          </TabsContent>
+
+          {/* PROGRAMAS */}
+          <TabsContent value="programs">
+            <ScrollArea className="h-[400px] pr-4">
+              <div className="space-y-4">
+                <Card>
+                  <CardContent className="p-4 space-y-3">
+                    <h4 className="font-medium">Novo Programa/NBR</h4>
+                    <div>
+                      <Label>Nome *</Label>
+                      <Input
+                        value={newProgram.name}
+                        onChange={(e) => setNewProgram({ ...newProgram, name: e.target.value })}
+                        placeholder="Ex: NBR ISO 9001:2015"
+                      />
+                    </div>
+                    <div>
+                      <Label>Descrição</Label>
+                      <Input
+                        value={newProgram.description}
+                        onChange={(e) => setNewProgram({ ...newProgram, description: e.target.value })}
+                        placeholder="Descrição opcional"
+                      />
+                    </div>
+                    <Button onClick={handleAddProgram} disabled={loading}>
+                      <Plus className="w-4 h-4 mr-1" />
+                      Adicionar
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                <div className="space-y-2">
+                  {programs.map(prog => (
+                    <Card key={prog.id}>
+                      <CardContent className="p-3 flex items-center justify-between">
+                        <div>
+                          <p className="font-medium">{prog.name}</p>
+                          {prog.description && <p className="text-sm text-gray-500">{prog.description}</p>}
+                        </div>
+                        <Button variant="ghost" size="icon" className="text-red-500" onClick={() => handleDeleteProgram(prog.id)}>
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ))}
+                  {programs.length === 0 && <p className="text-center text-gray-500 py-4">Nenhum programa cadastrado</p>}
                 </div>
               </div>
             </ScrollArea>

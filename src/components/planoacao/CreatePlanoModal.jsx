@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
@@ -25,20 +25,7 @@ import { Search } from "lucide-react";
 
 const PlanoAcao = base44.entities.PlanoAcao;
 
-const PROGRAMS_LIST = [
-  "NBR ISO 9001:2015",
-  "NBR 15906:2021",
-  "NBR ISO 27001",
-  "NBR ISO 37001 Sistema de Gestão Antissuborno",
-  "NBR ISO 37301 Sistema de Gestão de Compliance - Requisito com orientações para uso",
-  "PQTA",
-  "FNQ",
-  "Pró-ética",
-  "Provimento 149 do CNJ",
-  "Lei Geral de Proteção de Dados Pessoais",
-];
-
-export default function CreatePlanoModal({ open, onClose, onSave, plano, categories, indicators, objectives, atas, users }) {
+export default function CreatePlanoModal({ open, onClose, onSave, plano, categories, indicators, objectives, atas, users, programs }) {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [userSearch, setUserSearch] = useState("");
@@ -294,20 +281,33 @@ export default function CreatePlanoModal({ open, onClose, onSave, plano, categor
             {/* Programas e NBRs */}
             <div>
               <Label>Programas e NBRs</Label>
-              <div className="mt-2 p-3 border rounded-lg bg-gray-50 max-h-48 overflow-y-auto space-y-2">
-                {PROGRAMS_LIST.map(program => (
-                  <div key={program} className="flex items-center gap-2">
-                    <Checkbox
-                      id={`prog-${program}`}
-                      checked={form.programs.includes(program)}
-                      onCheckedChange={() => toggleProgram(program)}
-                    />
-                    <Label htmlFor={`prog-${program}`} className="text-sm cursor-pointer font-normal">
-                      {program}
-                    </Label>
-                  </div>
-                ))}
-              </div>
+              {programs.length === 0 ? (
+                <p className="text-xs text-amber-600 mt-1">Nenhum programa cadastrado. Acesse "Cadastros" para criar.</p>
+              ) : (
+                <div className="mt-2 p-3 border rounded-lg bg-gray-50 max-h-48 overflow-y-auto space-y-2">
+                  {programs.map(program => {
+                    const isSelected = form.programs.includes(program.name);
+                    return (
+                      <div
+                        key={program.id}
+                        onClick={() => toggleProgram(program.name)}
+                        className={`flex items-center justify-between p-2 rounded-lg cursor-pointer transition-colors ${
+                          isSelected ? 'bg-green-100 border border-green-300' : 'bg-white border border-gray-200 hover:bg-gray-50'
+                        }`}
+                      >
+                        <span className={`text-sm ${isSelected ? 'text-green-800 font-medium' : 'text-gray-700'}`}>
+                          {program.name}
+                        </span>
+                        <Switch
+                          checked={isSelected}
+                          onCheckedChange={() => toggleProgram(program.name)}
+                          className={isSelected ? 'data-[state=checked]:bg-green-500' : ''}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
               <div className="mt-2">
                 <Label className="text-sm">Outros:</Label>
                 <Input
