@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { UserStar } from "@/entities/UserStar";
 import { User } from "@/entities/User";
 import { Department } from "@/entities/Department";
+import { Task } from "@/entities/Task";
+import { Service } from "@/entities/Service";
 import { getPublicUsers } from "@/functions/getPublicUsers";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -77,6 +79,7 @@ export default function Ranking() {
   const calculateRankingByDepartment = () => {
     let filteredStars = [...stars];
 
+    // Filtra por período
     if (startDate || endDate) {
       filteredStars = stars.filter(star => {
         const earnedDate = parseDateAsLocal(star.earned_date);
@@ -94,14 +97,7 @@ export default function Ranking() {
       });
     }
 
-    const starsByUser = {};
-    filteredStars.forEach(star => {
-      if (!starsByUser[star.user_email]) {
-        starsByUser[star.user_email] = [];
-      }
-      starsByUser[star.user_email].push(star);
-    });
-
+    // Inicializa ranking por departamento
     const rankingByDept = {};
     
     departments.forEach(dept => {
@@ -116,39 +112,71 @@ export default function Ranking() {
       ranking: []
     };
 
-    Object.entries(starsByUser).forEach(([email, userStars]) => {
-      const user = users.find(u => u.email === email);
-      if (!user) return;
-
-      // Filtro de Busca por Nome
-      if (searchQuery) {
-        const normalizedSearch = normalizeText(searchQuery);
-        const normalizedName = normalizeText(user.display_name || user.full_name || email);
-        const normalizedEmail = normalizeText(email);
-        
-        if (!normalizedName.includes(normalizedSearch) && !normalizedEmail.includes(normalizedSearch)) {
-          return;
-        }
-      }
-
-      const deptId = user.department_id || 'no_department';
+    // Agrupa estrelas por departamento E usuário
+    // Cada usuário pode aparecer em múltiplos departamentos
+    const userStarsByDept = {};
+    
+    filteredStars.forEach(star => {
+      // Usa o department_id da estrela (do serviço/tarefa), não do usuário
+      const deptId = star.department_id || 'no_department';
+      const email = star.user_email;
       
-      if (rankingByDept[deptId]) {
-        rankingByDept[deptId].ranking.push({
-          user_email: email,
-          user_name: user.display_name || user.full_name || email,
-          profile_picture: user.profile_picture,
-          total_stars: userStars.length,
-          stars: userStars,
-          department_id: user.department_id
-        });
+      if (!userStarsByDept[deptId]) {
+        userStarsByDept[deptId] = {};
       }
+      if (!userStarsByDept[deptId][email]) {
+        userStarsByDept[deptId][email] = [];
+      }
+      userStarsByDept[deptId][email].push(star);
     });
 
+    // Constrói o ranking para cada departamento
+    Object.entries(userStarsByDept).forEach(([deptId, userStars]) => {
+      if (!rankingByDept[deptId]) {
+        // Departamento não existe mais, usa "sem departamento"
+        deptId = 'no_department';
+      }
+      
+      Object.entries(userStars).forEach(([email, stars]) => {
+        const user = users.find(u => u.email === email);
+        if (!user) return;
+
+        // Filtro de Busca por Nome
+        if (searchQuery) {
+          const normalizedSearch = normalizeText(searchQuery);
+          const normalizedName = normalizeText(user.display_name || user.full_name || email);
+          const normalizedEmail = normalizeText(email);
+          
+          if (!normalizedName.includes(normalizedSearch) && !normalizedEmail.includes(normalizedSearch)) {
+            return;
+          }
+        }
+
+        // Verifica se o usuário já existe neste departamento
+        const existingIndex = rankingByDept[deptId].ranking.findIndex(r => r.user_email === email);
+        if (existingIndex >= 0) {
+          // Soma as estrelas
+          rankingByDept[deptId].ranking[existingIndex].total_stars += stars.length;
+          rankingByDept[deptId].ranking[existingIndex].stars.push(...stars);
+        } else {
+          rankingByDept[deptId].ranking.push({
+            user_email: email,
+            user_name: user.display_name || user.full_name || email,
+            profile_picture: user.profile_picture,
+            total_stars: stars.length,
+            stars: stars,
+            department_id: deptId
+          });
+        }
+      });
+    });
+
+    // Ordena cada departamento por total de estrelas
     Object.keys(rankingByDept).forEach(deptId => {
       rankingByDept[deptId].ranking.sort((a, b) => b.total_stars - a.total_stars);
     });
 
+    // Remove departamentos vazios
     Object.keys(rankingByDept).forEach(deptId => {
       if (rankingByDept[deptId].ranking.length === 0) {
         delete rankingByDept[deptId];
@@ -456,19 +484,19 @@ export default function Ranking() {
             <ul className="space-y-2 text-sm text-gray-700">
               <li className="flex items-start gap-2">
                 <span className="text-yellow-600 font-bold">⭐</span>
-                <span>Cada protocolo ou serviço <strong>único concluído</strong> vale 1 estrela</span>
+                <span>Cada protocolo ou serviço <strong>único concluído</strong> vale 1 estrela <strong>por departamento</strong></span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-yellow-600 font-bold">⭐</span>
-                <span>Se você concluir o <strong>mesmo protocolo várias vezes</strong>, ganha apenas 1 estrela (não acumula)</span>
+                <span>Um mesmo usuário pode aparecer em <strong>múltiplos departamentos</strong> se trabalhou em diferentes setores</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-yellow-600 font-bold">⭐</span>
-                <span>Outros usuários também podem ganhar estrela do mesmo protocolo que você completou</span>
+                <span>Quando um serviço é <strong>finalizado em Conferência</strong>, um novo ciclo começa e o mesmo protocolo pode gerar estrelas novamente</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="text-yellow-600 font-bold">⭐</span>
-                <span>O ranking mostra quem tem mais <strong>protocolos/serviços únicos</strong> concluídos</span>
+                <span><strong>Transferir</strong> um serviço gera estrela mas <strong>não fecha o ciclo</strong> - apenas finalizar em Conferência fecha</span>
               </li>
             </ul>
           </CardContent>
