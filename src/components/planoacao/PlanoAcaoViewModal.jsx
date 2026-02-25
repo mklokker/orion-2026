@@ -250,63 +250,98 @@ export default function PlanoAcaoViewModal({ open, onClose, plano, items, users,
                     </CardContent>
                   </Card>
                 ) : (
-                  <div className="border rounded-lg overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead className="bg-gray-100">
-                        <tr>
-                          <th className="px-3 py-2 text-left">O que fazer?</th>
-                          <th className="px-3 py-2 text-left">Como?</th>
-                          <th className="px-3 py-2 text-left">Onde?</th>
-                          <th className="px-3 py-2 text-left">Quem?</th>
-                          <th className="px-3 py-2 text-left">Delegado</th>
-                          <th className="px-3 py-2 text-left">Nível</th>
-                          <th className="px-3 py-2 text-left">Quando?</th>
-                          <th className="px-3 py-2 text-left">Materiais?</th>
-                          <th className="px-3 py-2 text-center">Acomp.</th>
-                          <th className="px-3 py-2 text-center">Ações</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {items.sort((a, b) => (a.order || 0) - (b.order || 0)).map((item) => {
-                          const itemStatus = getItemStatusConfig(item);
-                          return (
-                            <tr key={item.id} className="border-t hover:bg-gray-50">
-                              <td className="px-3 py-2 max-w-[150px]"><span className="line-clamp-2">{item.what}</span></td>
-                              <td className="px-3 py-2 max-w-[150px]"><span className="line-clamp-2 text-gray-600">{item.how || "-"}</span></td>
-                              <td className="px-3 py-2 text-gray-600">{item.where || "-"}</td>
-                              <td className="px-3 py-2 font-medium">{getUserName(item.who)}</td>
-                              <td className="px-3 py-2 text-gray-600">{item.delegate ? getUserName(item.delegate) : "-"}</td>
-                              <td className="px-3 py-2">{item.level === "determinar" ? "Determinar" : "Recomendar"}</td>
-                              <td className="px-3 py-2">{item.due_date && format(new Date(item.due_date), "dd/MM/yyyy", { locale: ptBR })}</td>
-                              <td className="px-3 py-2 text-gray-600">{item.materials || "-"}</td>
-                              <td className="px-3 py-2">
-                                <Select value={item.status} onValueChange={(v) => handleStatusChange(item.id, v)}>
-                                  <SelectTrigger className={`h-8 text-xs ${itemStatus.color} border-0`}>
-                                    <SelectValue />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value="pendente">Pendente</SelectItem>
-                                    <SelectItem value="em_andamento">Em Andamento</SelectItem>
-                                    <SelectItem value="realizada">Realizada</SelectItem>
-                                    <SelectItem value="atrasada">Atrasada</SelectItem>
-                                  </SelectContent>
-                                </Select>
-                              </td>
-                              <td className="px-3 py-2">
-                                <div className="flex gap-1 justify-center">
-                                  <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEditItem(item)}>
-                                    <Edit className="w-3 h-3" />
-                                  </Button>
-                                  <Button variant="ghost" size="icon" className="h-7 w-7 text-red-500" onClick={() => handleDeleteItem(item.id)}>
-                                    <Trash2 className="w-3 h-3" />
-                                  </Button>
+                  <div className="space-y-2">
+                    {items.sort((a, b) => (a.order || 0) - (b.order || 0)).map((item) => {
+                      const itemStatus = getItemStatusConfig(item);
+                      const isExpanded = expandedItems.includes(item.id);
+                      
+                      return (
+                        <div key={item.id} className="border rounded-lg overflow-hidden">
+                          {/* Linha resumida - clicável */}
+                          <div 
+                            className="flex items-center gap-3 p-3 bg-white hover:bg-gray-50 cursor-pointer"
+                            onClick={() => setExpandedItems(prev => 
+                              prev.includes(item.id) 
+                                ? prev.filter(id => id !== item.id) 
+                                : [...prev, item.id]
+                            )}
+                          >
+                            <div className="flex-shrink-0">
+                              {isExpanded ? (
+                                <ChevronDown className="w-4 h-4 text-gray-500" />
+                              ) : (
+                                <ChevronRight className="w-4 h-4 text-gray-500" />
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-medium text-sm truncate">{item.what}</p>
+                              <p className="text-xs text-gray-500">
+                                {getUserName(item.who)} • {item.due_date && format(new Date(item.due_date), "dd/MM/yyyy", { locale: ptBR })}
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                              <Select value={item.status} onValueChange={(v) => handleStatusChange(item.id, v)}>
+                                <SelectTrigger className={`h-7 text-xs w-28 ${itemStatus.color} border-0`}>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="pendente">Pendente</SelectItem>
+                                  <SelectItem value="em_andamento">Em Andamento</SelectItem>
+                                  <SelectItem value="realizada">Realizada</SelectItem>
+                                  <SelectItem value="atrasada">Atrasada</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => handleEditItem(item)}>
+                                <Edit className="w-3 h-3" />
+                              </Button>
+                              <Button variant="ghost" size="icon" className="h-7 w-7 text-red-500" onClick={() => handleDeleteItem(item.id)}>
+                                <Trash2 className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          </div>
+                          
+                          {/* Detalhes expandidos */}
+                          {isExpanded && (
+                            <div className="border-t bg-gray-50 p-4">
+                              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
+                                <div>
+                                  <p className="text-gray-500 text-xs mb-1">O que fazer?</p>
+                                  <p className="font-medium">{item.what}</p>
                                 </div>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
+                                <div>
+                                  <p className="text-gray-500 text-xs mb-1">Como?</p>
+                                  <p>{item.how || "-"}</p>
+                                </div>
+                                <div>
+                                  <p className="text-gray-500 text-xs mb-1">Onde?</p>
+                                  <p>{item.where || "-"}</p>
+                                </div>
+                                <div>
+                                  <p className="text-gray-500 text-xs mb-1">Quem?</p>
+                                  <p className="font-medium">{getUserName(item.who)}</p>
+                                </div>
+                                <div>
+                                  <p className="text-gray-500 text-xs mb-1">Delegado</p>
+                                  <p>{item.delegate ? getUserName(item.delegate) : "-"}</p>
+                                </div>
+                                <div>
+                                  <p className="text-gray-500 text-xs mb-1">Nível</p>
+                                  <p>{item.level === "determinar" ? "Determinar" : "Recomendar"}</p>
+                                </div>
+                                <div>
+                                  <p className="text-gray-500 text-xs mb-1">Quando?</p>
+                                  <p>{item.due_date && format(new Date(item.due_date), "dd/MM/yyyy", { locale: ptBR })}</p>
+                                </div>
+                                <div className="col-span-2">
+                                  <p className="text-gray-500 text-xs mb-1">Materiais</p>
+                                  <p>{item.materials || "-"}</p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
