@@ -188,9 +188,12 @@ export default function AuditLogModal({ open, onClose, users }) {
                             <div className="flex items-center gap-1">
                               <Calendar className="w-3 h-3" />
                               {log.created_date
-                                ? formatInTimeZone(new Date(log.created_date), "America/Sao_Paulo", "dd/MM/yyyy 'às' HH:mm:ss", {
-                                    locale: ptBR,
-                                  })
+                                ? formatInTimeZone(
+                                    new Date(log.created_date.endsWith('Z') ? log.created_date : log.created_date + 'Z'), 
+                                    "America/Sao_Paulo", 
+                                    "dd/MM/yyyy 'às' HH:mm:ss", 
+                                    { locale: ptBR }
+                                  )
                                 : "-"}
                             </div>
                           </div>
