@@ -401,14 +401,14 @@ export default function Dashboard() {
               <Button
                 variant={filterPeriod === 'hoje' ? 'default' : 'outline'}
                 onClick={() => { setFilterPeriod('hoje'); setCustomStartDate(''); setCustomEndDate(''); setCurrentPage(1); }}
-                className={filterPeriod === 'hoje' ? 'bg-primary' : 'dark:bg-slate-700 dark:text-white dark:border-slate-600'}
+                className={filterPeriod === 'hoje' ? 'bg-primary text-white' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50 dark:bg-slate-700 dark:text-white dark:border-slate-600 dark:hover:bg-slate-600'}
               >
                 Hoje
               </Button>
               <Button
                 variant={filterPeriod === 'ontem' ? 'default' : 'outline'}
                 onClick={() => { setFilterPeriod('ontem'); setCustomStartDate(''); setCustomEndDate(''); setCurrentPage(1); }}
-                className={filterPeriod === 'ontem' ? 'bg-primary' : 'dark:bg-slate-700 dark:text-white dark:border-slate-600'}
+                className={filterPeriod === 'ontem' ? 'bg-primary text-white' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50 dark:bg-slate-700 dark:text-white dark:border-slate-600 dark:hover:bg-slate-600'}
               >
                 Ontem
               </Button>
