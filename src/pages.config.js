@@ -57,11 +57,11 @@ import Dashboard from './pages/Dashboard';
 import GestaoTarefas from './pages/GestaoTarefas';
 import Home from './pages/Home';
 import MapaFuncionarios from './pages/MapaFuncionarios';
+import PlanoAcao from './pages/PlanoAcao';
 import ProdutividadeGeral from './pages/ProdutividadeGeral';
 import Ranking from './pages/Ranking';
 import Relatorios from './pages/Relatorios';
 import Removedor from './pages/Removedor';
-import PlanoAcao from './pages/PlanoAcao';
 import __Layout from './Layout.jsx';
 
 
@@ -76,11 +76,11 @@ export const PAGES = {
     "GestaoTarefas": GestaoTarefas,
     "Home": Home,
     "MapaFuncionarios": MapaFuncionarios,
+    "PlanoAcao": PlanoAcao,
     "ProdutividadeGeral": ProdutividadeGeral,
     "Ranking": Ranking,
     "Relatorios": Relatorios,
     "Removedor": Removedor,
-    "PlanoAcao": PlanoAcao,
 }
 
 export const pagesConfig = {

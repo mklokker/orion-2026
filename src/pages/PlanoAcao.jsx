@@ -76,7 +76,7 @@ export default function PlanoAcaoPage() {
         PlanoAcaoObjetivo.list(),
         AtaReuniao.list("-meeting_date"),
         User_.list(),
-        User_.me(),
+        base44.auth.me(),
       ]);
       setPlanos(planosData);
       setItems(itemsData);
