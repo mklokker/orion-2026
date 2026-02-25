@@ -59,6 +59,8 @@ import TaskViewEditModal from "./components/tasks/TaskViewEditModal";
 import ServiceViewEditModal from "./components/services/ServiceViewEditModal";
 import { Toaster } from "./components/ui/toaster";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import MobileBottomNav from "./components/mobile/MobileBottomNav";
+import MobileMoreMenu from "./components/mobile/MobileMoreMenu";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -133,6 +135,7 @@ export default function Layout({ children }) {
   const [showServiceModal, setShowServiceModal] = React.useState(false);
   const [users, setUsers] = React.useState([]);
   const [departments, setDepartments] = React.useState([]);
+  const [showMobileMore, setShowMobileMore] = React.useState(false);
 
   const isAdmin = user?.role === 'admin';
 
@@ -514,10 +517,23 @@ export default function Layout({ children }) {
             </div>
           </header>
 
-          <div className="flex-1 overflow-auto">
+          <div className="flex-1 overflow-auto pb-16 md:pb-0">
             {children}
           </div>
         </main>
+        
+        {/* Mobile Bottom Navigation */}
+        <MobileBottomNav 
+          onMoreClick={() => setShowMobileMore(true)}
+          unreadChatCount={unreadChatCount}
+        />
+        
+        {/* Mobile More Menu */}
+        <MobileMoreMenu 
+          open={showMobileMore}
+          onClose={() => setShowMobileMore(false)}
+          isAdmin={isAdmin}
+        />
       </div>
 
       {user && (
