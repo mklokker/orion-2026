@@ -24,6 +24,8 @@ import {
   Clock,
   AlertTriangle,
   Zap,
+  Trash2,
+  History,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -35,6 +37,8 @@ import CreateAtaModal from "@/components/atas/CreateAtaModal";
 import AlinhamentoViewModal from "@/components/atas/AlinhamentoViewModal";
 import AtaViewModal from "@/components/atas/AtaViewModal";
 import CategoriaManagerModal from "@/components/atas/CategoriaManagerModal";
+import AuditLogModal from "@/components/atas/AuditLogModal";
+import DeletedItemsTab from "@/components/atas/DeletedItemsTab";
 
 export default function AtasAlinhamentos() {
   const { toast } = useToast();
@@ -55,6 +59,7 @@ export default function AtasAlinhamentos() {
   const [showCreateAlinhamento, setShowCreateAlinhamento] = useState(false);
   const [showCreateAta, setShowCreateAta] = useState(false);
   const [showCategoriaManager, setShowCategoriaManager] = useState(false);
+  const [showAuditLog, setShowAuditLog] = useState(false);
   const [selectedAlinhamento, setSelectedAlinhamento] = useState(null);
   const [selectedAta, setSelectedAta] = useState(null);
   const [editingAlinhamento, setEditingAlinhamento] = useState(null);
@@ -117,8 +122,9 @@ export default function AtasAlinhamentos() {
     return config[priority] || config.media;
   };
 
-  // Filtros case insensitive
+  // Filtros case insensitive - excluir itens deletados
   const filteredAlinhamentos = alinhamentos.filter((a) => {
+    if (a.is_deleted) return false;
     const matchesSearch =
       !searchQuery ||
       a.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -129,6 +135,7 @@ export default function AtasAlinhamentos() {
   });
 
   const filteredAtas = atas.filter((a) => {
+    if (a.is_deleted) return false;
     const matchesSearch =
       !searchQuery ||
       a.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -138,13 +145,41 @@ export default function AtasAlinhamentos() {
     return matchesSearch && matchesCategory;
   });
 
-  const handleSaveAlinhamento = async () => {
+  // Função para registrar log
+  const logAction = async (action, entityType, entityId, entityTitle, details = "", oldData = null) => {
+    try {
+      await base44.entities.AtasAlinhamentosLog.create({
+        action,
+        entity_type: entityType,
+        entity_id: entityId,
+        entity_title: entityTitle,
+        user_email: currentUser?.email,
+        user_name: currentUser?.display_name || currentUser?.full_name || currentUser?.email,
+        details,
+        old_data: oldData,
+      });
+    } catch (error) {
+      console.error("Erro ao registrar log:", error);
+    }
+  };
+
+  const handleSaveAlinhamento = async (isNew = false, title = "") => {
+    if (isNew && title) {
+      await logAction("create", "alinhamento", "", title, "Alinhamento criado");
+    } else if (editingAlinhamento) {
+      await logAction("update", "alinhamento", editingAlinhamento.id, editingAlinhamento.title, "Alinhamento atualizado");
+    }
     await loadData();
     setShowCreateAlinhamento(false);
     setEditingAlinhamento(null);
   };
 
-  const handleSaveAta = async () => {
+  const handleSaveAta = async (isNew = false, title = "") => {
+    if (isNew && title) {
+      await logAction("create", "ata", "", title, "Ata criada");
+    } else if (editingAta) {
+      await logAction("update", "ata", editingAta.id, editingAta.title, "Ata atualizada");
+    }
     await loadData();
     setShowCreateAta(false);
     setEditingAta(null);
@@ -152,13 +187,15 @@ export default function AtasAlinhamentos() {
 
   const handleDeleteAlinhamento = async (id) => {
     try {
-      // Deletar tópicos associados
-      const topicosToDelete = topicos.filter((t) => t.alignment_id === id);
-      for (const topico of topicosToDelete) {
-        await base44.entities.AlinhamentoTopico.delete(topico.id);
-      }
-      await base44.entities.Alinhamento.delete(id);
-      toast({ title: "Sucesso", description: "Alinhamento excluído." });
+      const alinhamento = alinhamentos.find(a => a.id === id);
+      // Soft delete - apenas marca como excluído
+      await base44.entities.Alinhamento.update(id, {
+        is_deleted: true,
+        deleted_at: new Date().toISOString(),
+        deleted_by: currentUser?.email,
+      });
+      await logAction("delete", "alinhamento", id, alinhamento?.title, "Alinhamento movido para lixeira", alinhamento);
+      toast({ title: "Sucesso", description: "Alinhamento movido para lixeira." });
       await loadData();
       setSelectedAlinhamento(null);
     } catch (error) {
@@ -168,12 +205,69 @@ export default function AtasAlinhamentos() {
 
   const handleDeleteAta = async (id) => {
     try {
-      await base44.entities.AtaReuniao.delete(id);
-      toast({ title: "Sucesso", description: "Ata excluída." });
+      const ata = atas.find(a => a.id === id);
+      // Soft delete - apenas marca como excluído
+      await base44.entities.AtaReuniao.update(id, {
+        is_deleted: true,
+        deleted_at: new Date().toISOString(),
+        deleted_by: currentUser?.email,
+      });
+      await logAction("delete", "ata", id, ata?.title, "Ata movida para lixeira", ata);
+      toast({ title: "Sucesso", description: "Ata movida para lixeira." });
       await loadData();
       setSelectedAta(null);
     } catch (error) {
       toast({ title: "Erro", description: "Erro ao excluir.", variant: "destructive" });
+    }
+  };
+
+  const handleRestoreAlinhamento = async (id) => {
+    try {
+      const alinhamento = alinhamentos.find(a => a.id === id);
+      await base44.entities.Alinhamento.update(id, {
+        is_deleted: false,
+        deleted_at: null,
+        deleted_by: null,
+      });
+      await logAction("restore", "alinhamento", id, alinhamento?.title, "Alinhamento restaurado da lixeira");
+      toast({ title: "Sucesso", description: "Alinhamento restaurado." });
+      await loadData();
+    } catch (error) {
+      toast({ title: "Erro", description: "Erro ao restaurar.", variant: "destructive" });
+    }
+  };
+
+  const handleRestoreAta = async (id) => {
+    try {
+      const ata = atas.find(a => a.id === id);
+      await base44.entities.AtaReuniao.update(id, {
+        is_deleted: false,
+        deleted_at: null,
+        deleted_by: null,
+      });
+      await logAction("restore", "ata", id, ata?.title, "Ata restaurada da lixeira");
+      toast({ title: "Sucesso", description: "Ata restaurada." });
+      await loadData();
+    } catch (error) {
+      toast({ title: "Erro", description: "Erro ao restaurar.", variant: "destructive" });
+    }
+  };
+
+  const handlePermanentDelete = async (type, id) => {
+    try {
+      if (type === "alinhamento") {
+        const topicosToDelete = topicos.filter((t) => t.alignment_id === id);
+        for (const topico of topicosToDelete) {
+          await base44.entities.AlinhamentoTopico.delete(topico.id);
+        }
+        await base44.entities.Alinhamento.delete(id);
+      } else {
+        await base44.entities.AtaReuniao.delete(id);
+      }
+      toast({ title: "Sucesso", description: "Item excluído permanentemente." });
+      await loadData();
+    } catch (error) {
+      toast({ title: "Erro", description: "Erro ao excluir permanentemente.", variant: "destructive" });
     }
   };
 
@@ -213,6 +307,12 @@ export default function AtasAlinhamentos() {
         </div>
 
         <div className="flex gap-2">
+          {isAdmin && (
+            <Button variant="outline" onClick={() => setShowAuditLog(true)}>
+              <History className="w-4 h-4 mr-2" />
+              Auditoria
+            </Button>
+          )}
           <Button variant="outline" onClick={() => setShowCategoriaManager(true)}>
             <Settings className="w-4 h-4 mr-2" />
             Categorias
@@ -222,12 +322,12 @@ export default function AtasAlinhamentos() {
               <Plus className="w-4 h-4 mr-2" />
               Novo Alinhamento
             </Button>
-          ) : (
+          ) : activeTab === "atas" ? (
             <Button onClick={() => setShowCreateAta(true)}>
               <Plus className="w-4 h-4 mr-2" />
               Nova Ata
             </Button>
-          )}
+          ) : null}
         </div>
       </div>
 
@@ -263,7 +363,7 @@ export default function AtasAlinhamentos() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-2 max-w-md">
+        <TabsList className={`grid w-full ${isAdmin ? "grid-cols-3" : "grid-cols-2"} max-w-xl`}>
           <TabsTrigger value="alinhamentos" className="flex items-center gap-2">
             <Users className="w-4 h-4" />
             Alinhamentos ({filteredAlinhamentos.length})
@@ -272,6 +372,12 @@ export default function AtasAlinhamentos() {
             <FileText className="w-4 h-4" />
             Atas ({filteredAtas.length})
           </TabsTrigger>
+          {isAdmin && (
+            <TabsTrigger value="excluidos" className="flex items-center gap-2">
+              <Trash2 className="w-4 h-4" />
+              Excluídos
+            </TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="alinhamentos" className="mt-6">
@@ -389,6 +495,19 @@ export default function AtasAlinhamentos() {
             </div>
           )}
         </TabsContent>
+
+        {isAdmin && (
+          <TabsContent value="excluidos" className="mt-6">
+            <DeletedItemsTab
+              alinhamentos={alinhamentos.filter(a => a.is_deleted)}
+              atas={atas.filter(a => a.is_deleted)}
+              users={users}
+              onRestoreAlinhamento={handleRestoreAlinhamento}
+              onRestoreAta={handleRestoreAta}
+              onPermanentDelete={handlePermanentDelete}
+            />
+          </TabsContent>
+        )}
       </Tabs>
 
       {/* Modals */}
@@ -422,6 +541,14 @@ export default function AtasAlinhamentos() {
         categorias={categorias}
         onUpdate={loadData}
       />
+
+      {isAdmin && (
+        <AuditLogModal
+          open={showAuditLog}
+          onClose={() => setShowAuditLog(false)}
+          users={users}
+        />
+      )}
 
       {selectedAlinhamento && (
         <AlinhamentoViewModal
