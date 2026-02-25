@@ -133,24 +133,9 @@ export default function Layout({ children, currentPageName }) {
   // Check if we're on the dashboard (home) page
   const isDashboard = location.pathname === '/Dashboard' || location.pathname === '/' || location.pathname === '';
   
-  // System theme detection
+  // Force light mode - remove dark class to prevent UI inconsistencies
   React.useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    
-    const handleThemeChange = (e) => {
-      if (e.matches) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-    };
-    
-    // Set initial theme
-    handleThemeChange(mediaQuery);
-    
-    // Listen for changes
-    mediaQuery.addEventListener('change', handleThemeChange);
-    return () => mediaQuery.removeEventListener('change', handleThemeChange);
+    document.documentElement.classList.remove('dark');
   }, []);
 
 
@@ -520,7 +505,7 @@ export default function Layout({ children, currentPageName }) {
 
         <main className="flex-1 flex flex-col">
           <header 
-            className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-700/50 px-4 py-2 flex items-center justify-center md:hidden shadow-sm relative sticky top-0 z-40 select-none touch-none-select"
+            className="bg-white/80 backdrop-blur-xl border-b border-gray-200/50 px-4 py-2 flex items-center justify-center md:hidden shadow-sm relative sticky top-0 z-40 select-none touch-none-select"
             style={{ paddingTop: 'max(env(safe-area-inset-top, 0px), 8px)' }}
           >
             <div className="absolute left-4 top-1/2 -translate-y-1/2">
@@ -529,19 +514,19 @@ export default function Layout({ children, currentPageName }) {
                   variant="ghost"
                   size="icon"
                   onClick={() => navigate(-1)}
-                  className="hover:bg-gray-100 dark:hover:bg-gray-800 active:bg-gray-200 dark:active:bg-gray-700 p-2 rounded-lg transition-colors duration-200 touch-manipulation touch-none-select"
+                  className="hover:bg-gray-100 active:bg-gray-200 p-2 rounded-lg transition-colors duration-200 touch-manipulation touch-none-select"
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </Button>
               ) : (
-                <SidebarTrigger className="hover:bg-gray-100 dark:hover:bg-gray-800 active:bg-gray-200 dark:active:bg-gray-700 p-2 rounded-lg transition-colors duration-200 touch-manipulation touch-none-select" />
+                <SidebarTrigger className="hover:bg-gray-100 active:bg-gray-200 p-2 rounded-lg transition-colors duration-200 touch-manipulation touch-none-select" />
               )}
             </div>
             <div className="h-10">
                 {appSettings?.logo_url ? (
                     <img src={appSettings.logo_url} alt="Logo" className="h-full w-auto object-contain" />
                 ) : (
-                    <h1 className="text-xl font-bold text-gray-900 dark:text-white">Orion</h1>
+                    <h1 className="text-xl font-bold text-gray-900">Orion</h1>
                 )}
             </div>
             <div className="absolute right-4 top-1/2 -translate-y-1/2">
