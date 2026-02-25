@@ -359,14 +359,14 @@ export default function Layout({ children, currentPageName }) {
         `}</style>
       )}
       <div 
-        className="min-h-screen flex w-full bg-gradient-to-br from-gray-50 to-blue-50 dark:from-slate-900 dark:to-slate-800"
+        className="min-h-screen flex w-full bg-gradient-to-br from-gray-50 to-blue-50 dark:from-[#0a0a0a] dark:to-[#0a0a0a]"
         style={{ 
           paddingTop: 'env(safe-area-inset-top, 0px)',
           paddingBottom: 'env(safe-area-inset-bottom, 0px)'
         }}
       >
-        <Sidebar className="border-r border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900">
-          <SidebarHeader className="border-b border-gray-200 dark:border-slate-700 p-4">
+        <Sidebar className="border-r border-gray-200 dark:border-[#1a1a1a] bg-white dark:bg-[#0a0a0a]">
+          <SidebarHeader className="border-b border-gray-200 dark:border-[#1a1a1a] p-4">
             <Link to={createPageUrl("Dashboard")} className="block">
               <div className="flex justify-center items-center h-24">
                 {appSettings?.logo_url ? (
@@ -391,8 +391,8 @@ export default function Layout({ children, currentPageName }) {
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton
                         asChild
-                        className={`hover:bg-blue-50 dark:hover:bg-slate-800 hover:text-primary transition-all duration-200 rounded-lg mb-1 ${
-                          location.pathname === item.url ? 'bg-gradient-to-r from-primary to-primary-accent text-white hover:text-white' : 'dark:text-gray-300'
+                        className={`hover:bg-blue-50 dark:hover:bg-[#1a1a1a] hover:text-primary transition-all duration-200 rounded-lg mb-1 ${
+                          location.pathname === item.url ? 'bg-gradient-to-r from-primary to-primary-accent text-white hover:text-white' : 'dark:text-[#a1a1a1]'
                         }`}
                       >
                         <Link to={item.url} className="flex items-center gap-3 px-3 py-2.5">
@@ -414,8 +414,8 @@ export default function Layout({ children, currentPageName }) {
                       <SidebarMenuItem>
                         <CollapsibleTrigger asChild>
                           <SidebarMenuButton
-                            className={`hover:bg-blue-50 dark:hover:bg-slate-800 hover:text-primary transition-all duration-200 rounded-lg mb-1 w-full ${
-                              isGestaoRIActive ? 'bg-gradient-to-r from-primary to-primary-accent text-white hover:text-white' : 'dark:text-gray-300'
+                            className={`hover:bg-blue-50 dark:hover:bg-[#1a1a1a] hover:text-primary transition-all duration-200 rounded-lg mb-1 w-full ${
+                              isGestaoRIActive ? 'bg-gradient-to-r from-primary to-primary-accent text-white hover:text-white' : 'dark:text-[#a1a1a1]'
                             }`}
                           >
                             <Building2 className="w-5 h-5" />
@@ -429,8 +429,8 @@ export default function Layout({ children, currentPageName }) {
                               <SidebarMenuSubItem key={subItem.title}>
                                 <SidebarMenuSubButton
                                   asChild
-                                  className={`hover:bg-blue-50 dark:hover:bg-slate-800 hover:text-primary transition-all duration-200 rounded-lg ${
-                                    location.pathname === subItem.url ? 'bg-blue-100 dark:bg-slate-800 text-primary font-semibold' : 'dark:text-gray-400'
+                                  className={`hover:bg-blue-50 dark:hover:bg-[#1a1a1a] hover:text-primary transition-all duration-200 rounded-lg ${
+                                    location.pathname === subItem.url ? 'bg-blue-100 dark:bg-[#1a1a1a] text-primary font-semibold' : 'dark:text-[#6b6b6b]'
                                   }`}
                                 >
                                   <Link to={subItem.url} className="flex items-center gap-2">
@@ -450,7 +450,7 @@ export default function Layout({ children, currentPageName }) {
             </SidebarGroup>
           </SidebarContent>
 
-          <SidebarFooter className="border-t border-gray-200 dark:border-slate-700 p-4">
+          <SidebarFooter className="border-t border-gray-200 dark:border-[#1a1a1a] p-4">
             {user && (
               <div className="space-y-3">
                 {notificationPermission !== 'granted' && (
@@ -490,7 +490,7 @@ export default function Layout({ children, currentPageName }) {
 
                 <button
                   onClick={() => setShowProfileModal(true)}
-                  className="w-full flex items-center gap-3 px-2 hover:bg-gray-50 dark:hover:bg-slate-800 rounded-lg p-2 transition-colors"
+                  className="w-full flex items-center gap-3 px-2 hover:bg-gray-50 dark:hover:bg-[#1a1a1a] rounded-lg p-2 transition-colors"
                 >
                   <Avatar className="w-10 h-10 border-2 border-gray-200 dark:border-slate-600">
                     <AvatarImage src={user.profile_picture} alt={getUserDisplayName(user)} />
@@ -508,7 +508,7 @@ export default function Layout({ children, currentPageName }) {
                 </button>
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-danger rounded-lg transition-colors duration-200"
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-[#a1a1a1] hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-danger rounded-lg transition-colors duration-200"
                 >
                   <LogOut className="w-4 h-4" />
                   Sair
@@ -520,7 +520,7 @@ export default function Layout({ children, currentPageName }) {
 
         <main className="flex-1 flex flex-col">
           <header 
-            className="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-b border-gray-200/50 dark:border-gray-700/50 px-4 py-2 flex items-center justify-center md:hidden shadow-sm relative sticky top-0 z-40 select-none touch-none-select"
+            className="bg-white/80 dark:bg-[#0a0a0a]/95 backdrop-blur-xl border-b border-gray-200/50 dark:border-[#1a1a1a] px-4 py-2 flex items-center justify-center md:hidden shadow-sm relative sticky top-0 z-40 select-none touch-none-select"
             style={{ paddingTop: 'max(env(safe-area-inset-top, 0px), 8px)' }}
           >
             <div className="absolute left-4 top-1/2 -translate-y-1/2">
@@ -529,12 +529,12 @@ export default function Layout({ children, currentPageName }) {
                   variant="ghost"
                   size="icon"
                   onClick={() => navigate(-1)}
-                  className="hover:bg-gray-100 dark:hover:bg-gray-800 active:bg-gray-200 dark:active:bg-gray-700 p-2 rounded-lg transition-colors duration-200 touch-manipulation touch-none-select"
+                  className="hover:bg-gray-100 dark:hover:bg-[#1a1a1a] active:bg-gray-200 dark:active:bg-[#2a2a2a] p-2 rounded-lg transition-colors duration-200 touch-manipulation touch-none-select"
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </Button>
               ) : (
-                <SidebarTrigger className="hover:bg-gray-100 dark:hover:bg-gray-800 active:bg-gray-200 dark:active:bg-gray-700 p-2 rounded-lg transition-colors duration-200 touch-manipulation touch-none-select" />
+                <SidebarTrigger className="hover:bg-gray-100 dark:hover:bg-[#1a1a1a] active:bg-gray-200 dark:active:bg-[#2a2a2a] p-2 rounded-lg transition-colors duration-200 touch-manipulation touch-none-select" />
               )}
             </div>
             <div className="h-10">
