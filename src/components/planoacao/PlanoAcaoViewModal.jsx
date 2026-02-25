@@ -138,7 +138,7 @@ export default function PlanoAcaoViewModal({ open, onClose, plano, items, users,
   return (
     <>
       <Dialog open={open} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl max-h-[90vh]">
+        <DialogContent className="max-w-5xl w-[95vw] max-h-[90vh]">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Target className="w-5 h-5 text-indigo-600" />
