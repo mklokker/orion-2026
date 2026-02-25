@@ -32,36 +32,64 @@ svg,
   -webkit-tap-highlight-color: transparent;
 }
 
-/* System dark mode sync */
+/* System dark mode sync - improved dark mode colors */
 @media (prefers-color-scheme: dark) {
   :root:not(.light) {
     color-scheme: dark;
-  }
-  :root:not(.light) {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
+    --background: 222 47% 11%;
+    --foreground: 210 40% 98%;
+    --card: 222 47% 14%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222 47% 14%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 217 91% 60%;
+    --primary-foreground: 222 47% 11%;
+    --secondary: 217 33% 25%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217 33% 20%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 217 33% 25%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217 33% 25%;
+    --input: 217 33% 25%;
+    --ring: 217 91% 60%;
   }
 }
 
 @media (prefers-color-scheme: light) {
   :root:not(.dark) {
     color-scheme: light;
+  }
+}
+
+/* Dark mode specific overrides for better contrast */
+@media (prefers-color-scheme: dark) {
+  :root:not(.light) {
+    /* Ensure inputs and selects have proper backgrounds */
+    input, select, textarea {
+      background-color: hsl(222, 47%, 14%) !important;
+      border-color: hsl(217, 33%, 30%) !important;
+      color: hsl(210, 40%, 98%) !important;
+    }
+    
+    /* Tables */
+    table {
+      background-color: hsl(222, 47%, 14%);
+    }
+    
+    th {
+      background-color: hsl(222, 47%, 17%) !important;
+      color: hsl(210, 40%, 98%) !important;
+    }
+    
+    td {
+      border-color: hsl(217, 33%, 25%) !important;
+    }
+    
+    tr:hover {
+      background-color: hsl(222, 47%, 17%) !important;
+    }
   }
 }

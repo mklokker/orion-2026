@@ -534,11 +534,11 @@ export default function GestaoTarefas() {
   };
 
   return (
-    <div className="p-4 md:p-8 min-h-screen bg-gray-50">
+    <div className="p-4 md:p-8 min-h-screen bg-gray-50 dark:bg-slate-900">
       <AutoStatusUpdater />
       <div className="max-w-full mx-auto space-y-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <h1 className="text-xl md:text-4xl font-bold text-gray-900">
+          <h1 className="text-xl md:text-4xl font-bold text-gray-900 dark:text-white">
             Gestão de Tarefas
           </h1>
 
@@ -547,7 +547,7 @@ export default function GestaoTarefas() {
               <Button
                 variant="outline"
                 onClick={() => setShowBulkActionsModal(true)}
-                className="gap-2 bg-white text-xs md:text-sm"
+                className="gap-2 bg-white dark:bg-slate-800 dark:text-white dark:border-slate-600 text-xs md:text-sm"
                 size="sm"
               >
                 Lote ({selectedTasks.length})
@@ -558,7 +558,7 @@ export default function GestaoTarefas() {
                 <Button
                   variant="outline"
                   onClick={() => setShowBulkTextModal(true)}
-                  className="gap-1.5 md:gap-2 bg-white text-xs md:text-sm hidden md:flex"
+                  className="gap-1.5 md:gap-2 bg-white dark:bg-slate-800 dark:text-white dark:border-slate-600 text-xs md:text-sm hidden md:flex"
                   size="sm"
                 >
                   <FileText className="w-4 h-4" />
@@ -568,7 +568,7 @@ export default function GestaoTarefas() {
                 <Button
                   variant="outline"
                   onClick={() => setShowServiceModal(true)}
-                  className="gap-1.5 md:gap-2 bg-white text-xs md:text-sm"
+                  className="gap-1.5 md:gap-2 bg-white dark:bg-slate-800 dark:text-white dark:border-slate-600 text-xs md:text-sm"
                   size="sm"
                 >
                   <Plus className="w-4 h-4" />
@@ -589,17 +589,17 @@ export default function GestaoTarefas() {
           </div>
         </div>
 
-        <div className="flex gap-2 border-b">
+        <div className="flex gap-2 border-b dark:border-slate-700">
           <button
             onClick={() => { setActiveTab("ativas"); setCurrentPage(1); }}
             className={`px-4 py-3 text-sm font-medium transition-all border-b-2 ${
               activeTab === "ativas"
-                ? "border-primary text-primary"
-                : "border-transparent text-gray-600 hover:text-gray-900"
+                ? "border-primary text-primary dark:text-blue-400"
+                : "border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
             }`}
           >
             Ativas
-            <Badge className="ml-2 bg-gray-200 text-gray-800">
+            <Badge className="ml-2 bg-gray-200 dark:bg-slate-700 text-gray-800 dark:text-gray-200">
               {stats.ativas}
             </Badge>
           </button>
@@ -607,18 +607,18 @@ export default function GestaoTarefas() {
             onClick={() => { setActiveTab("concluidas"); setCurrentPage(1); }}
             className={`px-4 py-3 text-sm font-medium transition-all border-b-2 ${
               activeTab === "concluidas"
-                ? "border-primary text-primary"
-                : "border-transparent text-gray-600 hover:text-gray-900"
+                ? "border-primary text-primary dark:text-blue-400"
+                : "border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
             }`}
           >
             Concluídas
-            <Badge className="ml-2 bg-gray-200 text-gray-800">
+            <Badge className="ml-2 bg-gray-200 dark:bg-slate-700 text-gray-800 dark:text-gray-200">
               {stats.concluidas}
             </Badge>
           </button>
         </div>
 
-        <Card className="bg-white shadow-sm border p-4">
+        <Card className="bg-white dark:bg-slate-800 shadow-sm border dark:border-slate-700 p-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="md:col-span-4 relative">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -629,12 +629,12 @@ export default function GestaoTarefas() {
                     setSearchQuery(e.target.value);
                     setCurrentPage(1);
                 }}
-                className="pl-12 h-12 text-base bg-white"
+                className="pl-12 h-12 text-base bg-white dark:bg-slate-900 dark:text-white dark:border-slate-600 dark:placeholder:text-slate-400"
               />
             </div>
 
             <div className="space-y-1">
-              <Label className="text-xs text-gray-500">Departamento</Label>
+              <Label className="text-xs text-gray-500 dark:text-gray-400">Departamento</Label>
               <Select value={selectedDepartment} onValueChange={(v) => { setSelectedDepartment(v); setCurrentPage(1); }}>
                 <SelectTrigger>
                   <SelectValue placeholder="Todos" />
@@ -649,7 +649,7 @@ export default function GestaoTarefas() {
             </div>
 
             <div className="space-y-1">
-              <Label className="text-xs text-gray-500">Prioridade</Label>
+              <Label className="text-xs text-gray-500 dark:text-gray-400">Prioridade</Label>
               <Select value={selectedPriority} onValueChange={(v) => { setSelectedPriority(v); setCurrentPage(1); }}>
                 <SelectTrigger>
                   <SelectValue placeholder="Todas" />
@@ -666,20 +666,22 @@ export default function GestaoTarefas() {
             </div>
 
             <div className="space-y-1">
-              <Label className="text-xs text-gray-500">Data Inicial</Label>
+              <Label className="text-xs text-gray-500 dark:text-gray-400">Data Inicial</Label>
               <Input 
                 type="date" 
                 value={startDate} 
-                onChange={(e) => { setStartDate(e.target.value); setCurrentPage(1); }} 
+                onChange={(e) => { setStartDate(e.target.value); setCurrentPage(1); }}
+                className="dark:bg-slate-900 dark:text-white dark:border-slate-600"
               />
             </div>
 
             <div className="space-y-1">
-              <Label className="text-xs text-gray-500">Data Final</Label>
+              <Label className="text-xs text-gray-500 dark:text-gray-400">Data Final</Label>
               <Input 
                 type="date" 
                 value={endDate} 
-                onChange={(e) => { setEndDate(e.target.value); setCurrentPage(1); }} 
+                onChange={(e) => { setEndDate(e.target.value); setCurrentPage(1); }}
+                className="dark:bg-slate-900 dark:text-white dark:border-slate-600"
               />
             </div>
           </div>
@@ -688,7 +690,7 @@ export default function GestaoTarefas() {
         {/* Mobile: Cards view */}
         <div className="md:hidden space-y-2">
           {paginatedItems.length === 0 ? (
-            <div className="text-center py-8 text-gray-500 bg-white rounded-lg border">
+            <div className="text-center py-8 text-gray-500 dark:text-gray-400 bg-white dark:bg-slate-800 rounded-lg border dark:border-slate-700">
               Nenhum item encontrado
             </div>
           ) : (
@@ -715,10 +717,10 @@ export default function GestaoTarefas() {
         </div>
 
         {/* Desktop: Table view */}
-        <div className="hidden md:block bg-white rounded-lg shadow-sm border overflow-hidden">
+        <div className="hidden md:block bg-white dark:bg-slate-800 rounded-lg shadow-sm border dark:border-slate-700 overflow-hidden">
           <Table>
             <TableHeader>
-              <TableRow className="bg-gray-50">
+              <TableRow className="bg-gray-50 dark:bg-slate-900">
                 <TableHead className="w-12 px-4">
                   <div
                     onClick={paginatedItems.length > 0 ? toggleAllTasks : undefined}
@@ -750,7 +752,7 @@ export default function GestaoTarefas() {
             <TableBody>
               {paginatedItems.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={12} className="text-center py-8 text-gray-500">
+                  <TableCell colSpan={12} className="text-center py-8 text-gray-500 dark:text-gray-400">
                     Nenhum item encontrado
                   </TableCell>
                 </TableRow>
@@ -761,7 +763,7 @@ export default function GestaoTarefas() {
                   const canComplete = (isMyItem || isAdmin) && item.status !== "Concluída";
 
                   return (
-                    <TableRow key={item.id} className="hover:bg-gray-50">
+                    <TableRow key={item.id} className="hover:bg-gray-50 dark:hover:bg-slate-700">
                       <TableCell className="px-4">
                         <div
                           onClick={() => toggleTaskSelection(item.id)}
@@ -790,7 +792,7 @@ export default function GestaoTarefas() {
                           {item.priority}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-gray-600">{getUserDisplayName(item.assigned_to, users)}</TableCell>
+                      <TableCell className="text-gray-600 dark:text-gray-300">{getUserDisplayName(item.assigned_to, users)}</TableCell>
                       <TableCell>
                         {item.created_date ? format(parseDateAsLocal(item.created_date), "dd/MM/yyyy", { locale: ptBR }) : '-'}
                       </TableCell>
@@ -853,7 +855,7 @@ export default function GestaoTarefas() {
             >
               <ChevronLeft className="w-4 h-4" />
             </Button>
-            <span className="text-sm text-gray-600">
+            <span className="text-sm text-gray-600 dark:text-gray-400">
               Página {currentPage} de {totalPages} ({filteredItems.length} itens)
             </span>
             <Button
