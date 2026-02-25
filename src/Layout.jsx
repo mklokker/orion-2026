@@ -23,6 +23,8 @@ import {
   ChevronDown,
   ChevronLeft,
   Target,
+  Sun,
+  Moon,
 } from "lucide-react";
 import {
   Sidebar,
@@ -133,25 +135,24 @@ export default function Layout({ children, currentPageName }) {
   // Check if we're on the dashboard (home) page
   const isDashboard = location.pathname === '/Dashboard' || location.pathname === '/' || location.pathname === '';
   
-  // System theme detection
+  // Theme state
+  const [isDarkMode, setIsDarkMode] = React.useState(() => {
+    const saved = localStorage.getItem('orion_theme');
+    if (saved) return saved === 'dark';
+    return window.matchMedia('(prefers-color-scheme: dark)').matches;
+  });
+
+  // Apply theme
   React.useEffect(() => {
-    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    
-    const handleThemeChange = (e) => {
-      if (e.matches) {
-        document.documentElement.classList.add('dark');
-      } else {
-        document.documentElement.classList.remove('dark');
-      }
-    };
-    
-    // Set initial theme
-    handleThemeChange(mediaQuery);
-    
-    // Listen for changes
-    mediaQuery.addEventListener('change', handleThemeChange);
-    return () => mediaQuery.removeEventListener('change', handleThemeChange);
-  }, []);
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    localStorage.setItem('orion_theme', isDarkMode ? 'dark' : 'light');
+  }, [isDarkMode]);
+
+  const toggleTheme = () => setIsDarkMode(!isDarkMode);
 
 
 
@@ -453,6 +454,15 @@ export default function Layout({ children, currentPageName }) {
           <SidebarFooter className="border-t border-gray-200 dark:border-[#1a1a1a] p-4">
             {user && (
               <div className="space-y-3">
+                <Button
+                  variant="outline"
+                  className="w-full justify-start gap-2"
+                  onClick={toggleTheme}
+                >
+                  {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                  {isDarkMode ? "Modo Claro" : "Modo Escuro"}
+                </Button>
+
                 {notificationPermission !== 'granted' && (
                   <Button
                     variant="destructive"
