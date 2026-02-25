@@ -590,7 +590,7 @@ export default function CourseModal({
               <div className="flex-1 min-w-0">
                 <DialogTitle className="text-lg md:text-2xl mb-1 md:mb-2 truncate">{course.name}</DialogTitle>
                 {course.description && (
-                  <p className="text-xs md:text-sm text-gray-600 line-clamp-2 md:line-clamp-none">{course.description}</p>
+                  <p className="text-xs md:text-sm text-gray-600 dark:text-[#a1a1a1] line-clamp-2 md:line-clamp-none">{course.description}</p>
                 )}
                 <div className="flex gap-1.5 md:gap-2 mt-2 flex-wrap">
                   <Badge variant="outline" className="gap-1 text-xs px-1.5 md:px-2.5">
@@ -716,7 +716,7 @@ export default function CourseModal({
                               <Card
                                 ref={provided.innerRef}
                                 {...provided.draggableProps}
-                                className={`border-2 ${snapshot.isDragging ? 'border-blue-400 shadow-lg' : ''} ${isVideoWatched(video.id) ? 'border-green-200 bg-green-50/50' : ''}`}
+                                className={`border-2 ${snapshot.isDragging ? 'border-blue-400 shadow-lg' : ''} ${isVideoWatched(video.id) ? 'border-green-200 dark:border-[#22946E]/50 bg-green-50/50 dark:bg-[#22946E]/10' : ''}`}
                               >
                                 <CardContent className="p-3 md:p-4">
                                   <div className="flex items-center gap-2 md:gap-3">
@@ -728,8 +728,8 @@ export default function CourseModal({
 
                                     <div className={`flex items-center justify-center w-6 h-6 md:w-8 md:h-8 rounded-full font-bold text-xs md:text-sm shrink-0 ${
                                       isVideoWatched(video.id) 
-                                        ? 'bg-green-100 text-green-700' 
-                                        : 'bg-blue-100 text-blue-700'
+                                        ? 'bg-green-100 dark:bg-[#22946E]/20 text-green-700 dark:text-[#22946E]' 
+                                        : 'bg-blue-100 dark:bg-[#21498A]/20 text-blue-700 dark:text-blue-400'
                                     }`}>
                                       {isVideoWatched(video.id) ? (
                                         <CheckCircle2 className="w-4 h-4 md:w-5 md:h-5" />
@@ -745,9 +745,9 @@ export default function CourseModal({
                                     />
 
                                     <div className="flex-1 min-w-0">
-                                      <h4 className="font-semibold truncate text-sm md:text-base">{video.title}</h4>
+                                      <h4 className="font-semibold truncate text-sm md:text-base dark:text-white">{video.title}</h4>
                                       {isVideoWatched(video.id) && (
-                                        <span className="text-xs text-green-600">Assistido</span>
+                                        <span className="text-xs text-green-600 dark:text-[#22946E]">Assistido</span>
                                       )}
                                     </div>
 
@@ -817,19 +817,19 @@ export default function CourseModal({
                     const { icon: DocIcon, color } = getDocIcon(doc.file_type);
                     const read = isDocumentRead(doc.id);
                     return (
-                      <Card key={doc.id} className={`border-2 ${read ? 'border-green-200 bg-green-50/50' : ''}`}>
+                      <Card key={doc.id} className={`border-2 ${read ? 'border-green-200 dark:border-[#22946E]/50 bg-green-50/50 dark:bg-[#22946E]/10' : ''}`}>
                         <CardContent className="p-3 md:p-4">
                           <div className="flex items-center gap-2 md:gap-3">
-                            <div className={`flex items-center justify-center w-6 h-6 md:w-8 md:h-8 rounded-full font-bold text-xs md:text-sm shrink-0 ${read ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>
+                            <div className={`flex items-center justify-center w-6 h-6 md:w-8 md:h-8 rounded-full font-bold text-xs md:text-sm shrink-0 ${read ? 'bg-green-100 dark:bg-[#22946E]/20 text-green-700 dark:text-[#22946E]' : 'bg-blue-100 dark:bg-[#21498A]/20 text-blue-700 dark:text-blue-400'}`}>
                               {read ? <CheckCircle2 className="w-4 h-4 md:w-5 md:h-5" /> : index + 1}
                             </div>
                             <div className={`p-1.5 md:p-2 rounded-lg shrink-0 ${color}`}>
                               <DocIcon className="w-5 h-5 md:w-6 md:h-6" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <h4 className="font-semibold truncate text-sm md:text-base">{doc.title}</h4>
-                              <p className="text-xs text-gray-500 truncate hidden md:block">{doc.file_name}</p>
-                              {read && <span className="text-xs text-green-600">Visualizado</span>}
+                              <h4 className="font-semibold truncate text-sm md:text-base dark:text-white">{doc.title}</h4>
+                              <p className="text-xs text-gray-500 dark:text-[#6b6b6b] truncate hidden md:block">{doc.file_name}</p>
+                              {read && <span className="text-xs text-green-600 dark:text-[#22946E]">Visualizado</span>}
                             </div>
                             <div className="flex gap-1 md:gap-2 shrink-0">
                               <Button size="sm" onClick={() => { setViewingDocument(doc); handleMarkDocumentRead(doc); }} className="gap-1 md:gap-2 h-8 px-2 md:px-3 text-xs md:text-sm">
@@ -869,15 +869,15 @@ export default function CourseModal({
                     <Card key={site.id} className="border-2">
                       <CardContent className="p-3 md:p-4">
                         <div className="flex items-center gap-2 md:gap-3">
-                          <div className="flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-full bg-blue-100 text-blue-700 shrink-0">
+                          <div className="flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-full bg-blue-100 dark:bg-[#21498A]/20 text-blue-700 dark:text-blue-400 shrink-0">
                             <Globe className="w-4 h-4 md:w-5 md:h-5" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h4 className="font-semibold truncate text-sm md:text-base">{site.title}</h4>
+                            <h4 className="font-semibold truncate text-sm md:text-base dark:text-white">{site.title}</h4>
                             {site.description && (
-                              <p className="text-xs text-gray-500 truncate hidden md:block">{site.description}</p>
+                              <p className="text-xs text-gray-500 dark:text-[#6b6b6b] truncate hidden md:block">{site.description}</p>
                             )}
-                            <p className="text-xs text-blue-600 truncate">{site.url}</p>
+                            <p className="text-xs text-blue-600 dark:text-blue-400 truncate">{site.url}</p>
                           </div>
                           <div className="flex gap-1 md:gap-2 shrink-0">
                             <Button size="sm" onClick={() => window.open(site.url, '_blank')} className="gap-1 md:gap-2 h-8 px-2 md:px-3 text-xs md:text-sm">
@@ -922,14 +922,14 @@ export default function CourseModal({
                     const bestScore = getQuizBestScore(quiz.id);
                     
                     return (
-                      <Card key={quiz.id} className={`border-2 ${completed ? 'border-green-200 bg-green-50/50' : ''}`}>
+                      <Card key={quiz.id} className={`border-2 ${completed ? 'border-green-200 dark:border-[#22946E]/50 bg-green-50/50 dark:bg-[#22946E]/10' : ''}`}>
                         <CardContent className="p-3 md:p-4">
                           <div className="flex items-center justify-between gap-2">
                             <div className="flex items-center gap-2 md:gap-3 min-w-0">
                               <div className={`flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-full font-bold shrink-0 ${
                                 completed 
-                                  ? 'bg-green-100 text-green-700' 
-                                  : 'bg-purple-100 text-purple-700'
+                                  ? 'bg-green-100 dark:bg-[#22946E]/20 text-green-700 dark:text-[#22946E]' 
+                                  : 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400'
                               }`}>
                                 {completed ? (
                                   <Trophy className="w-4 h-4 md:w-5 md:h-5" />
@@ -938,8 +938,8 @@ export default function CourseModal({
                                 )}
                               </div>
                               <div className="min-w-0">
-                                <h4 className="font-semibold text-sm md:text-base truncate">{quiz.title}</h4>
-                                <div className="flex flex-wrap items-center gap-1 md:gap-3 text-xs md:text-sm text-gray-600">
+                                <h4 className="font-semibold text-sm md:text-base truncate dark:text-white">{quiz.title}</h4>
+                                <div className="flex flex-wrap items-center gap-1 md:gap-3 text-xs md:text-sm text-gray-600 dark:text-[#a1a1a1]">
                                   <span>Mín: {quiz.passing_score}%</span>
                                   {quiz.time_limit_minutes && (
                                     <span className="flex items-center gap-1">
@@ -948,7 +948,7 @@ export default function CourseModal({
                                     </span>
                                   )}
                                   {bestScore !== null && (
-                                    <Badge variant={bestScore >= quiz.passing_score ? "default" : "secondary"} className={`text-xs ${bestScore >= quiz.passing_score ? "bg-green-100 text-green-700" : ""}`}>
+                                    <Badge variant={bestScore >= quiz.passing_score ? "default" : "secondary"} className={`text-xs ${bestScore >= quiz.passing_score ? "bg-green-100 dark:bg-[#22946E]/20 text-green-700 dark:text-[#22946E]" : ""}`}>
                                       {bestScore}%
                                     </Badge>
                                   )}
