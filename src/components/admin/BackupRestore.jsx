@@ -278,9 +278,9 @@ export default function BackupRestore() {
 
   return (
     <>
-      <Card className="shadow-lg border-0">
-        <CardHeader className="border-b bg-gradient-to-r from-gray-50 to-blue-50">
-          <CardTitle className="flex items-center gap-2">
+      <Card className="shadow-lg border-0 dark:bg-[#1a1a1a] dark:border-[#2e2e2e]">
+        <CardHeader className="border-b bg-gradient-to-r from-gray-50 to-blue-50 dark:from-[#121212] dark:to-[#121212] dark:border-[#2e2e2e]">
+          <CardTitle className="flex items-center gap-2 dark:text-white">
             <Database className="w-5 h-5" />
             Backup e Restauração
           </CardTitle>
@@ -288,14 +288,14 @@ export default function BackupRestore() {
         <CardContent className="pt-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Backup Section */}
-            <div className="space-y-4 p-4 border rounded-lg bg-green-50/50">
+            <div className="space-y-4 p-4 border rounded-lg bg-green-50/50 dark:bg-[#22946E]/10 dark:border-[#22946E]/30">
               <div className="flex items-center gap-3">
-                <div className="p-3 bg-green-100 rounded-full">
-                  <Download className="w-6 h-6 text-green-600" />
+                <div className="p-3 bg-green-100 dark:bg-[#22946E]/20 rounded-full">
+                  <Download className="w-6 h-6 text-green-600 dark:text-[#22946E]" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-lg">Criar Backup</h3>
-                  <p className="text-sm text-gray-600">
+                  <h3 className="font-semibold text-lg dark:text-white">Criar Backup</h3>
+                  <p className="text-sm text-gray-600 dark:text-[#a1a1a1]">
                     Exportar todos os dados do sistema
                   </p>
                 </div>
@@ -303,7 +303,7 @@ export default function BackupRestore() {
 
               {isBackingUp && (
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-[#a1a1a1]">
                     <Loader2 className="w-4 h-4 animate-spin" />
                     <span>Exportando: {currentEntity}</span>
                   </div>
@@ -312,12 +312,12 @@ export default function BackupRestore() {
               )}
 
               {backupStats && !isBackingUp && (
-                <div className="bg-white p-3 rounded-lg border space-y-1 max-h-40 overflow-y-auto">
-                  <p className="text-sm font-medium text-green-700 flex items-center gap-1">
+                <div className="bg-white dark:bg-[#121212] p-3 rounded-lg border dark:border-[#2e2e2e] space-y-1 max-h-40 overflow-y-auto">
+                  <p className="text-sm font-medium text-green-700 dark:text-[#22946E] flex items-center gap-1">
                     <CheckCircle2 className="w-4 h-4" />
                     Backup realizado com sucesso!
                   </p>
-                  <div className="text-xs text-gray-600 space-y-0.5">
+                  <div className="text-xs text-gray-600 dark:text-[#a1a1a1] space-y-0.5">
                     {Object.entries(backupStats).map(([label, count]) => (
                       <div key={label} className="flex justify-between">
                         <span>{label}:</span>
@@ -348,14 +348,14 @@ export default function BackupRestore() {
             </div>
 
             {/* Restore Section */}
-            <div className="space-y-4 p-4 border rounded-lg bg-orange-50/50">
+            <div className="space-y-4 p-4 border rounded-lg bg-orange-50/50 dark:bg-[#A87A2A]/10 dark:border-[#A87A2A]/30">
               <div className="flex items-center gap-3">
-                <div className="p-3 bg-orange-100 rounded-full">
-                  <Upload className="w-6 h-6 text-orange-600" />
+                <div className="p-3 bg-orange-100 dark:bg-[#A87A2A]/20 rounded-full">
+                  <Upload className="w-6 h-6 text-orange-600 dark:text-[#A87A2A]" />
                 </div>
                 <div>
-                  <h3 className="font-semibold text-lg">Restaurar Backup</h3>
-                  <p className="text-sm text-gray-600">
+                  <h3 className="font-semibold text-lg dark:text-white">Restaurar Backup</h3>
+                  <p className="text-sm text-gray-600 dark:text-[#a1a1a1]">
                     Importar dados de um arquivo de backup
                   </p>
                 </div>
@@ -363,7 +363,7 @@ export default function BackupRestore() {
 
               {isRestoring && (
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-[#a1a1a1]">
                     <Loader2 className="w-4 h-4 animate-spin" />
                     <span>Restaurando: {currentEntity}</span>
                   </div>
@@ -371,8 +371,8 @@ export default function BackupRestore() {
                 </div>
               )}
 
-              <div className="bg-white p-3 rounded-lg border">
-                <div className="flex items-start gap-2 text-sm text-orange-700">
+              <div className="bg-white dark:bg-[#121212] p-3 rounded-lg border dark:border-[#2e2e2e]">
+                <div className="flex items-start gap-2 text-sm text-orange-700 dark:text-[#A87A2A]">
                   <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
                   <p>
                     A restauração pode sobrescrever dados existentes. 
@@ -393,7 +393,7 @@ export default function BackupRestore() {
                   asChild
                   disabled={isBackingUp || isRestoring}
                   variant="outline"
-                  className="w-full gap-2 border-orange-300 text-orange-700 hover:bg-orange-100 cursor-pointer"
+                  className="w-full gap-2 border-orange-300 dark:border-[#A87A2A] text-orange-700 dark:text-[#A87A2A] hover:bg-orange-100 dark:hover:bg-[#A87A2A]/20 cursor-pointer"
                 >
                   <span>
                     {isRestoring ? (
@@ -414,17 +414,17 @@ export default function BackupRestore() {
           </div>
 
           {/* Info Section */}
-          <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+          <div className="mt-6 p-4 bg-blue-50 dark:bg-[#21498A]/10 rounded-lg border border-blue-200 dark:border-[#21498A]/30">
             <div className="flex items-start gap-3">
-              <HardDrive className="w-5 h-5 text-blue-600 mt-0.5" />
-              <div className="text-sm text-blue-800">
+              <HardDrive className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+              <div className="text-sm text-blue-800 dark:text-blue-300">
                 <p className="font-medium mb-1">Dados incluídos no backup:</p>
-                <p className="text-blue-700">
+                <p className="text-blue-700 dark:text-blue-400">
                   Departamentos, Tarefas, Serviços, Interações, Ranking (Estrelas), 
                   Notificações, Conversas e Mensagens de Chat, Mesas, Setores, 
                   Configurações do App, Documentos, Categorias, Versões, Cursos e Vídeos.
                 </p>
-                <p className="mt-2 text-blue-600 font-medium">
+                <p className="mt-2 text-blue-600 dark:text-blue-300 font-medium">
                   Nota: Dados de usuários não são incluídos no backup por segurança.
                 </p>
               </div>

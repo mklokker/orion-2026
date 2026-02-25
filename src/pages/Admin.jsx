@@ -187,7 +187,7 @@ export default function Admin() {
   const isAdmin = currentUser?.role === 'admin';
 
   return (
-    <div className="p-4 md:p-8 min-h-screen dark:bg-slate-900">
+    <div className="p-4 md:p-8 min-h-screen dark:bg-[#0a0a0a]">
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <div>
@@ -336,8 +336,8 @@ export default function Admin() {
 
           {/* Users Tab */}
           <TabsContent value="users">
-            <Card className="shadow-lg border-0 dark:bg-slate-800 dark:border-slate-700">
-              <CardHeader className="border-b bg-gradient-to-r from-gray-50 to-blue-50 dark:from-slate-700 dark:to-slate-600 dark:border-slate-600">
+            <Card className="shadow-lg border-0 dark:bg-[#1a1a1a] dark:border-[#2e2e2e]">
+              <CardHeader className="border-b bg-gradient-to-r from-gray-50 to-blue-50 dark:from-[#121212] dark:to-[#121212] dark:border-[#2e2e2e]">
                 <CardTitle className="flex items-center gap-2 dark:text-white">
                   <Users className="w-5 h-5" />
                   Usuários do Sistema ({users.length})
@@ -347,14 +347,14 @@ export default function Admin() {
                 <div className="overflow-x-auto">
                   <Table>
                     <TableHeader>
-                      <TableRow className="bg-gray-50">
-                        <TableHead className="w-16">Avatar</TableHead>
-                        <TableHead>Nome</TableHead>
-                        <TableHead>Email</TableHead>
-                        <TableHead>Departamento</TableHead>
-                        <TableHead>Função</TableHead>
-                        <TableHead>Cadastro</TableHead>
-                        {isAdmin && <TableHead className="w-12">Ações</TableHead>}
+                      <TableRow className="bg-gray-50 dark:bg-[#121212] dark:border-[#2e2e2e]">
+                        <TableHead className="w-16 dark:text-[#a1a1a1]">Avatar</TableHead>
+                        <TableHead className="dark:text-[#a1a1a1]">Nome</TableHead>
+                        <TableHead className="dark:text-[#a1a1a1]">Email</TableHead>
+                        <TableHead className="dark:text-[#a1a1a1]">Departamento</TableHead>
+                        <TableHead className="dark:text-[#a1a1a1]">Função</TableHead>
+                        <TableHead className="dark:text-[#a1a1a1]">Cadastro</TableHead>
+                        {isAdmin && <TableHead className="w-12 dark:text-[#a1a1a1]">Ações</TableHead>}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -362,24 +362,24 @@ export default function Admin() {
                         const userDept = departments.find(d => d.id === user.department_id);
                         
                         return (
-                          <TableRow key={user.id}>
+                          <TableRow key={user.id} className="dark:border-[#2e2e2e]">
                             <TableCell>
-                              <Avatar className="w-10 h-10 border-2 border-gray-200">
+                              <Avatar className="w-10 h-10 border-2 border-gray-200 dark:border-[#2e2e2e]">
                                 <AvatarImage src={user.profile_picture} alt={getUserDisplayName(user)} />
                                 <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-semibold text-sm">
                                   {getInitials(getUserDisplayName(user))}
                                 </AvatarFallback>
                               </Avatar>
                             </TableCell>
-                            <TableCell className="font-medium">{getUserDisplayName(user)}</TableCell>
-                            <TableCell className="text-gray-600">{user.email}</TableCell>
+                            <TableCell className="font-medium dark:text-white">{getUserDisplayName(user)}</TableCell>
+                            <TableCell className="text-gray-600 dark:text-[#a1a1a1]">{user.email}</TableCell>
                             <TableCell>
                               {userDept ? (
-                                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                                <Badge variant="outline" className="bg-blue-50 dark:bg-[#21498A]/30 text-blue-700 dark:text-blue-400 border-blue-200 dark:border-[#21498A]">
                                   {userDept.name}
                                 </Badge>
                               ) : (
-                                <span className="text-gray-400 text-sm">Sem departamento</span>
+                                <span className="text-gray-400 dark:text-[#6b6b6b] text-sm">Sem departamento</span>
                               )}
                             </TableCell>
                             <TableCell>
@@ -387,13 +387,13 @@ export default function Admin() {
                                 className={
                                   user.role === 'admin' 
                                     ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-white border-0' 
-                                    : 'bg-gray-100 text-gray-800'
+                                    : 'bg-gray-100 dark:bg-[#2a2a2a] text-gray-800 dark:text-[#a1a1a1]'
                                 }
                               >
                                 {user.role === 'admin' ? 'Administrador' : 'Usuário'}
                               </Badge>
                             </TableCell>
-                            <TableCell className="text-gray-600">
+                            <TableCell className="text-gray-600 dark:text-[#a1a1a1]">
                               {new Date(user.created_date).toLocaleDateString('pt-BR')}
                             </TableCell>
                             {isAdmin && (
@@ -402,7 +402,7 @@ export default function Admin() {
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => handleEditUser(user)}
-                                  className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                  className="text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-[#21498A]/20"
                                 >
                                   Editar
                                 </Button>
