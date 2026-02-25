@@ -64,16 +64,27 @@ svg,
   }
 }
 
-/* Dark mode specific overrides for better contrast */
+/* Dark mode specific overrides - Modern dark theme inspired by analytics dashboards */
 .dark {
-  /* Cards and surfaces */
-  --dark-surface-1: hsl(222.2 84% 4.9%);
-  --dark-surface-2: hsl(217.2 32.6% 12%);
-  --dark-surface-3: hsl(217.2 32.6% 17.5%);
-  --dark-border: hsl(217.2 32.6% 22%);
-  --dark-text-primary: hsl(210 40% 98%);
-  --dark-text-secondary: hsl(215 20.2% 65.1%);
-  --dark-text-muted: hsl(215 20.2% 50%);
+  /* Core colors - deep dark with subtle warmth */
+  --dark-bg: #0a0a0a;
+  --dark-surface-1: #121212;
+  --dark-surface-2: #1a1a1a;
+  --dark-surface-3: #242424;
+  --dark-surface-4: #2a2a2a;
+  --dark-border: #2e2e2e;
+  --dark-border-subtle: #222222;
+  --dark-text-primary: #ffffff;
+  --dark-text-secondary: #a1a1a1;
+  --dark-text-muted: #6b6b6b;
+  --dark-accent: #22c55e;
+  --dark-accent-hover: #16a34a;
+}
+
+/* Base background */
+.dark body,
+.dark #root {
+  background-color: var(--dark-bg) !important;
 }
 
 /* Dark mode component styles */
@@ -111,21 +122,20 @@ svg,
   background-color: var(--dark-surface-3) !important;
 }
 
-/* Dark mode gradients */
-.dark .bg-gradient-to-br.from-gray-50,
-.dark .bg-gradient-to-r.from-gray-50 {
-  --tw-gradient-from: var(--dark-surface-1) !important;
+/* Dark mode gradients - make them solid dark */
+.dark .bg-gradient-to-br,
+.dark .bg-gradient-to-r {
+  background: var(--dark-bg) !important;
+}
+
+.dark .from-gray-50,
+.dark .from-blue-50 {
+  --tw-gradient-from: var(--dark-bg) !important;
 }
 
 .dark .to-blue-50,
 .dark .to-gray-100 {
-  --tw-gradient-to: var(--dark-surface-2) !important;
-}
-
-/* Modal and dialog backgrounds */
-.dark [role="dialog"],
-.dark [data-radix-portal] > div {
-  background-color: var(--dark-surface-2);
+  --tw-gradient-to: var(--dark-bg) !important;
 }
 
 /* Input and form elements in dark mode */
@@ -142,6 +152,13 @@ svg,
   color: var(--dark-text-muted) !important;
 }
 
+.dark input:focus,
+.dark select:focus,
+.dark textarea:focus {
+  border-color: var(--dark-accent) !important;
+  box-shadow: 0 0 0 1px var(--dark-accent) !important;
+}
+
 /* Tables in dark mode */
 .dark table {
   background-color: var(--dark-surface-2);
@@ -154,7 +171,7 @@ svg,
 }
 
 .dark td {
-  border-color: var(--dark-border) !important;
+  border-color: var(--dark-border-subtle) !important;
   color: var(--dark-text-secondary);
 }
 
@@ -162,29 +179,33 @@ svg,
   background-color: var(--dark-surface-3) !important;
 }
 
-/* Badge improvements for dark mode */
+/* Badge improvements for dark mode - more subtle backgrounds */
 .dark .bg-blue-50 {
-  background-color: hsl(217.2 91.2% 20%) !important;
+  background-color: rgba(59, 130, 246, 0.15) !important;
 }
 
 .dark .bg-green-50 {
-  background-color: hsl(142.1 76.2% 15%) !important;
+  background-color: rgba(34, 197, 94, 0.15) !important;
 }
 
 .dark .bg-red-50 {
-  background-color: hsl(0 72.2% 15%) !important;
+  background-color: rgba(239, 68, 68, 0.15) !important;
 }
 
 .dark .bg-yellow-50 {
-  background-color: hsl(47.9 95.8% 15%) !important;
+  background-color: rgba(234, 179, 8, 0.15) !important;
 }
 
 .dark .bg-purple-50 {
-  background-color: hsl(262.1 83.3% 15%) !important;
+  background-color: rgba(168, 85, 247, 0.15) !important;
 }
 
 .dark .bg-indigo-50 {
-  background-color: hsl(226.5 76.3% 15%) !important;
+  background-color: rgba(99, 102, 241, 0.15) !important;
+}
+
+.dark .bg-orange-50 {
+  background-color: rgba(249, 115, 22, 0.15) !important;
 }
 
 /* Scroll areas in dark mode */
@@ -198,7 +219,33 @@ svg,
   border-color: var(--dark-border) !important;
 }
 
-/* Card hover states */
+/* Card hover states - subtle glow effect */
 .dark .hover\:border-blue-300:hover {
-  border-color: hsl(217.2 91.2% 50%) !important;
+  border-color: var(--dark-accent) !important;
+}
+
+/* Sidebar specific */
+.dark .border-r,
+.dark .border-b {
+  border-color: var(--dark-border-subtle) !important;
+}
+
+/* Status badges with glow */
+.dark .bg-green-500,
+.dark .bg-emerald-500 {
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.3);
+}
+
+.dark .bg-blue-500,
+.dark .bg-indigo-500 {
+  box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
+}
+
+.dark .bg-red-500 {
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.3);
+}
+
+.dark .bg-yellow-500,
+.dark .bg-amber-500 {
+  box-shadow: 0 0 10px rgba(234, 179, 8, 0.3);
 }
