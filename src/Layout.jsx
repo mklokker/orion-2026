@@ -20,6 +20,7 @@ import {
   ScrollText,
   Building2,
   ChevronDown,
+  Target,
 } from "lucide-react";
 import {
   Sidebar,
@@ -149,6 +150,7 @@ export default function Layout({ children }) {
   ];
 
   const gestaoRIItems = [
+    { title: "Plano de Ação", url: createPageUrl("PlanoAcao"), icon: Target },
     { title: "Produtividade Geral", url: createPageUrl("ProdutividadeGeral"), icon: TrendingUp },
     { title: "Relatórios", url: createPageUrl("Relatorios"), icon: BarChart3 },
     ...(isAdmin ? [{ title: "Administração", url: createPageUrl("Admin"), icon: Settings }] : [])
