@@ -337,20 +337,20 @@ export default function CreateTasksModal({ open, onClose, users, departments, on
                   ))}
                 </SelectContent>
               </Select>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-500 dark:text-[#6b6b6b]">
                 Este ano será aplicado a todas as datas de término abaixo
               </p>
             </div>
           </div>
 
           {/* Individual Tasks */}
-          <div className="border rounded-lg p-4 space-y-4 bg-gray-50">
-            <h3 className="font-semibold text-lg">Tarefas Individuais</h3>
+          <div className="border dark:border-[#2e2e2e] rounded-lg p-4 space-y-4 bg-gray-50 dark:bg-[#121212]">
+            <h3 className="font-semibold text-lg dark:text-white">Tarefas Individuais</h3>
             
             {tasks.map((task, index) => (
-              <div key={index} className="bg-white border rounded-lg p-4 space-y-3">
+              <div key={index} className="bg-white dark:bg-[#1a1a1a] border dark:border-[#2e2e2e] rounded-lg p-4 space-y-3">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-500">Tarefa {index + 1}</span>
+                  <span className="text-sm font-medium text-gray-500 dark:text-[#a1a1a1]">Tarefa {index + 1}</span>
                   {tasks.length > 1 && (
                     <Button
                       variant="ghost"
