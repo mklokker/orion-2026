@@ -870,7 +870,7 @@ export default function MapaFuncionarios() {
         </div>
       )}
 
-      <div className={`flex-1 overflow-hidden relative bg-gradient-to-br from-gray-100 to-gray-200 ${showListView ? 'hidden md:block' : ''}`}
+      <div className={`flex-1 overflow-hidden relative bg-gradient-to-br from-gray-100 to-gray-200 ${showListView ? 'hidden md:block' : ''}`}>
         {/* Botões de ação fixos */}
         {isAdmin && (
           <div className="fixed top-16 md:top-20 right-2 md:right-4 z-50 flex gap-2">
