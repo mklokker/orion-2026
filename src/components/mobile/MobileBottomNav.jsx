@@ -23,7 +23,7 @@ export default function MobileBottomNav({ onMoreClick, unreadChatCount = 0 }) {
 
   return (
     <nav 
-      className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-gray-200/50 z-50 md:hidden select-none"
+      className="fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-t border-gray-200/50 dark:border-gray-700/50 z-50 md:hidden select-none"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
       <div className="flex items-center justify-around h-14">
@@ -36,10 +36,10 @@ export default function MobileBottomNav({ onMoreClick, unreadChatCount = 0 }) {
               key={item.title}
               to={isMore ? "#" : item.url}
               onClick={isMore ? (e) => { e.preventDefault(); onMoreClick?.(); } : undefined}
-              className={`flex flex-col items-center justify-center flex-1 h-full relative transition-colors select-none touch-manipulation ${
+              className={`flex flex-col items-center justify-center flex-1 h-full relative transition-colors select-none touch-manipulation bottom-nav-item ${
                 isActive 
-                  ? "text-blue-600" 
-                  : "text-gray-500 active:text-gray-900"
+                  ? "text-blue-600 dark:text-blue-400" 
+                  : "text-gray-500 dark:text-gray-400 active:text-gray-900 dark:active:text-gray-100"
               }`}
             >
               <div className="relative">
