@@ -359,14 +359,14 @@ export default function Layout({ children, currentPageName }) {
         `}</style>
       )}
       <div 
-        className="min-h-screen flex w-full bg-gradient-to-br from-gray-50 to-blue-50"
+        className="min-h-screen flex w-full bg-gradient-to-br from-gray-50 to-blue-50 dark:from-slate-900 dark:to-slate-800"
         style={{ 
           paddingTop: 'env(safe-area-inset-top, 0px)',
           paddingBottom: 'env(safe-area-inset-bottom, 0px)'
         }}
       >
-        <Sidebar className="border-r border-gray-200 bg-white">
-          <SidebarHeader className="border-b border-gray-200 p-4">
+        <Sidebar className="border-r border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900">
+          <SidebarHeader className="border-b border-gray-200 dark:border-slate-700 p-4">
             <Link to={createPageUrl("Dashboard")} className="block">
               <div className="flex justify-center items-center h-24">
                 {appSettings?.logo_url ? (
@@ -382,7 +382,7 @@ export default function Layout({ children, currentPageName }) {
 
           <SidebarContent className="p-3">
             <SidebarGroup>
-              <SidebarGroupLabel className="text-xs font-semibold text-gray-500 uppercase tracking-wider px-3 py-2">
+              <SidebarGroupLabel className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider px-3 py-2">
                 Menu Principal
               </SidebarGroupLabel>
               <SidebarGroupContent>
@@ -391,8 +391,8 @@ export default function Layout({ children, currentPageName }) {
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton
                         asChild
-                        className={`hover:bg-blue-50 hover:text-primary transition-all duration-200 rounded-lg mb-1 ${
-                          location.pathname === item.url ? 'bg-gradient-to-r from-primary to-primary-accent text-white hover:text-white' : ''
+                        className={`hover:bg-blue-50 dark:hover:bg-slate-800 hover:text-primary transition-all duration-200 rounded-lg mb-1 ${
+                          location.pathname === item.url ? 'bg-gradient-to-r from-primary to-primary-accent text-white hover:text-white' : 'dark:text-gray-300'
                         }`}
                       >
                         <Link to={item.url} className="flex items-center gap-3 px-3 py-2.5">
@@ -414,8 +414,8 @@ export default function Layout({ children, currentPageName }) {
                       <SidebarMenuItem>
                         <CollapsibleTrigger asChild>
                           <SidebarMenuButton
-                            className={`hover:bg-blue-50 hover:text-primary transition-all duration-200 rounded-lg mb-1 w-full ${
-                              isGestaoRIActive ? 'bg-gradient-to-r from-primary to-primary-accent text-white hover:text-white' : ''
+                            className={`hover:bg-blue-50 dark:hover:bg-slate-800 hover:text-primary transition-all duration-200 rounded-lg mb-1 w-full ${
+                              isGestaoRIActive ? 'bg-gradient-to-r from-primary to-primary-accent text-white hover:text-white' : 'dark:text-gray-300'
                             }`}
                           >
                             <Building2 className="w-5 h-5" />
@@ -429,8 +429,8 @@ export default function Layout({ children, currentPageName }) {
                               <SidebarMenuSubItem key={subItem.title}>
                                 <SidebarMenuSubButton
                                   asChild
-                                  className={`hover:bg-blue-50 hover:text-primary transition-all duration-200 rounded-lg ${
-                                    location.pathname === subItem.url ? 'bg-blue-100 text-primary font-semibold' : ''
+                                  className={`hover:bg-blue-50 dark:hover:bg-slate-800 hover:text-primary transition-all duration-200 rounded-lg ${
+                                    location.pathname === subItem.url ? 'bg-blue-100 dark:bg-slate-800 text-primary font-semibold' : 'dark:text-gray-400'
                                   }`}
                                 >
                                   <Link to={subItem.url} className="flex items-center gap-2">
@@ -450,7 +450,7 @@ export default function Layout({ children, currentPageName }) {
             </SidebarGroup>
           </SidebarContent>
 
-          <SidebarFooter className="border-t border-gray-200 p-4">
+          <SidebarFooter className="border-t border-gray-200 dark:border-slate-700 p-4">
             {user && (
               <div className="space-y-3">
                 {notificationPermission !== 'granted' && (
@@ -490,17 +490,17 @@ export default function Layout({ children, currentPageName }) {
 
                 <button
                   onClick={() => setShowProfileModal(true)}
-                  className="w-full flex items-center gap-3 px-2 hover:bg-gray-50 rounded-lg p-2 transition-colors"
+                  className="w-full flex items-center gap-3 px-2 hover:bg-gray-50 dark:hover:bg-slate-800 rounded-lg p-2 transition-colors"
                 >
-                  <Avatar className="w-10 h-10 border-2 border-gray-200">
+                  <Avatar className="w-10 h-10 border-2 border-gray-200 dark:border-slate-600">
                     <AvatarImage src={user.profile_picture} alt={getUserDisplayName(user)} />
                     <AvatarFallback className="bg-gradient-to-br from-blue-600 to-indigo-600 text-white font-semibold">
                       {getInitials(getUserDisplayName(user))}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0 text-left">
-                    <p className="font-medium text-gray-900 text-sm truncate">{getUserDisplayName(user)}</p>
-                    <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                    <p className="font-medium text-gray-900 dark:text-white text-sm truncate">{getUserDisplayName(user)}</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
                     <p className="text-xs text-primary font-medium">
                       {user.role === 'admin' ? 'Administrador' : 'Usuário'}
                     </p>
@@ -508,7 +508,7 @@ export default function Layout({ children, currentPageName }) {
                 </button>
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-red-50 hover:text-danger rounded-lg transition-colors duration-200"
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-danger rounded-lg transition-colors duration-200"
                 >
                   <LogOut className="w-4 h-4" />
                   Sair
