@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -83,28 +82,78 @@ export default function ServiceViewEditModal({ open, onClose, service, currentUs
     }
   };
 
-  const awardStarIfNeeded = async (serviceId, serviceName) => {
+  // Busca o ciclo atual do protocolo (muda quando conferência finaliza)
+  const getCurrentCycleId = async (protocol) => {
     try {
-      // Verifica se o usuário já tem estrela para este serviço
+      // Busca a última estrela de conferência finalizada para este protocolo
+      const conferenceStars = await UserStar.filter({
+        protocol: protocol,
+        item_type: "service"
+      });
+      
+      // Filtra apenas as do departamento de conferência que foram finalizadas (não transferidas)
+      // O cycle_id é gerado quando uma conferência é finalizada
+      const cycles = conferenceStars
+        .filter(s => s.cycle_id)
+        .map(s => s.cycle_id)
+        .sort()
+        .reverse();
+      
+      // Se existe um ciclo, usa o mais recente, senão é o ciclo inicial "cycle_0"
+      return cycles.length > 0 ? cycles[0] : "cycle_0";
+    } catch (error) {
+      console.error("Erro ao buscar ciclo:", error);
+      return "cycle_0";
+    }
+  };
+
+  // Encontra o ID do departamento de Conferência
+  const getConferenceDeptId = () => {
+    const confDept = departments?.find(d => 
+      d.name?.toLowerCase().includes("conferencia") || 
+      d.name?.toLowerCase().includes("conferência")
+    );
+    return confDept?.id;
+  };
+
+  const awardStarIfNeeded = async (serviceId, serviceName, departmentId, isTransfer = false) => {
+    try {
+      const conferenceDeptId = getConferenceDeptId();
+      const isConference = departmentId === conferenceDeptId;
+      
+      // Busca o ciclo atual
+      let currentCycleId = await getCurrentCycleId(serviceName);
+      
+      // Se é conferência e NÃO é transferência, cria um novo ciclo
+      if (isConference && !isTransfer) {
+        currentCycleId = `cycle_${Date.now()}`;
+      }
+      
+      // Verifica se o usuário já tem estrela para este serviço NESTE DEPARTAMENTO e NESTE CICLO
       const existingStars = await UserStar.filter({
         user_email: currentUser.email,
-        protocol: serviceName, // Using serviceName as protocol
-        item_type: "service"
+        protocol: serviceName,
+        item_type: "service",
+        department_id: departmentId,
+        cycle_id: currentCycleId
       });
 
       if (existingStars.length === 0) {
-        // Usuário ainda não tem estrela para este serviço, cria uma
+        // Usuário ainda não tem estrela para este serviço neste departamento/ciclo
         await UserStar.create({
           user_email: currentUser.email,
-          protocol: serviceName, // Using serviceName as protocol
+          protocol: serviceName,
           item_type: "service",
           earned_date: format(new Date(), "yyyy-MM-dd"),
-          completed_item_id: serviceId
+          completed_item_id: serviceId,
+          department_id: departmentId,
+          cycle_id: currentCycleId
         });
 
+        const dept = departments?.find(d => d.id === departmentId);
         toast({
           title: "⭐ Estrela Conquistada!",
-          description: `Você ganhou 1 estrela ao concluir o serviço "${serviceName}"!`,
+          description: `Você ganhou 1 estrela em ${dept?.name || 'Departamento'} ao concluir o serviço "${serviceName}"!`,
           duration: 5000,
         });
       }
@@ -167,8 +216,8 @@ export default function ServiceViewEditModal({ open, onClose, service, currentUs
 
       await createServiceInteraction("completed", `${currentUser.full_name} finalizou o serviço.`);
 
-      // NOVO: Concede estrela se necessário
-      await awardStarIfNeeded(service.id, service.service_name);
+      // NOVO: Concede estrela se necessário (passando departamento e que NÃO é transferência)
+      await awardStarIfNeeded(service.id, service.service_name, service.department_id, false);
 
       toast({
         title: "Sucesso!",
@@ -211,8 +260,8 @@ export default function ServiceViewEditModal({ open, onClose, service, currentUs
         `Serviço transferido de ${currentUser.full_name} para ${transferredToName}`
       );
 
-      // NOVO: Concede estrela ao usuário que está transferindo
-      await awardStarIfNeeded(service.id, service.service_name);
+      // NOVO: Concede estrela ao usuário que está transferindo (passando que É transferência)
+      await awardStarIfNeeded(service.id, service.service_name, service.department_id, true);
 
       const newService = {
         service_name: service.service_name,
