@@ -83,7 +83,7 @@ export default function AtasAlinhamentos() {
         base44.entities.AlinhamentoTopico.list(),
         base44.entities.AtaReuniao.list(),
         base44.entities.AlinhamentoCategoria.list(),
-        base44.entities.User.list().catch(() => []),
+        base44.functions.invoke('listAllUsers').then(res => res.data?.users || []).catch(() => []),
       ]);
 
       setAlinhamentos(alinhamentosData || []);
