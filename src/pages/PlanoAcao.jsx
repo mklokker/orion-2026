@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Plus,
   Search,
@@ -23,6 +24,8 @@ import {
   AlertTriangle,
   Settings,
   Edit,
+  List,
+  Columns,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -31,6 +34,7 @@ import { Progress } from "@/components/ui/progress";
 import CreatePlanoModal from "@/components/planoacao/CreatePlanoModal";
 import PlanoAcaoViewModal from "@/components/planoacao/PlanoAcaoViewModal";
 import CadastrosModal from "@/components/planoacao/CadastrosModal";
+import PlanoAcaoKanban from "@/components/planoacao/PlanoAcaoKanban";
 
 const PlanoAcao = base44.entities.PlanoAcao;
 const PlanoAcaoItem = base44.entities.PlanoAcaoItem;
@@ -56,6 +60,7 @@ export default function PlanoAcaoPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
+  const [viewMode, setViewMode] = useState("list");
 
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
@@ -196,8 +201,22 @@ export default function PlanoAcaoPage() {
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {/* Tabs para alternar entre Lista e Kanban */}
+      <Tabs value={viewMode} onValueChange={setViewMode} className="w-full">
+        <TabsList>
+          <TabsTrigger value="list" className="gap-2">
+            <List className="w-4 h-4" />
+            Lista
+          </TabsTrigger>
+          <TabsTrigger value="kanban" className="gap-2">
+            <Columns className="w-4 h-4" />
+            Kanban
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="list" className="space-y-6 mt-4">
+          {/* Stats Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
@@ -389,6 +408,17 @@ export default function PlanoAcaoPage() {
           </div>
         )}
       </ScrollArea>
+        </TabsContent>
+
+        <TabsContent value="kanban" className="mt-4">
+          <PlanoAcaoKanban
+            items={items}
+            planos={planos}
+            users={users}
+            onUpdate={loadData}
+          />
+        </TabsContent>
+      </Tabs>
 
       {/* Modals */}
       <CreatePlanoModal
