@@ -385,15 +385,16 @@ export default function CreateAtaModal({
               ].map(({ key, label }) => (
                 <div key={key} className="flex items-center gap-2">
                   <Checkbox
-                    checked={form.controls[key]}
+                    id={`control-${key}`}
+                    checked={form.controls[key] === true}
                     onCheckedChange={(checked) =>
                       setForm({
                         ...form,
-                        controls: { ...form.controls, [key]: checked },
+                        controls: { ...form.controls, [key]: checked === true },
                       })
                     }
                   />
-                  <span className="text-sm">{label}</span>
+                  <Label htmlFor={`control-${key}`} className="text-sm cursor-pointer">{label}</Label>
                 </div>
               ))}
             </div>
