@@ -29,7 +29,7 @@ import {
   FileText,
   Users as UsersIcon,
 } from "lucide-react";
-import { format } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz";
 import { ptBR } from "date-fns/locale";
 
 export default function AuditLogModal({ open, onClose, users }) {
@@ -188,7 +188,7 @@ export default function AuditLogModal({ open, onClose, users }) {
                             <div className="flex items-center gap-1">
                               <Calendar className="w-3 h-3" />
                               {log.created_date
-                                ? format(new Date(log.created_date), "dd/MM/yyyy 'às' HH:mm", {
+                                ? formatInTimeZone(new Date(log.created_date), "America/Sao_Paulo", "dd/MM/yyyy 'às' HH:mm:ss", {
                                     locale: ptBR,
                                   })
                                 : "-"}
