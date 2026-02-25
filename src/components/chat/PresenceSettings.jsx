@@ -173,15 +173,15 @@ export default function PresenceSettings({ open, onClose, currentUser, presence,
                   <div
                     key={opt.value}
                     className={`flex items-center space-x-3 p-3 rounded-lg border cursor-pointer transition-colors ${
-                      manualStatus === opt.value ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:bg-gray-50"
+                      manualStatus === opt.value ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 dark:border-blue-500" : "border-gray-200 dark:border-[#2e2e2e] hover:bg-gray-50 dark:hover:bg-[#2a2a2a]"
                     }`}
                     onClick={() => setManualStatus(opt.value)}
                   >
                     <RadioGroupItem value={opt.value} id={opt.value} />
                     <opt.icon className={`w-5 h-5 ${opt.color}`} />
                     <div className="flex-1">
-                      <p className="font-medium">{opt.label}</p>
-                      <p className="text-xs text-gray-500">{opt.description}</p>
+                      <p className="font-medium dark:text-white">{opt.label}</p>
+                      <p className="text-xs text-gray-500 dark:text-[#6b6b6b]">{opt.description}</p>
                     </div>
                   </div>
                 ))}
@@ -217,10 +217,10 @@ export default function PresenceSettings({ open, onClose, currentUser, presence,
                   Ativar Notificações Push
                 </Button>
               ) : (
-                <div className="flex items-center justify-between p-3 rounded-lg border bg-green-50 border-green-200">
+                <div className="flex items-center justify-between p-3 rounded-lg border bg-green-50 dark:bg-[#22946E]/20 border-green-200 dark:border-[#22946E]/30">
                   <div className="flex items-center gap-2">
-                    <Bell className="w-4 h-4 text-green-600" />
-                    <span className="text-sm text-green-700">Notificações push ativadas</span>
+                    <Bell className="w-4 h-4 text-green-600 dark:text-[#22946E]" />
+                    <span className="text-sm text-green-700 dark:text-[#22946E]">Notificações push ativadas</span>
                   </div>
                   <Switch
                     checked={pushEnabled}
@@ -235,12 +235,12 @@ export default function PresenceSettings({ open, onClose, currentUser, presence,
               <Label>Tipos de Notificação</Label>
               
               <div className="space-y-2">
-                <div className="flex items-center justify-between p-3 rounded-lg border hover:bg-gray-50">
+                <div className="flex items-center justify-between p-3 rounded-lg border dark:border-[#2e2e2e] hover:bg-gray-50 dark:hover:bg-[#2a2a2a]">
                   <div className="flex items-center gap-3">
                     <MessageSquare className="w-5 h-5 text-blue-500" />
                     <div>
-                      <p className="font-medium text-sm">Novas Mensagens</p>
-                      <p className="text-xs text-gray-500">Mensagens diretas</p>
+                      <p className="font-medium text-sm dark:text-white">Novas Mensagens</p>
+                      <p className="text-xs text-gray-500 dark:text-[#6b6b6b]">Mensagens diretas</p>
                     </div>
                   </div>
                   <Switch
@@ -249,12 +249,12 @@ export default function PresenceSettings({ open, onClose, currentUser, presence,
                   />
                 </div>
 
-                <div className="flex items-center justify-between p-3 rounded-lg border hover:bg-gray-50">
+                <div className="flex items-center justify-between p-3 rounded-lg border dark:border-[#2e2e2e] hover:bg-gray-50 dark:hover:bg-[#2a2a2a]">
                   <div className="flex items-center gap-3">
                     <AtSign className="w-5 h-5 text-purple-500" />
                     <div>
-                      <p className="font-medium text-sm">Menções</p>
-                      <p className="text-xs text-gray-500">Quando alguém mencionar você</p>
+                      <p className="font-medium text-sm dark:text-white">Menções</p>
+                      <p className="text-xs text-gray-500 dark:text-[#6b6b6b]">Quando alguém mencionar você</p>
                     </div>
                   </div>
                   <Switch
@@ -263,12 +263,12 @@ export default function PresenceSettings({ open, onClose, currentUser, presence,
                   />
                 </div>
 
-                <div className="flex items-center justify-between p-3 rounded-lg border hover:bg-gray-50">
+                <div className="flex items-center justify-between p-3 rounded-lg border dark:border-[#2e2e2e] hover:bg-gray-50 dark:hover:bg-[#2a2a2a]">
                   <div className="flex items-center gap-3">
                     <Users className="w-5 h-5 text-green-500" />
                     <div>
-                      <p className="font-medium text-sm">Mensagens de Grupos</p>
-                      <p className="text-xs text-gray-500">Mensagens em conversas de grupo</p>
+                      <p className="font-medium text-sm dark:text-white">Mensagens de Grupos</p>
+                      <p className="text-xs text-gray-500 dark:text-[#6b6b6b]">Mensagens em conversas de grupo</p>
                     </div>
                   </div>
                   <Switch
@@ -319,11 +319,11 @@ export default function PresenceSettings({ open, onClose, currentUser, presence,
               </Label>
               
               {isMuted ? (
-                <div className="p-3 rounded-lg bg-amber-50 border border-amber-200">
+                <div className="p-3 rounded-lg bg-amber-50 dark:bg-[#A87A2A]/20 border border-amber-200 dark:border-[#A87A2A]/30">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-amber-700">Notificações silenciadas</p>
-                      <p className="text-xs text-amber-600">
+                      <p className="text-sm font-medium text-amber-700 dark:text-[#A87A2A]">Notificações silenciadas</p>
+                      <p className="text-xs text-amber-600 dark:text-[#A87A2A]/80">
                         Até {format(new Date(muteUntil), "HH:mm", { locale: ptBR })}
                       </p>
                     </div>
@@ -369,14 +369,14 @@ export default function PresenceSettings({ open, onClose, currentUser, presence,
                   <SelectItem value="300">5 minutos</SelectItem>
                 </SelectContent>
               </Select>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-500 dark:text-[#6b6b6b]">
                 Tempo mínimo entre notificações da mesma conversa
               </p>
             </div>
 
             {manualStatus === "dnd" && (
-              <div className="p-3 rounded-lg bg-amber-50 border border-amber-200">
-                <p className="text-sm text-amber-700">
+              <div className="p-3 rounded-lg bg-amber-50 dark:bg-[#A87A2A]/20 border border-amber-200 dark:border-[#A87A2A]/30">
+                <p className="text-sm text-amber-700 dark:text-[#A87A2A]">
                   <strong>Modo "Não Incomodar" ativo:</strong> Você não receberá notificações enquanto este modo estiver ativado.
                 </p>
               </div>
@@ -384,7 +384,7 @@ export default function PresenceSettings({ open, onClose, currentUser, presence,
           </TabsContent>
         </Tabs>
 
-        <div className="flex justify-end gap-2 pt-4 border-t">
+        <div className="flex justify-end gap-2 pt-4 border-t dark:border-[#2e2e2e]">
           <Button variant="outline" onClick={onClose}>Cancelar</Button>
           <Button onClick={handleSave} disabled={saving}>
             {saving ? "Salvando..." : "Salvar"}
