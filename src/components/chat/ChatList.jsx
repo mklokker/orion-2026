@@ -108,11 +108,11 @@ export default function ChatList({
   });
 
   return (
-    <div className="flex flex-col h-full bg-white">
+    <div className="flex flex-col h-full bg-white dark:bg-slate-900">
       {/* Header */}
-      <div className="p-4 border-b">
+      <div className="p-4 border-b dark:border-slate-700">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-gray-800">Conversas</h2>
+          <h2 className="text-xl font-bold text-gray-800 dark:text-white">Conversas</h2>
           <div className="flex gap-1">
             <Button 
               variant="ghost" 
@@ -140,7 +140,7 @@ export default function ChatList({
             placeholder="Buscar conversas..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 bg-gray-100 border-0"
+            className="pl-9 bg-gray-100 dark:bg-slate-800 dark:text-white border-0"
           />
         </div>
       </div>
@@ -148,11 +148,11 @@ export default function ChatList({
       {/* Conversations List */}
       <ScrollArea className="flex-1">
         {sortedConversations.length === 0 ? (
-          <div className="p-8 text-center text-gray-500">
+          <div className="p-8 text-center text-gray-500 dark:text-gray-400">
             <p className="text-sm">Nenhuma conversa encontrada</p>
           </div>
         ) : (
-          <div className="divide-y">
+          <div className="divide-y dark:divide-slate-700">
             {sortedConversations.map(conv => {
               const display = getConversationDisplay(conv);
               const unread = unreadCounts[conv.id] || 0;
@@ -164,9 +164,9 @@ export default function ChatList({
                 <div
                   key={conv.id}
                   onClick={() => onSelect(conv)}
-                  className={`flex items-center gap-3 p-3 cursor-pointer transition-colors hover:bg-gray-50 group ${
-                    isSelected ? "bg-blue-50 border-l-4 border-blue-500" : ""
-                  } ${isPinned ? "bg-amber-50/50" : ""}`}
+                  className={`flex items-center gap-3 p-3 cursor-pointer transition-colors hover:bg-gray-50 dark:hover:bg-slate-800 group ${
+                    isSelected ? "bg-blue-50 dark:bg-slate-800 border-l-4 border-blue-500" : ""
+                  } ${isPinned ? "bg-amber-50/50 dark:bg-amber-900/20" : ""}`}
                 >
                   <div className="relative">
                     <Avatar className="w-12 h-12">
@@ -189,15 +189,15 @@ export default function ChatList({
                       <div className="flex items-center gap-1 min-w-0">
                               {isPinned && <Pin className="w-3 h-3 text-amber-500 shrink-0" />}
                               {conv.is_public && <Globe className="w-3 h-3 text-blue-500 shrink-0" />}
-                              <span className="font-semibold text-gray-900 truncate">{display.name}</span>
+                              <span className="font-semibold text-gray-900 dark:text-white truncate">{display.name}</span>
                             </div>
                       <div className="flex items-center gap-1 shrink-0">
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-gray-500 dark:text-gray-400">
                           {formatMessageTime(conv.last_message_at)}
                         </span>
                         <button
                           onClick={(e) => handlePinToggle(e, conv)}
-                          className={`p-1 rounded hover:bg-gray-200 transition-opacity ${
+                          className={`p-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700 transition-opacity ${
                             isPinned ? "opacity-100" : "opacity-0 group-hover:opacity-100"
                           }`}
                           title={isPinned ? "Desafixar" : "Fixar conversa"}
@@ -211,7 +211,7 @@ export default function ChatList({
                       </div>
                     </div>
                     <div className="flex items-center justify-between">
-                      <p className={`text-sm truncate ${unread > 0 ? "text-gray-900 font-medium" : "text-gray-500"}`}>
+                      <p className={`text-sm truncate ${unread > 0 ? "text-gray-900 dark:text-white font-medium" : "text-gray-500 dark:text-gray-400"}`}>
                         {isTyping ? (
                           <span className="text-green-600 italic">digitando...</span>
                         ) : (
