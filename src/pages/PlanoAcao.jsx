@@ -416,6 +416,7 @@ export default function PlanoAcaoPage() {
         objectives={objectives}
         atas={atas}
         onUpdate={loadData}
+        onEdit={handleEditPlano}
       />
 
       <CadastrosModal
