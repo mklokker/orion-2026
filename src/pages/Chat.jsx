@@ -673,9 +673,9 @@ export default function Chat() {
     : [];
 
   return (
-    <div className="h-[calc(100vh-64px)] md:h-screen flex bg-gray-100">
+    <div className="h-[calc(100vh-64px)] md:h-screen flex bg-gray-100 dark:bg-slate-900">
       {/* Sidebar - Chat List */}
-      <div className={`${isMobileView && showConversation ? "hidden" : "flex"} w-full md:w-[350px] lg:w-[400px] border-r flex-col`}>
+      <div className={`${isMobileView && showConversation ? "hidden" : "flex"} w-full md:w-[350px] lg:w-[400px] border-r dark:border-slate-700 flex-col`}>
         <ChatList
             conversations={conversations}
             users={users}
