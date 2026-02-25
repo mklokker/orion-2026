@@ -38,6 +38,7 @@ const PlanoAcaoItem = base44.entities.PlanoAcaoItem;
 const PlanoAcaoCategoria = base44.entities.PlanoAcaoCategoria;
 const PlanoAcaoIndicador = base44.entities.PlanoAcaoIndicador;
 const PlanoAcaoObjetivo = base44.entities.PlanoAcaoObjetivo;
+const PlanoAcaoPrograma = base44.entities.PlanoAcaoPrograma;
 const AtaReuniao = base44.entities.AtaReuniao;
 const User_ = base44.entities.User;
 
@@ -47,6 +48,7 @@ export default function PlanoAcaoPage() {
   const [categories, setCategories] = useState([]);
   const [indicators, setIndicators] = useState([]);
   const [objectives, setObjectives] = useState([]);
+  const [programs, setPrograms] = useState([]);
   const [atas, setAtas] = useState([]);
   const [users, setUsers] = useState([]);
   const [currentUser, setCurrentUser] = useState(null);
@@ -68,12 +70,13 @@ export default function PlanoAcaoPage() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [planosData, itemsData, categoriesData, indicatorsData, objectivesData, atasData, usersData, userData] = await Promise.all([
+      const [planosData, itemsData, categoriesData, indicatorsData, objectivesData, programsData, atasData, usersData, userData] = await Promise.all([
         PlanoAcao.list("-created_date"),
         PlanoAcaoItem.list(),
         PlanoAcaoCategoria.list(),
         PlanoAcaoIndicador.list(),
         PlanoAcaoObjetivo.list(),
+        PlanoAcaoPrograma.list(),
         AtaReuniao.list("-meeting_date"),
         User_.list(),
         base44.auth.me(),
@@ -83,6 +86,7 @@ export default function PlanoAcaoPage() {
       setCategories(categoriesData);
       setIndicators(indicatorsData);
       setObjectives(objectivesData);
+      setPrograms(programsData);
       setAtas(atasData);
       setUsers(usersData);
       setCurrentUser(userData);
@@ -403,6 +407,7 @@ export default function PlanoAcaoPage() {
         categories={categories}
         indicators={indicators}
         objectives={objectives}
+        programs={programs}
         atas={atas}
         users={users}
       />
@@ -426,6 +431,7 @@ export default function PlanoAcaoPage() {
         categories={categories}
         indicators={indicators}
         objectives={objectives}
+        programs={programs}
         onUpdate={loadData}
       />
     </div>
