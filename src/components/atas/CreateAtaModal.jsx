@@ -139,11 +139,12 @@ export default function CreateAtaModal({
       if (ata) {
         await base44.entities.AtaReuniao.update(ata.id, form);
         toast({ title: "Sucesso", description: "Ata atualizada!" });
+        onSave(false, form.title, ata.id);
       } else {
-        await base44.entities.AtaReuniao.create(form);
+        const created = await base44.entities.AtaReuniao.create(form);
         toast({ title: "Sucesso", description: "Ata criada!" });
+        onSave(true, form.title, created.id);
       }
-      onSave();
     } catch (error) {
       toast({
         title: "Erro",

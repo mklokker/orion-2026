@@ -163,22 +163,22 @@ export default function AtasAlinhamentos() {
     }
   };
 
-  const handleSaveAlinhamento = async (isNew = false, title = "") => {
+  const handleSaveAlinhamento = async (isNew = false, title = "", entityId = "") => {
     if (isNew && title) {
-      await logAction("create", "alinhamento", "", title, "Alinhamento criado");
+      await logAction("create", "alinhamento", entityId, title, "Alinhamento criado");
     } else if (editingAlinhamento) {
-      await logAction("update", "alinhamento", editingAlinhamento.id, editingAlinhamento.title, "Alinhamento atualizado");
+      await logAction("update", "alinhamento", editingAlinhamento.id, title || editingAlinhamento.title, "Alinhamento atualizado", editingAlinhamento);
     }
     await loadData();
     setShowCreateAlinhamento(false);
     setEditingAlinhamento(null);
   };
 
-  const handleSaveAta = async (isNew = false, title = "") => {
+  const handleSaveAta = async (isNew = false, title = "", entityId = "") => {
     if (isNew && title) {
-      await logAction("create", "ata", "", title, "Ata criada");
+      await logAction("create", "ata", entityId, title, "Ata criada");
     } else if (editingAta) {
-      await logAction("update", "ata", editingAta.id, editingAta.title, "Ata atualizada");
+      await logAction("update", "ata", editingAta.id, title || editingAta.title, "Ata atualizada", editingAta);
     }
     await loadData();
     setShowCreateAta(false);

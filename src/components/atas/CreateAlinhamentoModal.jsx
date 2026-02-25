@@ -92,11 +92,12 @@ export default function CreateAlinhamentoModal({
       if (alinhamento) {
         await base44.entities.Alinhamento.update(alinhamento.id, form);
         toast({ title: "Sucesso", description: "Alinhamento atualizado!" });
+        onSave(false, form.title, alinhamento.id);
       } else {
-        await base44.entities.Alinhamento.create(form);
+        const created = await base44.entities.Alinhamento.create(form);
         toast({ title: "Sucesso", description: "Alinhamento criado!" });
+        onSave(true, form.title, created.id);
       }
-      onSave();
     } catch (error) {
       toast({
         title: "Erro",
