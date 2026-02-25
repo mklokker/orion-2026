@@ -119,11 +119,11 @@ export default function UserProgressCard({
   }
 
   return (
-    <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200">
+    <Card className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-[#1a1a1a] dark:to-[#1a1a1a] border-blue-200 dark:border-[#2e2e2e]">
       <CardContent className="pt-6">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="font-semibold text-blue-900">Seu Progresso</h3>
-          <Badge variant="outline" className="bg-white">
+          <h3 className="font-semibold text-blue-900 dark:text-white">Seu Progresso</h3>
+          <Badge variant="outline" className="bg-white dark:bg-[#2a2a2a] dark:border-[#2e2e2e] dark:text-[#a1a1a1]">
             {progressPercentage}% completo
           </Badge>
         </div>
@@ -133,60 +133,60 @@ export default function UserProgressCard({
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
           {totalVideos > 0 && (
             <div className="flex items-center gap-2 text-sm">
-              <div className="p-1.5 bg-blue-100 rounded">
-                <Video className="w-4 h-4 text-blue-600" />
+              <div className="p-1.5 bg-blue-100 dark:bg-[#21498A]/20 rounded">
+                <Video className="w-4 h-4 text-blue-600 dark:text-blue-400" />
               </div>
               <div>
-                <p className="font-medium text-blue-900">{videosWatched}/{totalVideos}</p>
-                <p className="text-xs text-gray-600">Vídeos</p>
+                <p className="font-medium text-blue-900 dark:text-white">{videosWatched}/{totalVideos}</p>
+                <p className="text-xs text-gray-600 dark:text-[#6b6b6b]">Vídeos</p>
               </div>
             </div>
           )}
 
           {totalDocuments > 0 && (
             <div className="flex items-center gap-2 text-sm">
-              <div className="p-1.5 bg-indigo-100 rounded">
-                <FileQuestion className="w-4 h-4 text-indigo-600" />
+              <div className="p-1.5 bg-indigo-100 dark:bg-indigo-900/20 rounded">
+                <FileQuestion className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
               </div>
               <div>
-                <p className="font-medium text-indigo-900">{documentsRead}/{totalDocuments}</p>
-                <p className="text-xs text-gray-600">Documentos</p>
+                <p className="font-medium text-indigo-900 dark:text-white">{documentsRead}/{totalDocuments}</p>
+                <p className="text-xs text-gray-600 dark:text-[#6b6b6b]">Documentos</p>
               </div>
             </div>
           )}
 
           {totalQuizzes > 0 && (
             <div className="flex items-center gap-2 text-sm">
-              <div className="p-1.5 bg-purple-100 rounded">
-                <FileQuestion className="w-4 h-4 text-purple-600" />
+              <div className="p-1.5 bg-purple-100 dark:bg-purple-900/20 rounded">
+                <FileQuestion className="w-4 h-4 text-purple-600 dark:text-purple-400" />
               </div>
               <div>
-                <p className="font-medium text-purple-900">{quizzesCompleted}/{totalQuizzes}</p>
-                <p className="text-xs text-gray-600">Provas</p>
+                <p className="font-medium text-purple-900 dark:text-white">{quizzesCompleted}/{totalQuizzes}</p>
+                <p className="text-xs text-gray-600 dark:text-[#6b6b6b]">Provas</p>
               </div>
             </div>
           )}
 
           {bestScore !== null && (
             <div className="flex items-center gap-2 text-sm">
-              <div className="p-1.5 bg-green-100 rounded">
-                <Trophy className="w-4 h-4 text-green-600" />
+              <div className="p-1.5 bg-green-100 dark:bg-[#22946E]/20 rounded">
+                <Trophy className="w-4 h-4 text-green-600 dark:text-[#22946E]" />
               </div>
               <div>
-                <p className="font-medium text-green-900">{bestScore}%</p>
-                <p className="text-xs text-gray-600">Melhor Nota</p>
+                <p className="font-medium text-green-900 dark:text-white">{bestScore}%</p>
+                <p className="text-xs text-gray-600 dark:text-[#6b6b6b]">Melhor Nota</p>
               </div>
             </div>
           )}
 
           {isCourseCompleted && (
             <div className="flex items-center gap-2 text-sm">
-              <div className="p-1.5 bg-emerald-100 rounded">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+              <div className="p-1.5 bg-emerald-100 dark:bg-[#22946E]/20 rounded">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-[#22946E]" />
               </div>
               <div>
-                <p className="font-medium text-emerald-900">Concluído!</p>
-                <p className="text-xs text-gray-600">Status</p>
+                <p className="font-medium text-emerald-900 dark:text-[#22946E]">Concluído!</p>
+                <p className="text-xs text-gray-600 dark:text-[#6b6b6b]">Status</p>
               </div>
             </div>
           )}
@@ -194,7 +194,7 @@ export default function UserProgressCard({
 
         {/* Certificate Button */}
         {isCourseCompleted && (
-          <div className="border-t border-blue-200 pt-4">
+          <div className="border-t border-blue-200 dark:border-[#2e2e2e] pt-4">
             {existingCertificate ? (
               <Button 
                 onClick={() => onViewCertificate?.(existingCertificate)}
