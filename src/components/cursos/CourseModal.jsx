@@ -584,50 +584,50 @@ export default function CourseModal({
   return (
     <>
       <Dialog open={open} onOpenChange={onClose}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] md:max-h-[90vh] h-[100dvh] md:h-auto overflow-y-auto p-4 md:p-6">
           <DialogHeader>
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex-1">
-                <DialogTitle className="text-2xl mb-2">{course.name}</DialogTitle>
+            <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-3 md:gap-4">
+              <div className="flex-1 min-w-0">
+                <DialogTitle className="text-lg md:text-2xl mb-1 md:mb-2 truncate">{course.name}</DialogTitle>
                 {course.description && (
-                  <p className="text-sm text-gray-600">{course.description}</p>
+                  <p className="text-xs md:text-sm text-gray-600 line-clamp-2 md:line-clamp-none">{course.description}</p>
                 )}
-                <div className="flex gap-2 mt-2 flex-wrap">
-                  <Badge variant="outline" className="gap-1">
+                <div className="flex gap-1.5 md:gap-2 mt-2 flex-wrap">
+                  <Badge variant="outline" className="gap-1 text-xs px-1.5 md:px-2.5">
                     <Video className="w-3 h-3" />
-                    {orderedVideos.length} {orderedVideos.length === 1 ? 'vídeo' : 'vídeos'}
+                    {orderedVideos.length}
                   </Badge>
-                  <Badge variant="outline" className="gap-1">
+                  <Badge variant="outline" className="gap-1 text-xs px-1.5 md:px-2.5">
                     <FileText className="w-3 h-3" />
-                    {orderedDocuments.length} {orderedDocuments.length === 1 ? 'documento' : 'documentos'}
+                    {orderedDocuments.length}
                   </Badge>
-                  <Badge variant="outline" className="gap-1">
+                  <Badge variant="outline" className="gap-1 text-xs px-1.5 md:px-2.5">
                     <FileQuestion className="w-3 h-3" />
-                    {quizzes.length} {quizzes.length === 1 ? 'prova' : 'provas'}
+                    {quizzes.length}
                   </Badge>
-                  <Badge variant="outline" className="gap-1">
+                  <Badge variant="outline" className="gap-1 text-xs px-1.5 md:px-2.5">
                     <Globe className="w-3 h-3" />
-                    {orderedSites.length} {orderedSites.length === 1 ? 'site' : 'sites'}
+                    {orderedSites.length}
                   </Badge>
                 </div>
               </div>
               {isAdmin && (
-                <div className="flex gap-2 flex-wrap">
-                  <Button variant="outline" onClick={() => setShowQuizManager(true)} className="gap-2">
-                    <FileQuestion className="w-4 h-4" />
-                    Provas
+                <div className="flex gap-1.5 md:gap-2 flex-wrap">
+                  <Button variant="outline" onClick={() => setShowQuizManager(true)} size="sm" className="gap-1 md:gap-2 h-8 md:h-9 text-xs md:text-sm px-2 md:px-3">
+                    <FileQuestion className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                    <span className="hidden md:inline">Provas</span>
                   </Button>
-                  <Button variant="outline" onClick={() => setShowAddDocument(true)} className="gap-2">
-                    <FileText className="w-4 h-4" />
-                    Documento
+                  <Button variant="outline" onClick={() => setShowAddDocument(true)} size="sm" className="gap-1 md:gap-2 h-8 md:h-9 text-xs md:text-sm px-2 md:px-3">
+                    <FileText className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                    <span className="hidden md:inline">Doc</span>
                   </Button>
-                  <Button variant="outline" onClick={handleAddSite} className="gap-2">
-                    <Globe className="w-4 h-4" />
-                    Site
+                  <Button variant="outline" onClick={handleAddSite} size="sm" className="gap-1 md:gap-2 h-8 md:h-9 text-xs md:text-sm px-2 md:px-3">
+                    <Globe className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                    <span className="hidden md:inline">Site</span>
                   </Button>
-                  <Button onClick={handleAddVideo} className="gap-2">
-                    <Plus className="w-4 h-4" />
-                    Vídeo
+                  <Button onClick={handleAddVideo} size="sm" className="gap-1 md:gap-2 h-8 md:h-9 text-xs md:text-sm px-2 md:px-3">
+                    <Plus className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                    <span className="hidden md:inline">Vídeo</span>
                   </Button>
                 </div>
               )}
@@ -661,23 +661,27 @@ export default function CourseModal({
             />
           )}
 
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="videos" className="gap-2">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-3 md:mt-4">
+            <TabsList className="grid w-full grid-cols-4 h-auto">
+              <TabsTrigger value="videos" className="gap-1 md:gap-2 text-xs md:text-sm py-2 px-1 md:px-3 flex-col md:flex-row">
                 <Video className="w-4 h-4" />
-                Vídeos ({orderedVideos.length})
+                <span className="hidden md:inline">Vídeos</span>
+                <span className="md:hidden">{orderedVideos.length}</span>
               </TabsTrigger>
-              <TabsTrigger value="documents" className="gap-2">
+              <TabsTrigger value="documents" className="gap-1 md:gap-2 text-xs md:text-sm py-2 px-1 md:px-3 flex-col md:flex-row">
                 <FileText className="w-4 h-4" />
-                Documentos ({orderedDocuments.length})
+                <span className="hidden md:inline">Documentos</span>
+                <span className="md:hidden">{orderedDocuments.length}</span>
               </TabsTrigger>
-              <TabsTrigger value="sites" className="gap-2">
+              <TabsTrigger value="sites" className="gap-1 md:gap-2 text-xs md:text-sm py-2 px-1 md:px-3 flex-col md:flex-row">
                 <Globe className="w-4 h-4" />
-                Sites ({orderedSites.length})
+                <span className="hidden md:inline">Sites</span>
+                <span className="md:hidden">{orderedSites.length}</span>
               </TabsTrigger>
-              <TabsTrigger value="quizzes" className="gap-2">
+              <TabsTrigger value="quizzes" className="gap-1 md:gap-2 text-xs md:text-sm py-2 px-1 md:px-3 flex-col md:flex-row">
                 <FileQuestion className="w-4 h-4" />
-                Provas ({quizzes.length})
+                <span className="hidden md:inline">Provas</span>
+                <span className="md:hidden">{quizzes.length}</span>
               </TabsTrigger>
             </TabsList>
 
@@ -714,21 +718,21 @@ export default function CourseModal({
                                 {...provided.draggableProps}
                                 className={`border-2 ${snapshot.isDragging ? 'border-blue-400 shadow-lg' : ''} ${isVideoWatched(video.id) ? 'border-green-200 bg-green-50/50' : ''}`}
                               >
-                                <CardContent className="p-4">
-                                  <div className="flex items-center gap-3">
+                                <CardContent className="p-3 md:p-4">
+                                  <div className="flex items-center gap-2 md:gap-3">
                                     {isAdmin && (
-                                      <div {...provided.dragHandleProps}>
+                                      <div {...provided.dragHandleProps} className="hidden md:block">
                                         <GripVertical className="w-5 h-5 text-gray-400 cursor-grab" />
                                       </div>
                                     )}
 
-                                    <div className={`flex items-center justify-center w-8 h-8 rounded-full font-bold text-sm ${
+                                    <div className={`flex items-center justify-center w-6 h-6 md:w-8 md:h-8 rounded-full font-bold text-xs md:text-sm shrink-0 ${
                                       isVideoWatched(video.id) 
                                         ? 'bg-green-100 text-green-700' 
                                         : 'bg-blue-100 text-blue-700'
                                     }`}>
                                       {isVideoWatched(video.id) ? (
-                                        <CheckCircle2 className="w-5 h-5" />
+                                        <CheckCircle2 className="w-4 h-4 md:w-5 md:h-5" />
                                       ) : (
                                         index + 1
                                       )}
@@ -737,24 +741,24 @@ export default function CourseModal({
                                     <img
                                       src={video.cover_image || getYoutubeThumbnail(video.youtube_url)}
                                       alt={video.title}
-                                      className="w-24 h-16 object-cover rounded"
+                                      className="w-16 h-10 md:w-24 md:h-16 object-cover rounded shrink-0"
                                     />
 
                                     <div className="flex-1 min-w-0">
-                                      <h4 className="font-semibold truncate">{video.title}</h4>
+                                      <h4 className="font-semibold truncate text-sm md:text-base">{video.title}</h4>
                                       {isVideoWatched(video.id) && (
                                         <span className="text-xs text-green-600">Assistido</span>
                                       )}
                                     </div>
 
-                                    <div className="flex gap-2">
+                                    <div className="flex gap-1 md:gap-2 shrink-0">
                                       <Button
                                         size="sm"
                                         onClick={() => handlePlayVideo(video)}
-                                        className="gap-2"
+                                        className="gap-1 md:gap-2 h-8 px-2 md:px-3 text-xs md:text-sm"
                                       >
-                                        <Play className="w-4 h-4" />
-                                        Assistir
+                                        <Play className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                                        <span className="hidden md:inline">Assistir</span>
                                       </Button>
 
                                       {isAdmin && (
@@ -763,13 +767,14 @@ export default function CourseModal({
                                             size="sm"
                                             variant="outline"
                                             onClick={() => handleEditVideo(video)}
+                                            className="h-8 w-8 p-0 hidden md:flex"
                                           >
                                             <Edit className="w-4 h-4" />
                                           </Button>
                                           <Button
                                             size="sm"
                                             variant="outline"
-                                            className="text-red-600"
+                                            className="text-red-600 h-8 w-8 p-0 hidden md:flex"
                                             onClick={() => {
                                               setVideoToDelete(video);
                                               setShowDeleteDialog(true);
@@ -813,26 +818,26 @@ export default function CourseModal({
                     const read = isDocumentRead(doc.id);
                     return (
                       <Card key={doc.id} className={`border-2 ${read ? 'border-green-200 bg-green-50/50' : ''}`}>
-                        <CardContent className="p-4">
-                          <div className="flex items-center gap-3">
-                            <div className={`flex items-center justify-center w-8 h-8 rounded-full font-bold text-sm ${read ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>
-                              {read ? <CheckCircle2 className="w-5 h-5" /> : index + 1}
+                        <CardContent className="p-3 md:p-4">
+                          <div className="flex items-center gap-2 md:gap-3">
+                            <div className={`flex items-center justify-center w-6 h-6 md:w-8 md:h-8 rounded-full font-bold text-xs md:text-sm shrink-0 ${read ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>
+                              {read ? <CheckCircle2 className="w-4 h-4 md:w-5 md:h-5" /> : index + 1}
                             </div>
-                            <div className={`p-2 rounded-lg ${color}`}>
-                              <DocIcon className="w-6 h-6" />
+                            <div className={`p-1.5 md:p-2 rounded-lg shrink-0 ${color}`}>
+                              <DocIcon className="w-5 h-5 md:w-6 md:h-6" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <h4 className="font-semibold truncate">{doc.title}</h4>
-                              <p className="text-xs text-gray-500">{doc.file_name}</p>
+                              <h4 className="font-semibold truncate text-sm md:text-base">{doc.title}</h4>
+                              <p className="text-xs text-gray-500 truncate hidden md:block">{doc.file_name}</p>
                               {read && <span className="text-xs text-green-600">Visualizado</span>}
                             </div>
-                            <div className="flex gap-2">
-                              <Button size="sm" onClick={() => { setViewingDocument(doc); handleMarkDocumentRead(doc); }} className="gap-2">
-                                <Eye className="w-4 h-4" />
-                                Visualizar
+                            <div className="flex gap-1 md:gap-2 shrink-0">
+                              <Button size="sm" onClick={() => { setViewingDocument(doc); handleMarkDocumentRead(doc); }} className="gap-1 md:gap-2 h-8 px-2 md:px-3 text-xs md:text-sm">
+                                <Eye className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                                <span className="hidden md:inline">Visualizar</span>
                               </Button>
                               {isAdmin && (
-                                <Button size="sm" variant="outline" className="text-red-600" onClick={() => { setDocumentToDelete(doc); setShowDeleteDocDialog(true); }}>
+                                <Button size="sm" variant="outline" className="text-red-600 h-8 w-8 p-0 hidden md:flex" onClick={() => { setDocumentToDelete(doc); setShowDeleteDocDialog(true); }}>
                                   <Trash2 className="w-4 h-4" />
                                 </Button>
                               )}
@@ -862,29 +867,29 @@ export default function CourseModal({
                 <div className="space-y-3">
                   {orderedSites.map((site, index) => (
                     <Card key={site.id} className="border-2">
-                      <CardContent className="p-4">
-                        <div className="flex items-center gap-3">
-                          <div className="flex items-center justify-center w-10 h-10 rounded-full bg-blue-100 text-blue-700">
-                            <Globe className="w-5 h-5" />
+                      <CardContent className="p-3 md:p-4">
+                        <div className="flex items-center gap-2 md:gap-3">
+                          <div className="flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-full bg-blue-100 text-blue-700 shrink-0">
+                            <Globe className="w-4 h-4 md:w-5 md:h-5" />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <h4 className="font-semibold truncate">{site.title}</h4>
+                            <h4 className="font-semibold truncate text-sm md:text-base">{site.title}</h4>
                             {site.description && (
-                              <p className="text-xs text-gray-500 truncate">{site.description}</p>
+                              <p className="text-xs text-gray-500 truncate hidden md:block">{site.description}</p>
                             )}
                             <p className="text-xs text-blue-600 truncate">{site.url}</p>
                           </div>
-                          <div className="flex gap-2">
-                            <Button size="sm" onClick={() => window.open(site.url, '_blank')} className="gap-2">
-                              <ExternalLink className="w-4 h-4" />
-                              Acessar
+                          <div className="flex gap-1 md:gap-2 shrink-0">
+                            <Button size="sm" onClick={() => window.open(site.url, '_blank')} className="gap-1 md:gap-2 h-8 px-2 md:px-3 text-xs md:text-sm">
+                              <ExternalLink className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                              <span className="hidden md:inline">Acessar</span>
                             </Button>
                             {isAdmin && (
                               <>
-                                <Button size="sm" variant="outline" onClick={() => handleEditSite(site)}>
+                                <Button size="sm" variant="outline" onClick={() => handleEditSite(site)} className="h-8 w-8 p-0 hidden md:flex">
                                   <Edit className="w-4 h-4" />
                                 </Button>
-                                <Button size="sm" variant="outline" className="text-red-600" onClick={() => { setSiteToDelete(site); setShowDeleteSiteDialog(true); }}>
+                                <Button size="sm" variant="outline" className="text-red-600 h-8 w-8 p-0 hidden md:flex" onClick={() => { setSiteToDelete(site); setShowDeleteSiteDialog(true); }}>
                                   <Trash2 className="w-4 h-4" />
                                 </Button>
                               </>
@@ -918,33 +923,33 @@ export default function CourseModal({
                     
                     return (
                       <Card key={quiz.id} className={`border-2 ${completed ? 'border-green-200 bg-green-50/50' : ''}`}>
-                        <CardContent className="p-4">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <div className={`flex items-center justify-center w-10 h-10 rounded-full font-bold ${
+                        <CardContent className="p-3 md:p-4">
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 md:gap-3 min-w-0">
+                              <div className={`flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-full font-bold shrink-0 ${
                                 completed 
                                   ? 'bg-green-100 text-green-700' 
                                   : 'bg-purple-100 text-purple-700'
                               }`}>
                                 {completed ? (
-                                  <Trophy className="w-5 h-5" />
+                                  <Trophy className="w-4 h-4 md:w-5 md:h-5" />
                                 ) : (
-                                  <FileQuestion className="w-5 h-5" />
+                                  <FileQuestion className="w-4 h-4 md:w-5 md:h-5" />
                                 )}
                               </div>
-                              <div>
-                                <h4 className="font-semibold">{quiz.title}</h4>
-                                <div className="flex items-center gap-3 text-sm text-gray-600">
-                                  <span>Nota mínima: {quiz.passing_score}%</span>
+                              <div className="min-w-0">
+                                <h4 className="font-semibold text-sm md:text-base truncate">{quiz.title}</h4>
+                                <div className="flex flex-wrap items-center gap-1 md:gap-3 text-xs md:text-sm text-gray-600">
+                                  <span>Mín: {quiz.passing_score}%</span>
                                   {quiz.time_limit_minutes && (
                                     <span className="flex items-center gap-1">
                                       <Clock className="w-3 h-3" />
-                                      {quiz.time_limit_minutes} min
+                                      {quiz.time_limit_minutes}min
                                     </span>
                                   )}
                                   {bestScore !== null && (
-                                    <Badge variant={bestScore >= quiz.passing_score ? "default" : "secondary"} className={bestScore >= quiz.passing_score ? "bg-green-100 text-green-700" : ""}>
-                                      Melhor nota: {bestScore}%
+                                    <Badge variant={bestScore >= quiz.passing_score ? "default" : "secondary"} className={`text-xs ${bestScore >= quiz.passing_score ? "bg-green-100 text-green-700" : ""}`}>
+                                      {bestScore}%
                                     </Badge>
                                   )}
                                 </div>
@@ -952,11 +957,12 @@ export default function CourseModal({
                             </div>
                             <Button
                               onClick={() => loadQuizQuestions(quiz)}
-                              className="gap-2"
+                              className="gap-1 md:gap-2 h-8 px-2 md:px-3 text-xs md:text-sm shrink-0"
                               variant={completed ? "outline" : "default"}
+                              size="sm"
                             >
-                              <Play className="w-4 h-4" />
-                              {completed ? "Refazer" : "Iniciar"}
+                              <Play className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                              <span className="hidden md:inline">{completed ? "Refazer" : "Iniciar"}</span>
                             </Button>
                           </div>
                         </CardContent>
