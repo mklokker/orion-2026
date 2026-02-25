@@ -250,7 +250,7 @@ export default function Ranking() {
   };
 
   return (
-    <div className="p-4 md:p-8 min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
+    <div className="p-4 md:p-8 min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-[#0a0a0a] dark:to-[#0a0a0a]">
       <div className="max-w-6xl mx-auto space-y-6">
         <div className="text-center space-y-2">
           <h1 className="text-2xl md:text-5xl font-bold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">
@@ -261,9 +261,9 @@ export default function Ranking() {
           </p>
         </div>
 
-        <Card className="shadow-lg border-2 dark:bg-slate-800 dark:border-slate-700">
-          <CardHeader className="border-b bg-gradient-to-r from-gray-50 to-blue-50 py-3 md:py-6">
-            <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+        <Card className="shadow-lg border-2 dark:bg-[#1a1a1a] dark:border-[#2e2e2e]">
+          <CardHeader className="border-b bg-gradient-to-r from-gray-50 to-blue-50 dark:from-[#1a1a1a] dark:to-[#1a1a1a] dark:border-[#2e2e2e] py-3 md:py-6">
+            <CardTitle className="flex items-center gap-2 text-base md:text-lg dark:text-white">
               <Calendar className="w-4 h-4 md:w-5 md:h-5" />
               Filtros
             </CardTitle>
@@ -271,7 +271,7 @@ export default function Ranking() {
           <CardContent className="pt-4 md:pt-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4 mb-4">
               <div className="space-y-1 md:space-y-2">
-                <label className="text-xs md:text-sm font-medium">Buscar Usuário</label>
+                <label className="text-xs md:text-sm font-medium dark:text-[#a1a1a1]">Buscar Usuário</label>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <Input
@@ -284,7 +284,7 @@ export default function Ranking() {
               </div>
               <div className="grid grid-cols-2 gap-2 md:contents">
                 <div className="space-y-1 md:space-y-2">
-                  <label className="text-xs md:text-sm font-medium">De</label>
+                  <label className="text-xs md:text-sm font-medium dark:text-[#a1a1a1]">De</label>
                   <Input
                     type="date"
                     value={startDate}
@@ -293,7 +293,7 @@ export default function Ranking() {
                   />
                 </div>
                 <div className="space-y-1 md:space-y-2">
-                  <label className="text-xs md:text-sm font-medium">Até</label>
+                  <label className="text-xs md:text-sm font-medium dark:text-[#a1a1a1]">Até</label>
                   <Input
                     type="date"
                     value={endDate}
@@ -353,13 +353,13 @@ export default function Ranking() {
             </div>
           ) : (
             Object.entries(rankingByDepartment).map(([deptId, { department, ranking }]) => (
-              <Card key={deptId} className="shadow-lg border-2 dark:bg-slate-800 dark:border-slate-700">
-                <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b py-3 md:py-6">
+              <Card key={deptId} className="shadow-lg border-2 dark:bg-[#1a1a1a] dark:border-[#2e2e2e]">
+                <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-[#1a1a1a] dark:to-[#1a1a1a] border-b dark:border-[#2e2e2e] py-3 md:py-6">
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2 md:gap-3 min-w-0">
-                      <Building2 className="w-4 h-4 md:w-5 md:h-5 text-blue-600 shrink-0" />
-                      <CardTitle className="text-base md:text-xl truncate">{department.name}</CardTitle>
-                      <Badge variant="outline" className="text-xs hidden md:flex">
+                      <Building2 className="w-4 h-4 md:w-5 md:h-5 text-blue-600 dark:text-blue-400 shrink-0" />
+                      <CardTitle className="text-base md:text-xl truncate dark:text-white">{department.name}</CardTitle>
+                      <Badge variant="outline" className="text-xs hidden md:flex dark:border-[#2e2e2e] dark:text-[#a1a1a1]">
                         {ranking.length} {ranking.length === 1 ? 'participante' : 'participantes'}
                       </Badge>
                     </div>
@@ -399,9 +399,9 @@ export default function Ranking() {
                           <div 
                             key={item.user_email} 
                             className={`flex items-center gap-3 p-3 rounded-xl border-2 ${
-                              index === 0 ? 'border-yellow-400 bg-gradient-to-r from-yellow-50 to-yellow-100' :
-                              index === 1 ? 'border-gray-300 bg-gradient-to-r from-gray-50 to-gray-100' :
-                              'border-orange-300 bg-gradient-to-r from-orange-50 to-orange-100'
+                              index === 0 ? 'border-yellow-400 bg-gradient-to-r from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20' :
+                              index === 1 ? 'border-gray-300 dark:border-gray-600 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800/30 dark:to-gray-700/30' :
+                              'border-orange-300 bg-gradient-to-r from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20'
                             }`}
                           >
                             <div className="flex-shrink-0 w-8 flex justify-center">
@@ -414,11 +414,11 @@ export default function Ranking() {
                               </AvatarFallback>
                             </Avatar>
                             <div className="flex-1 min-w-0">
-                              <h3 className="text-sm font-bold text-gray-900 truncate">{item.user_name}</h3>
+                              <h3 className="text-sm font-bold text-gray-900 dark:text-white truncate">{item.user_name}</h3>
                             </div>
-                            <div className="flex items-center gap-1 bg-yellow-100 px-2 py-1 rounded-full">
+                            <div className="flex items-center gap-1 bg-yellow-100 dark:bg-yellow-900/30 px-2 py-1 rounded-full">
                               <Star className="w-4 h-4 text-yellow-600 fill-yellow-600" />
-                              <span className="text-lg font-bold text-yellow-800">{item.total_stars}</span>
+                              <span className="text-lg font-bold text-yellow-800 dark:text-yellow-400">{item.total_stars}</span>
                             </div>
                           </div>
                         ))}
@@ -429,9 +429,9 @@ export default function Ranking() {
                           <Card 
                             key={item.user_email} 
                             className={`shadow-xl border-4 transition-all hover:scale-105 ${
-                              index === 0 ? 'border-yellow-400 bg-gradient-to-br from-yellow-50 to-yellow-100' :
-                              index === 1 ? 'border-gray-400 bg-gradient-to-br from-gray-50 to-gray-100' :
-                              'border-orange-400 bg-gradient-to-br from-orange-50 to-orange-100'
+                              index === 0 ? 'border-yellow-400 bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/20' :
+                              index === 1 ? 'border-gray-400 bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-800/30 dark:to-gray-700/30' :
+                              'border-orange-400 bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/20'
                             }`}
                           >
                             <CardContent className="pt-6 text-center space-y-3">
@@ -445,12 +445,12 @@ export default function Ranking() {
                                 </AvatarFallback>
                               </Avatar>
                               <div>
-                                <h3 className="text-lg font-bold text-gray-900">{item.user_name}</h3>
-                                <p className="text-xs text-gray-600">{item.user_email}</p>
+                                <h3 className="text-lg font-bold text-gray-900 dark:text-white">{item.user_name}</h3>
+                                <p className="text-xs text-gray-600 dark:text-[#a1a1a1]">{item.user_email}</p>
                               </div>
                               <div className="flex items-center justify-center gap-2">
                                 <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
-                                <span className="text-2xl font-bold text-gray-900">{item.total_stars}</span>
+                                <span className="text-2xl font-bold text-gray-900 dark:text-white">{item.total_stars}</span>
                               </div>
                             </CardContent>
                           </Card>
@@ -459,8 +459,8 @@ export default function Ranking() {
 
                       {/* Ranking Completo - Apenas para Admin */}
                       {isAdmin && ranking.length > 3 && expandedDepartments[deptId] && (
-                        <div className="mt-6 border-t pt-6">
-                          <h3 className="text-lg font-semibold mb-4 text-gray-700">
+                        <div className="mt-6 border-t dark:border-[#2e2e2e] pt-6">
+                          <h3 className="text-lg font-semibold mb-4 text-gray-700 dark:text-[#a1a1a1]">
                             Ranking Completo (Visível apenas para Administradores)
                           </h3>
                           <div className="space-y-2">
@@ -468,7 +468,7 @@ export default function Ranking() {
                               <div 
                                 key={item.user_email}
                                 className={`p-3 rounded-lg flex items-center gap-4 ${
-                                  index < 3 ? 'bg-gradient-to-r from-yellow-50/50 to-orange-50/50' : 'bg-gray-50'
+                                  index < 3 ? 'bg-gradient-to-r from-yellow-50/50 to-orange-50/50 dark:from-yellow-900/10 dark:to-orange-900/10' : 'bg-gray-50 dark:bg-[#2a2a2a]'
                                 }`}
                               >
                                 <div className="w-12 flex justify-center">
@@ -489,13 +489,13 @@ export default function Ranking() {
                                 </Avatar>
 
                                 <div className="flex-1 min-w-0">
-                                  <h3 className="font-semibold text-gray-900 truncate">{item.user_name}</h3>
-                                  <p className="text-sm text-gray-500 truncate">{item.user_email}</p>
+                                  <h3 className="font-semibold text-gray-900 dark:text-white truncate">{item.user_name}</h3>
+                                  <p className="text-sm text-gray-500 dark:text-[#6b6b6b] truncate">{item.user_email}</p>
                                 </div>
 
-                                <div className="flex items-center gap-2 bg-yellow-100 px-3 py-1.5 rounded-full">
+                                <div className="flex items-center gap-2 bg-yellow-100 dark:bg-yellow-900/30 px-3 py-1.5 rounded-full">
                                   <Star className="w-4 h-4 text-yellow-600 fill-yellow-600" />
-                                  <span className="text-lg font-bold text-yellow-800">{item.total_stars}</span>
+                                  <span className="text-lg font-bold text-yellow-800 dark:text-yellow-400">{item.total_stars}</span>
                                 </div>
                               </div>
                             ))}
@@ -510,13 +510,13 @@ export default function Ranking() {
           )}
         </div>
 
-        <Card className="shadow-lg border-2 bg-blue-50 hidden md:block">
+        <Card className="shadow-lg border-2 bg-blue-50 dark:bg-[#1a1a1a] dark:border-[#2e2e2e] hidden md:block">
           <CardContent className="pt-6">
-            <h3 className="font-bold text-lg mb-3 flex items-center gap-2">
+            <h3 className="font-bold text-lg mb-3 flex items-center gap-2 dark:text-white">
               <Star className="w-5 h-5 text-yellow-600" />
               Como funciona o Sistema de Estrelas?
             </h3>
-            <ul className="space-y-2 text-sm text-gray-700">
+            <ul className="space-y-2 text-sm text-gray-700 dark:text-[#a1a1a1]">
               <li className="flex items-start gap-2">
                 <span className="text-yellow-600 font-bold">⭐</span>
                 <span>Cada protocolo ou serviço <strong>único concluído</strong> vale 1 estrela <strong>por departamento</strong></span>
