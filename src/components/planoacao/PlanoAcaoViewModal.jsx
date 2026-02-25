@@ -143,9 +143,17 @@ export default function PlanoAcaoViewModal({ open, onClose, plano, items, users,
       <Dialog open={open} onOpenChange={onClose}>
         <DialogContent className="max-w-5xl w-[95vw] max-h-[90vh]">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Target className="w-5 h-5 text-indigo-600" />
-              {plano.title}
+            <DialogTitle className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Target className="w-5 h-5 text-indigo-600" />
+                {plano.title}
+              </div>
+              {onEdit && (
+                <Button variant="outline" size="sm" onClick={() => { onClose(); onEdit(plano); }}>
+                  <Edit className="w-4 h-4 mr-1" />
+                  Editar Plano
+                </Button>
+              )}
             </DialogTitle>
           </DialogHeader>
 
