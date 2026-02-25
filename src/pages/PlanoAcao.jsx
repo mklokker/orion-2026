@@ -319,7 +319,11 @@ export default function PlanoAcaoPage() {
               const planoItems = getPlanoItems(plano.id);
 
               return (
-                <Card key={plano.id} className="hover:shadow-md transition-shadow">
+                <Card 
+                  key={plano.id} 
+                  className="hover:shadow-md transition-shadow cursor-pointer"
+                  onClick={() => handleViewPlano(plano)}
+                >
                   <CardContent className="p-4">
                     <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
                       <div className="flex-1 space-y-3">
@@ -376,17 +380,6 @@ export default function PlanoAcaoPage() {
                           <p className="text-xs text-gray-400 mt-1">
                             {planoItems.filter(i => i.status === "realizada").length}/{planoItems.length} ações
                           </p>
-                        </div>
-
-                        <div className="flex gap-2">
-                          <Button variant="outline" size="sm" onClick={() => handleViewPlano(plano)}>
-                            <Eye className="w-4 h-4 mr-1" />
-                            Ver
-                          </Button>
-                          <Button variant="outline" size="sm" onClick={() => handleEditPlano(plano)}>
-                            <Edit className="w-4 h-4 mr-1" />
-                            Editar
-                          </Button>
                         </div>
                       </div>
                     </div>
