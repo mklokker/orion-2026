@@ -334,7 +334,7 @@ export default function ServiceViewEditModal({ open, onClose, service, currentUs
                     onChange={(e) => setEditedService({...editedService, service_name: e.target.value})}
                   />
                 ) : (
-                  <p className="text-3xl font-bold text-gray-900">{service.service_name}</p>
+                  <p className="text-3xl font-bold text-gray-900 dark:text-white">{service.service_name}</p>
                 )}
               </div>
               <div className="space-y-2">
@@ -372,7 +372,7 @@ export default function ServiceViewEditModal({ open, onClose, service, currentUs
                   rows={3}
                 />
               ) : (
-                <p className="text-gray-700 p-3 bg-gray-50 rounded-lg">
+                <p className="text-gray-700 dark:text-[#a1a1a1] p-3 bg-gray-50 dark:bg-[#1a1a1a] rounded-lg border dark:border-[#2e2e2e]">
                   {service.description || "Sem descrição"}
                 </p>
               )}
@@ -401,7 +401,7 @@ export default function ServiceViewEditModal({ open, onClose, service, currentUs
                     </SelectContent>
                   </Select>
                 ) : (
-                  <p className="text-gray-700 p-3 bg-gray-50 rounded-lg">{assignedUserName}</p>
+                  <p className="text-gray-700 dark:text-[#a1a1a1] p-3 bg-gray-50 dark:bg-[#1a1a1a] rounded-lg border dark:border-[#2e2e2e]">{assignedUserName}</p>
                 )}
               </div>
 
@@ -427,7 +427,7 @@ export default function ServiceViewEditModal({ open, onClose, service, currentUs
                     </SelectContent>
                   </Select>
                 ) : (
-                  <p className="text-gray-700 p-3 bg-gray-50 rounded-lg">
+                  <p className="text-gray-700 dark:text-[#a1a1a1] p-3 bg-gray-50 dark:bg-[#1a1a1a] rounded-lg border dark:border-[#2e2e2e]">
                     {department?.name || "-"}
                   </p>
                 )}
@@ -438,7 +438,7 @@ export default function ServiceViewEditModal({ open, onClose, service, currentUs
                   <Calendar className="w-4 h-4" />
                   Data de Início
                 </Label>
-                <p className="text-gray-700 p-3 bg-gray-50 rounded-lg">
+                <p className="text-gray-700 dark:text-[#a1a1a1] p-3 bg-gray-50 dark:bg-[#1a1a1a] rounded-lg border dark:border-[#2e2e2e]">
                   {service.created_date ? format(parseDateAsLocal(service.created_date), "dd/MM/yyyy", { locale: ptBR }) : '-'}
                 </p>
               </div>
@@ -455,7 +455,7 @@ export default function ServiceViewEditModal({ open, onClose, service, currentUs
                     onChange={(e) => setEditedService({...editedService, end_date: e.target.value})}
                   />
                 ) : (
-                  <p className="text-gray-700 p-3 bg-gray-50 rounded-lg">
+                  <p className="text-gray-700 dark:text-[#a1a1a1] p-3 bg-gray-50 dark:bg-[#1a1a1a] rounded-lg border dark:border-[#2e2e2e]">
                     {service.end_date ? format(parseDateAsLocal(service.end_date), "dd/MM/yyyy", { locale: ptBR }) : '-'}
                   </p>
                 )}
@@ -492,7 +492,7 @@ export default function ServiceViewEditModal({ open, onClose, service, currentUs
                   <CheckCircle2 className="w-4 h-4 text-green-600" />
                   Data de Conclusão
                 </Label>
-                <p className="text-gray-700 p-3 bg-green-50 rounded-lg">
+                <p className="text-gray-700 dark:text-[#a1a1a1] p-3 bg-green-50 dark:bg-[#22946E]/20 rounded-lg border dark:border-[#22946E]/30">
                   {format(parseDateAsLocal(service.completed_date), "dd/MM/yyyy", { locale: ptBR })}
                 </p>
               </div>
@@ -571,7 +571,7 @@ export default function ServiceViewEditModal({ open, onClose, service, currentUs
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label>Serviço</Label>
-              <p className="text-2xl font-bold text-gray-900">{service.service_name}</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">{service.service_name}</p>
             </div>
             
             <div className="space-y-2">
@@ -597,8 +597,8 @@ export default function ServiceViewEditModal({ open, onClose, service, currentUs
               </Select>
             </div>
 
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <p className="text-sm text-blue-800">
+            <div className="bg-blue-50 dark:bg-[#21498A]/20 border border-blue-200 dark:border-[#21498A]/30 rounded-lg p-4">
+              <p className="text-sm text-blue-800 dark:text-blue-300">
                 <strong>Atenção:</strong> Ao transferir, o serviço atual será marcado como concluído 
                 e um novo serviço com o mesmo nome será criado para o usuário selecionado.
               </p>
