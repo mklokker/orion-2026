@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Task } from "@/entities/Task";
 import { Service } from "@/entities/Service";
@@ -313,47 +312,51 @@ export default function ProdutividadeGeral() {
   return (
     <div className="p-4 md:p-8 min-h-screen bg-gray-50">
       <div className="max-w-full mx-auto space-y-6">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 md:gap-4">
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900">Produtividade Geral</h1>
-            <p className="text-gray-600 mt-1">Análise de itens concluídos por usuário em um período.</p>
+            <h1 className="text-xl md:text-4xl font-bold text-gray-900">Produtividade</h1>
+            <p className="text-gray-600 text-xs md:text-base mt-1 hidden md:block">Análise de itens concluídos por usuário em um período.</p>
           </div>
           {view === 'details' && (
-            <Button variant="outline" onClick={handleBackToSummary}>Voltar ao Resumo</Button>
+            <Button variant="outline" onClick={handleBackToSummary} size="sm" className="text-xs md:text-sm h-8 md:h-10">
+              Voltar
+            </Button>
           )}
         </div>
 
         {/* Filters */}
         <Card className="shadow-sm border-2">
-          <CardHeader className="pb-4">
-            <CardTitle>Filtros</CardTitle>
+          <CardHeader className="pb-2 md:pb-4">
+            <CardTitle className="text-base md:text-lg">Filtros</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
               {/* Period Date Range Filter */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Data de Início</label>
+              <div className="space-y-1 md:space-y-2">
+                <label className="text-xs md:text-sm font-medium text-gray-700">De</label>
                 <Input
                   type="date"
                   value={filters.startDate}
                   onChange={(e) => handleDateFilterChange("startDate", e.target.value)}
+                  className="h-9 md:h-10 text-sm"
                 />
               </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-700">Data de Fim</label>
+              <div className="space-y-1 md:space-y-2">
+                <label className="text-xs md:text-sm font-medium text-gray-700">Até</label>
                 <Input
                   type="date"
                   value={filters.endDate}
                   onChange={(e) => handleDateFilterChange("endDate", e.target.value)}
+                  className="h-9 md:h-10 text-sm"
                 />
               </div>
 
               {/* User Filter - Conditionally rendered based on role */}
               {currentUserData?.role === 'admin' && (
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Usuário</label>
+                <div className="space-y-1 md:space-y-2 col-span-2 md:col-span-1">
+                  <label className="text-xs md:text-sm font-medium text-gray-700">Usuário</label>
                   <Select value={filters.user} onValueChange={(value) => setFilters({...filters, user: value})}>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-9 md:h-10 text-sm">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -368,11 +371,11 @@ export default function ProdutividadeGeral() {
                 </div>
               )}
             </div>
-            <div className="mt-4 flex flex-wrap gap-2">
-                <Button variant="outline" onClick={() => setPeriod("thisWeek")}>Esta Semana</Button>
-                <Button variant="outline" onClick={() => setPeriod("lastWeek")}>Semana Passada</Button>
-                <Button variant="outline" onClick={() => setPeriod("thisMonth")}>Este Mês</Button>
-                <Button variant="outline" onClick={() => setPeriod("lastMonth")}>Mês Passado</Button>
+            <div className="mt-3 md:mt-4 flex flex-wrap gap-1.5 md:gap-2">
+                <Button variant="outline" onClick={() => setPeriod("thisWeek")} size="sm" className="text-xs md:text-sm h-7 md:h-9 px-2 md:px-4">Esta Semana</Button>
+                <Button variant="outline" onClick={() => setPeriod("lastWeek")} size="sm" className="text-xs md:text-sm h-7 md:h-9 px-2 md:px-4">Sem. Passada</Button>
+                <Button variant="outline" onClick={() => setPeriod("thisMonth")} size="sm" className="text-xs md:text-sm h-7 md:h-9 px-2 md:px-4">Este Mês</Button>
+                <Button variant="outline" onClick={() => setPeriod("lastMonth")} size="sm" className="text-xs md:text-sm h-7 md:h-9 px-2 md:px-4">Mês Passado</Button>
             </div>
           </CardContent>
         </Card>

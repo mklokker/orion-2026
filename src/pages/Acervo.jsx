@@ -286,24 +286,25 @@ export default function Acervo() {
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-700 to-indigo-700 bg-clip-text text-transparent flex items-center gap-3">
-              <Files className="w-10 h-10 text-blue-600" />
-              Acervo de Documentos
+            <h1 className="text-xl md:text-4xl font-bold bg-gradient-to-r from-blue-700 to-indigo-700 bg-clip-text text-transparent flex items-center gap-2 md:gap-3">
+              <Files className="w-6 h-6 md:w-10 md:h-10 text-blue-600" />
+              Acervo
             </h1>
-            <p className="text-gray-600 mt-2">
+            <p className="text-gray-600 text-xs md:text-base mt-1 md:mt-2 hidden md:block">
               Repositório central de documentos, POPs e materiais de referência
             </p>
           </div>
 
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-2 md:gap-3 w-full md:w-auto">
             {isAdmin && (
               <Button
                 variant="outline"
                 onClick={() => setShowCategoryManager(true)}
-                className="gap-2"
+                className="gap-1.5 md:gap-2 text-xs md:text-sm h-8 md:h-10 px-2 md:px-4"
+                size="sm"
               >
-                <FolderOpen className="w-4 h-4" />
-                Gerenciar Categorias
+                <FolderOpen className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                <span className="hidden md:inline">Gerenciar</span> Categorias
               </Button>
             )}
             <Button
@@ -312,60 +313,63 @@ export default function Acervo() {
                 setEditorDocId('new');
                 setShowEditor(true);
               }}
-              className="gap-2"
+              className="gap-1.5 md:gap-2 text-xs md:text-sm h-8 md:h-10 px-2 md:px-4"
+              size="sm"
             >
-              <FileText className="w-4 h-4" />
-              Novo Texto Colaborativo
+              <FileText className="w-3.5 h-3.5 md:w-4 md:h-4" />
+              <span className="hidden md:inline">Novo Texto</span>
+              <span className="md:hidden">Texto</span>
             </Button>
             <Button
               onClick={() => {
-                setEditingDocument(null); // Ensure no document is being edited when opening for creation
+                setEditingDocument(null);
                 setShowCreateModal(true);
               }}
-              className="gap-2 bg-gradient-to-r from-blue-600 to-indigo-600"
+              className="gap-1.5 md:gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-xs md:text-sm h-8 md:h-10 px-2 md:px-4"
+              size="sm"
             >
-              <Plus className="w-4 h-4" />
-              Upload Arquivo
+              <Plus className="w-3.5 h-3.5 md:w-4 md:h-4" />
+              Upload
             </Button>
           </div>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-3 gap-2 md:gap-4">
           <Card>
-            <CardContent className="pt-6">
+            <CardContent className="pt-3 md:pt-6 px-3 md:px-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Total de Documentos</p>
-                  <p className="text-3xl font-bold text-gray-900">{documents.length}</p>
+                  <p className="text-xs md:text-sm text-gray-600">Documentos</p>
+                  <p className="text-xl md:text-3xl font-bold text-gray-900">{documents.length}</p>
                 </div>
-                <FileText className="w-10 h-10 text-blue-600 opacity-20" />
+                <FileText className="w-6 h-6 md:w-10 md:h-10 text-blue-600 opacity-20 hidden md:block" />
               </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="pt-6">
+            <CardContent className="pt-3 md:pt-6 px-3 md:px-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Categorias</p>
-                  <p className="text-3xl font-bold text-gray-900">{categories.length}</p>
+                  <p className="text-xs md:text-sm text-gray-600">Categorias</p>
+                  <p className="text-xl md:text-3xl font-bold text-gray-900">{categories.length}</p>
                 </div>
-                <FolderOpen className="w-10 h-10 text-indigo-600 opacity-20" />
+                <FolderOpen className="w-6 h-6 md:w-10 md:h-10 text-indigo-600 opacity-20 hidden md:block" />
               </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardContent className="pt-6">
+            <CardContent className="pt-3 md:pt-6 px-3 md:px-6">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">Visualizações</p>
-                  <p className="text-3xl font-bold text-gray-900">
+                  <p className="text-xs md:text-sm text-gray-600">Visualizações</p>
+                  <p className="text-xl md:text-3xl font-bold text-gray-900">
                     {documents.reduce((acc, doc) => acc + (doc.views_count || 0), 0)}
                   </p>
                 </div>
-                <Eye className="w-10 h-10 text-purple-600 opacity-20" />
+                <Eye className="w-6 h-6 md:w-10 md:h-10 text-purple-600 opacity-20 hidden md:block" />
               </div>
             </CardContent>
           </Card>
@@ -373,26 +377,25 @@ export default function Acervo() {
 
         {/* Filtros */}
         <Card>
-          <CardContent className="pt-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <CardContent className="pt-4 md:pt-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <Input
-                  placeholder="Buscar por título ou descrição..."
+                  placeholder="Buscar..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
+                  className="pl-9 h-9 md:h-10 text-sm"
                 />
               </div>
 
               <div className="flex items-center gap-2">
-                <Filter className="w-5 h-5 text-gray-400" />
                 <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Todas as categorias" />
+                  <SelectTrigger className="h-9 md:h-10 text-sm">
+                    <SelectValue placeholder="Categoria" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Todas as categorias</SelectItem>
+                    <SelectItem value="all">Todas</SelectItem>
                     {categories.map(cat => (
                       <SelectItem key={cat.id} value={cat.id}>
                         {cat.name}
@@ -405,6 +408,7 @@ export default function Acervo() {
                     variant="ghost"
                     size="icon"
                     onClick={() => setSelectedCategory("all")}
+                    className="h-9 w-9"
                   >
                     <X className="w-4 h-4" />
                   </Button>
@@ -414,10 +418,11 @@ export default function Acervo() {
               <Button
                 variant={showOnlyFavorites ? "default" : "outline"}
                 onClick={() => setShowOnlyFavorites(!showOnlyFavorites)}
-                className="gap-2"
+                className="gap-2 h-9 md:h-10 text-sm"
               >
                 <Star className={`w-4 h-4 ${showOnlyFavorites ? 'fill-current' : ''}`} />
-                {showOnlyFavorites ? 'Mostrando Favoritos' : 'Meus Favoritos'}
+                <span className="hidden md:inline">{showOnlyFavorites ? 'Mostrando Favoritos' : 'Meus Favoritos'}</span>
+                <span className="md:hidden">Favoritos</span>
               </Button>
             </div>
           </CardContent>

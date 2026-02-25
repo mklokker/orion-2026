@@ -354,12 +354,12 @@ export default function Ranking() {
           ) : (
             Object.entries(rankingByDepartment).map(([deptId, { department, ranking }]) => (
               <Card key={deptId} className="shadow-lg border-2">
-                <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <Building2 className="w-5 h-5 text-blue-600" />
-                      <CardTitle className="text-xl">{department.name}</CardTitle>
-                      <Badge variant="outline" className="text-sm">
+                <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b py-3 md:py-6">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 md:gap-3 min-w-0">
+                      <Building2 className="w-4 h-4 md:w-5 md:h-5 text-blue-600 shrink-0" />
+                      <CardTitle className="text-base md:text-xl truncate">{department.name}</CardTitle>
+                      <Badge variant="outline" className="text-xs hidden md:flex">
                         {ranking.length} {ranking.length === 1 ? 'participante' : 'participantes'}
                       </Badge>
                     </div>
@@ -368,17 +368,17 @@ export default function Ranking() {
                         variant="ghost"
                         size="sm"
                         onClick={() => toggleDepartment(deptId)}
-                        className="gap-2"
+                        className="gap-1 md:gap-2 text-xs md:text-sm shrink-0"
                       >
                         {expandedDepartments[deptId] ? (
                           <>
-                            <ChevronUp className="w-4 h-4" />
-                            Ver menos
+                            <ChevronUp className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                            <span className="hidden md:inline">Ver menos</span>
                           </>
                         ) : (
                           <>
-                            <ChevronDown className="w-4 h-4" />
-                            Ver ranking completo (Admin)
+                            <ChevronDown className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                            <span className="hidden md:inline">Ver completo</span>
                           </>
                         )}
                       </Button>

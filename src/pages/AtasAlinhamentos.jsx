@@ -298,34 +298,38 @@ export default function AtasAlinhamentos() {
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 md:p-6 space-y-4 md:space-y-6">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 md:gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Atas e Alinhamentos</h1>
-          <p className="text-gray-500 mt-1">Gerencie atas de reunião e alinhamentos da equipe</p>
+          <h1 className="text-xl md:text-3xl font-bold text-gray-900">Atas e Alinhamentos</h1>
+          <p className="text-gray-500 text-xs md:text-base mt-1 hidden md:block">Gerencie atas de reunião e alinhamentos da equipe</p>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {isAdmin && (
-            <Button variant="outline" onClick={() => setShowAuditLog(true)}>
-              <History className="w-4 h-4 mr-2" />
-              Auditoria
+            <Button variant="outline" onClick={() => setShowAuditLog(true)} size="sm" className="h-8 md:h-10 text-xs md:text-sm px-2 md:px-4">
+              <History className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1 md:mr-2" />
+              <span className="hidden md:inline">Auditoria</span>
+              <span className="md:hidden">Audit.</span>
             </Button>
           )}
-          <Button variant="outline" onClick={() => setShowCategoriaManager(true)}>
-            <Settings className="w-4 h-4 mr-2" />
-            Categorias
+          <Button variant="outline" onClick={() => setShowCategoriaManager(true)} size="sm" className="h-8 md:h-10 text-xs md:text-sm px-2 md:px-4">
+            <Settings className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1 md:mr-2" />
+            <span className="hidden md:inline">Categorias</span>
+            <span className="md:hidden">Cat.</span>
           </Button>
           {activeTab === "alinhamentos" ? (
-            <Button onClick={() => setShowCreateAlinhamento(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Novo Alinhamento
+            <Button onClick={() => setShowCreateAlinhamento(true)} size="sm" className="h-8 md:h-10 text-xs md:text-sm px-2 md:px-4">
+              <Plus className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1 md:mr-2" />
+              <span className="hidden md:inline">Novo Alinhamento</span>
+              <span className="md:hidden">Alinham.</span>
             </Button>
           ) : activeTab === "atas" ? (
-            <Button onClick={() => setShowCreateAta(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Nova Ata
+            <Button onClick={() => setShowCreateAta(true)} size="sm" className="h-8 md:h-10 text-xs md:text-sm px-2 md:px-4">
+              <Plus className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1 md:mr-2" />
+              <span className="hidden md:inline">Nova Ata</span>
+              <span className="md:hidden">Ata</span>
             </Button>
           ) : null}
         </div>
@@ -333,23 +337,23 @@ export default function AtasAlinhamentos() {
 
       {/* Filtros */}
       <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col md:flex-row gap-4">
+        <CardContent className="pt-4 md:pt-6">
+          <div className="flex flex-col md:flex-row gap-3 md:gap-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
                 placeholder="Buscar..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
+                className="pl-10 h-9 md:h-10 text-sm"
               />
             </div>
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="w-full md:w-48">
+              <SelectTrigger className="w-full md:w-48 h-9 md:h-10 text-sm">
                 <SelectValue placeholder="Categoria" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todas as categorias</SelectItem>
+                <SelectItem value="all">Todas</SelectItem>
                 {categorias.map((cat) => (
                   <SelectItem key={cat.id} value={cat.name}>
                     {cat.name}
@@ -364,18 +368,22 @@ export default function AtasAlinhamentos() {
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className={`grid w-full ${isAdmin ? "grid-cols-3" : "grid-cols-2"} max-w-xl`}>
-          <TabsTrigger value="alinhamentos" className="flex items-center gap-2">
-            <Users className="w-4 h-4" />
-            Alinhamentos ({filteredAlinhamentos.length})
+          <TabsTrigger value="alinhamentos" className="flex items-center gap-1 md:gap-2 text-xs md:text-sm px-2 md:px-4">
+            <Users className="w-3.5 h-3.5 md:w-4 md:h-4" />
+            <span className="hidden md:inline">Alinhamentos</span>
+            <span className="md:hidden">Alinh.</span>
+            <span className="hidden md:inline">({filteredAlinhamentos.length})</span>
           </TabsTrigger>
-          <TabsTrigger value="atas" className="flex items-center gap-2">
-            <FileText className="w-4 h-4" />
-            Atas ({filteredAtas.length})
+          <TabsTrigger value="atas" className="flex items-center gap-1 md:gap-2 text-xs md:text-sm px-2 md:px-4">
+            <FileText className="w-3.5 h-3.5 md:w-4 md:h-4" />
+            Atas
+            <span className="hidden md:inline">({filteredAtas.length})</span>
           </TabsTrigger>
           {isAdmin && (
-            <TabsTrigger value="excluidos" className="flex items-center gap-2">
-              <Trash2 className="w-4 h-4" />
-              Excluídos
+            <TabsTrigger value="excluidos" className="flex items-center gap-1 md:gap-2 text-xs md:text-sm px-2 md:px-4">
+              <Trash2 className="w-3.5 h-3.5 md:w-4 md:h-4" />
+              <span className="hidden md:inline">Excluídos</span>
+              <span className="md:hidden">Lixo</span>
             </TabsTrigger>
           )}
         </TabsList>
