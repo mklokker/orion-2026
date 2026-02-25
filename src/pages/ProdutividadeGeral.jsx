@@ -310,7 +310,7 @@ export default function ProdutividadeGeral() {
     : [];
 
   return (
-    <div className="p-4 md:p-8 min-h-screen bg-gray-50 dark:bg-slate-900">
+    <div className="p-4 md:p-8 min-h-screen bg-gray-50 dark:bg-[#0a0a0a]">
       <div className="max-w-full mx-auto space-y-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 md:gap-4">
           <div>
@@ -325,7 +325,7 @@ export default function ProdutividadeGeral() {
         </div>
 
         {/* Filters */}
-        <Card className="shadow-sm border-2 dark:bg-slate-800 dark:border-slate-700">
+        <Card className="shadow-sm border-2 dark:bg-[#1a1a1a] dark:border-[#2e2e2e]">
           <CardHeader className="pb-2 md:pb-4">
             <CardTitle className="text-base md:text-lg dark:text-white">Filtros</CardTitle>
           </CardHeader>
@@ -381,47 +381,47 @@ export default function ProdutividadeGeral() {
         </Card>
         
         {view === 'summary' && (
-          <Card className="shadow-sm border-2 dark:bg-slate-800 dark:border-slate-700">
-            <CardHeader className="border-b bg-gray-50 dark:bg-slate-700 dark:border-slate-600">
+          <Card className="shadow-sm border-2 dark:bg-[#1a1a1a] dark:border-[#2e2e2e]">
+            <CardHeader className="border-b bg-gray-50 dark:bg-[#121212] dark:border-[#2e2e2e]">
               <CardTitle className="dark:text-white">Resumo de Produtividade</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
               <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
-                    <TableRow>
-                      <TableHead className="min-w-[150px] sticky left-0 bg-gray-50 z-10">Usuário</TableHead>
+                    <TableRow className="dark:border-[#2e2e2e]">
+                      <TableHead className="min-w-[150px] sticky left-0 bg-gray-50 dark:bg-[#1a1a1a] z-10 dark:text-[#a1a1a1]">Usuário</TableHead>
                       {dateHeaders.map((date, index) => (
-                        <TableHead key={index} className="text-center">
+                        <TableHead key={index} className="text-center dark:text-[#a1a1a1]">
                           {format(date, "dd/MM", { locale: ptBR })}<br/>
-                          <span className="text-xs text-gray-500">{weekDays[date.getDay()]}</span>
+                          <span className="text-xs text-gray-500 dark:text-[#6b6b6b]">{weekDays[date.getDay()]}</span>
                         </TableHead>
                       ))}
-                      <TableHead className="text-center min-w-[80px]">Total</TableHead>
+                      <TableHead className="text-center min-w-[80px] dark:text-[#a1a1a1]">Total</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {processedData.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={dateHeaders.length + 2} className="text-center py-8 text-gray-500">
+                      <TableRow className="dark:border-[#2e2e2e]">
+                        <TableCell colSpan={dateHeaders.length + 2} className="text-center py-8 text-gray-500 dark:text-[#6b6b6b]">
                           Nenhum dado de produtividade encontrado para os filtros selecionados.
                         </TableCell>
                       </TableRow>
                     ) : (
                       processedData.map((data, rowIndex) => (
-                        <TableRow key={data.user.id || rowIndex}>
-                          <TableCell className="font-semibold sticky left-0 bg-white z-10">
+                        <TableRow key={data.user.id || rowIndex} className="dark:border-[#2e2e2e]">
+                          <TableCell className="font-semibold sticky left-0 bg-white dark:bg-[#1a1a1a] z-10 dark:text-white">
                             {data.user.display_name || data.user.full_name || data.user.email}
                           </TableCell>
                           {data.dailyCounts.map((count, dayIndex) => (
-                            <TableCell key={dayIndex} className="text-center cursor-pointer hover:bg-gray-100" 
+                            <TableCell key={dayIndex} className="text-center cursor-pointer hover:bg-gray-100 dark:hover:bg-[#2a2a2a]" 
                                        onClick={() => handleViewDetails(data.user.email, dayIndex)}>
                               {count > 0 ? (
-                                <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                                <Badge variant="secondary" className="bg-blue-100 dark:bg-[#21498A]/30 text-blue-800 dark:text-blue-400">
                                   {count}
                                 </Badge>
                               ) : (
-                                <span className="text-gray-400">-</span>
+                                <span className="text-gray-400 dark:text-[#6b6b6b]">-</span>
                               )}
                             </TableCell>
                           ))}
@@ -441,8 +441,8 @@ export default function ProdutividadeGeral() {
         )}
 
         {view === 'details' && (
-          <Card className="shadow-sm border-2 dark:bg-slate-800 dark:border-slate-700">
-            <CardHeader className="border-b bg-gray-50 dark:bg-slate-700 dark:border-slate-600">
+          <Card className="shadow-sm border-2 dark:bg-[#1a1a1a] dark:border-[#2e2e2e]">
+            <CardHeader className="border-b bg-gray-50 dark:bg-[#121212] dark:border-[#2e2e2e]">
               <CardTitle className="dark:text-white">Detalhes dos Itens Concluídos</CardTitle>
             </CardHeader>
             <CardContent className="p-0">
