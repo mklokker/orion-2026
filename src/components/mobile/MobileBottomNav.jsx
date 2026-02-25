@@ -23,10 +23,10 @@ export default function MobileBottomNav({ onMoreClick, unreadChatCount = 0 }) {
 
   return (
     <nav 
-      className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 z-50 md:hidden"
-      style={{ paddingBottom: 'var(--sab, 0px)' }}
+      className="fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-gray-200/50 z-50 md:hidden select-none"
+      style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
-      <div className="flex items-center justify-around h-16">
+      <div className="flex items-center justify-around h-14">
         {navItems.map((item) => {
           const isActive = item.url !== "#more" && location.pathname === item.url;
           const isMore = item.url === "#more";
@@ -36,10 +36,10 @@ export default function MobileBottomNav({ onMoreClick, unreadChatCount = 0 }) {
               key={item.title}
               to={isMore ? "#" : item.url}
               onClick={isMore ? (e) => { e.preventDefault(); onMoreClick?.(); } : undefined}
-              className={`flex flex-col items-center justify-center flex-1 h-full relative transition-colors ${
+              className={`flex flex-col items-center justify-center flex-1 h-full relative transition-colors select-none touch-manipulation ${
                 isActive 
                   ? "text-blue-600" 
-                  : "text-gray-500 hover:text-gray-700"
+                  : "text-gray-500 active:text-gray-900"
               }`}
             >
               <div className="relative">

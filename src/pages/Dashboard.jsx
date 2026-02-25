@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Task } from "@/entities/Task";
 import { Service } from "@/entities/Service";
 import { Department } from "@/entities/Department";
@@ -10,6 +10,7 @@ import { CheckCircle2, Clock, AlertCircle, FileText, Search, ArrowUpDown, Chevro
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import PullToRefresh from "@/components/mobile/PullToRefresh";
 import {
   Select,
   SelectContent,
@@ -134,12 +135,17 @@ export default function Dashboard() {
     return filterUniqueProtocolsByUser(combinedItems);
   }, [tasksData, servicesData]);
 
-  const loadData = () => {
+  const loadData = useCallback(() => {
     refetchTasks();
     refetchServices();
     queryClient.invalidateQueries({ queryKey: ['tasks'] });
     queryClient.invalidateQueries({ queryKey: ['services'] });
-  };
+  }, [refetchTasks, refetchServices, queryClient]);
+
+  // Pull to refresh handler para mobile
+  const handlePullRefresh = useCallback(async () => {
+    await Promise.all([refetchTasks(), refetchServices()]);
+  }, [refetchTasks, refetchServices]);
 
   const handleItemClick = (item) => {
     setSelectedItem(item);
@@ -303,6 +309,7 @@ export default function Dashboard() {
   }
 
   return (
+    <PullToRefresh onRefresh={handlePullRefresh} className="min-h-screen">
     <div className="p-4 md:p-8 min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -628,5 +635,6 @@ export default function Dashboard() {
         />
       )}
     </div>
+    </PullToRefresh>
   );
 }

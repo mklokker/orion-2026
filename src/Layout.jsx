@@ -61,6 +61,7 @@ import { Toaster } from "./components/ui/toaster";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import MobileBottomNav from "./components/mobile/MobileBottomNav";
 import MobileMoreMenu from "./components/mobile/MobileMoreMenu";
+import PullToRefresh from "./components/mobile/PullToRefresh";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -331,7 +332,13 @@ export default function Layout({ children }) {
           .to-primary-accent { --tw-gradient-to: var(--primary-accent); }
         `}</style>
       )}
-      <div className="min-h-screen flex w-full bg-gradient-to-br from-gray-50 to-blue-50">
+      <div 
+        className="min-h-screen flex w-full bg-gradient-to-br from-gray-50 to-blue-50"
+        style={{ 
+          paddingTop: 'env(safe-area-inset-top, 0px)',
+          paddingBottom: 'env(safe-area-inset-bottom, 0px)'
+        }}
+      >
         <Sidebar className="border-r border-gray-200 bg-white">
           <SidebarHeader className="border-b border-gray-200 p-4">
             <Link to={createPageUrl("Dashboard")} className="block">
@@ -486,9 +493,12 @@ export default function Layout({ children }) {
         </Sidebar>
 
         <main className="flex-1 flex flex-col">
-          <header className="bg-white border-b border-gray-200 px-4 py-2 flex items-center justify-center md:hidden shadow-sm relative">
+          <header 
+            className="bg-white/80 backdrop-blur-xl border-b border-gray-200/50 px-4 py-2 flex items-center justify-center md:hidden shadow-sm relative sticky top-0 z-40 select-none"
+            style={{ paddingTop: 'max(env(safe-area-inset-top, 0px), 8px)' }}
+          >
             <div className="absolute left-4 top-1/2 -translate-y-1/2">
-                <SidebarTrigger className="hover:bg-gray-100 p-2 rounded-lg transition-colors duration-200" />
+                <SidebarTrigger className="hover:bg-gray-100 active:bg-gray-200 p-2 rounded-lg transition-colors duration-200 touch-manipulation" />
             </div>
             <div className="h-10">
                 {appSettings?.logo_url ? (
@@ -501,7 +511,7 @@ export default function Layout({ children }) {
               <Button
                 variant="ghost"
                 size="icon"
-                className="relative"
+                className="relative touch-manipulation"
                 onClick={handleOpenNotifications}
               >
                 <Bell className="w-5 h-5" />
@@ -517,7 +527,7 @@ export default function Layout({ children }) {
             </div>
           </header>
 
-          <div className="flex-1 overflow-auto pb-16 md:pb-0">
+          <div className="flex-1 overflow-auto pb-20 md:pb-0">
             {children}
           </div>
         </main>
