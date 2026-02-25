@@ -35,6 +35,7 @@ import {
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "@/components/ui/use-toast";
+import PlanoAcaoItemModal from "@/components/planoacao/PlanoAcaoItemModal";
 
 const PlanoAcaoItem = base44.entities.PlanoAcaoItem;
 
@@ -52,6 +53,8 @@ export default function PlanoAcaoKanban({ items, planos, users, onUpdate }) {
   const [dueDateFilter, setDueDateFilter] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [userSearch, setUserSearch] = useState("");
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [showItemModal, setShowItemModal] = useState(false);
 
   React.useEffect(() => {
     setLocalItems(items);
@@ -144,6 +147,24 @@ export default function PlanoAcaoKanban({ items, planos, users, onUpdate }) {
       normalizeText(u.email).includes(normalizeText(userSearch))
     );
   }, [uniqueResponsibles, userSearch]);
+
+  const handleItemClick = (item) => {
+    setSelectedItem(item);
+    setShowItemModal(true);
+  };
+
+  const handleItemSave = async (updatedItem) => {
+    try {
+      await PlanoAcaoItem.update(updatedItem.id, updatedItem);
+      setLocalItems(prev => prev.map(i => i.id === updatedItem.id ? { ...i, ...updatedItem } : i));
+      toast({ title: "Ação atualizada com sucesso" });
+      onUpdate?.();
+      setShowItemModal(false);
+      setSelectedItem(null);
+    } catch (error) {
+      toast({ title: "Erro ao atualizar ação", variant: "destructive" });
+    }
+  };
 
   return (
     <div className="space-y-4">
@@ -280,7 +301,8 @@ export default function PlanoAcaoKanban({ items, planos, users, onUpdate }) {
                                 <Card
                                   ref={provided.innerRef}
                                   {...provided.draggableProps}
-                                  className={`shadow-sm hover:shadow-md transition-shadow ${
+                                  onClick={() => handleItemClick(item)}
+                                  className={`shadow-sm hover:shadow-md transition-shadow cursor-pointer ${
                                     snapshot.isDragging ? "shadow-lg rotate-2" : ""
                                   }`}
                                 >
@@ -351,6 +373,16 @@ export default function PlanoAcaoKanban({ items, planos, users, onUpdate }) {
           })}
         </div>
       </DragDropContext>
+
+      {/* Modal de edição do item */}
+      <PlanoAcaoItemModal
+        open={showItemModal}
+        onClose={() => { setShowItemModal(false); setSelectedItem(null); }}
+        onSave={handleItemSave}
+        item={selectedItem}
+        users={users}
+        planoId={selectedItem?.plano_id}
+      />
     </div>
   );
 }
