@@ -678,8 +678,56 @@ export default function MapaFuncionarios() {
     return boundaries;
   }, [filteredDesks, sectors]);
 
+  // Detect if touch device
+  const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  const [showListView, setShowListView] = useState(false);
+
+  // Touch handlers for mobile
+  const handleTouchStart = (e, desk) => {
+    if (!isAdmin) return;
+    const touch = e.touches[0];
+    const rect = e.currentTarget.getBoundingClientRect();
+    setDraggingDesk(desk);
+    setDragOffset({
+      x: (touch.clientX - rect.left) / zoom,
+      y: (touch.clientY - rect.top) / zoom
+    });
+  };
+
+  const handleTouchMove = (e) => {
+    if (!draggingDesk || !mapRef.current) return;
+    e.preventDefault();
+    const touch = e.touches[0];
+    const rect = mapRef.current.getBoundingClientRect();
+    let newX = (touch.clientX - rect.left) / zoom - dragOffset.x;
+    let newY = (touch.clientY - rect.top) / zoom - dragOffset.y;
+
+    setDesks(prev => prev.map(d => 
+      d.id === draggingDesk.id 
+        ? { ...d, position_x: Math.max(0, newX), position_y: Math.max(0, newY) }
+        : d
+    ));
+  };
+
+  const handleTouchEnd = async () => {
+    if (draggingDesk) {
+      const updatedDesk = desks.find(d => d.id === draggingDesk.id);
+      if (updatedDesk) {
+        try {
+          await Desk.update(draggingDesk.id, {
+            position_x: updatedDesk.position_x,
+            position_y: updatedDesk.position_y
+          });
+        } catch (error) {
+          console.error("Erro ao salvar posição:", error);
+        }
+      }
+      setDraggingDesk(null);
+    }
+  };
+
   return (
-    <div className="h-screen flex flex-col bg-gray-50">
+    <div className="h-screen flex flex-col bg-gray-50" style={{ paddingBottom: 'var(--sab, 0px)' }}>
       <div className="bg-white border-b p-3 md:p-4">
         <div className="flex flex-col gap-3">
           <div className="flex items-center justify-between gap-3">
@@ -745,12 +793,84 @@ export default function MapaFuncionarios() {
               </div>
             )}
             
+            {/* Toggle List View on Mobile */}
+            <Button
+              variant={showListView ? "default" : "outline"}
+              size="sm"
+              onClick={() => setShowListView(!showListView)}
+              className="md:hidden h-9"
+            >
+              {showListView ? "Mapa" : "Lista"}
+            </Button>
 
           </div>
         </div>
       </div>
 
-      <div className="flex-1 overflow-hidden relative bg-gradient-to-br from-gray-100 to-gray-200">
+      {/* Mobile List View */}
+      {showListView && (
+        <div className="flex-1 overflow-auto p-4 md:hidden">
+          <div className="space-y-3">
+            {searchResults.map(desk => {
+              const dept = departments.find(d => d.id === desk.department_id);
+              const sector = sectors.find(s => s.id === desk.sector_id);
+              const employees = desk.positions?.map(p => users.find(u => u.email === p.user_email)).filter(Boolean) || [];
+              
+              return (
+                <Card 
+                  key={desk.id}
+                  className="p-4"
+                  style={{ borderLeftColor: desk.color || '#3B82F6', borderLeftWidth: '4px' }}
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <div>
+                      <h3 className="font-semibold text-gray-900">{desk.name}</h3>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {sector && <Badge variant="secondary" className="text-xs">{sector.name}</Badge>}
+                        {dept && <Badge variant="outline" className="text-xs">{dept.name}</Badge>}
+                      </div>
+                    </div>
+                    {isAdmin && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          setSelectedDesk(desk);
+                          setShowEditModal(true);
+                        }}
+                      >
+                        <Edit2 className="w-4 h-4" />
+                      </Button>
+                    )}
+                  </div>
+                  
+                  {employees.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-3">
+                      {employees.map(emp => (
+                        <div key={emp.email} className="flex items-center gap-2 bg-gray-50 rounded-full px-3 py-1">
+                          <Avatar className="w-6 h-6">
+                            <AvatarImage src={emp.profile_picture} />
+                            <AvatarFallback className="text-xs bg-blue-100 text-blue-700">
+                              {getInitials(getUserDisplayName(emp))}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="text-sm">{getUserDisplayName(emp)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {employees.length === 0 && (
+                    <p className="text-sm text-gray-400 mt-2">Nenhum funcionário alocado</p>
+                  )}
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      <div className={`flex-1 overflow-hidden relative bg-gradient-to-br from-gray-100 to-gray-200 ${showListView ? 'hidden md:block' : ''}`}
         {/* Botões de ação fixos */}
         {isAdmin && (
           <div className="fixed top-16 md:top-20 right-2 md:right-4 z-50 flex gap-2">

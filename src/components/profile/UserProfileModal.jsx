@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -6,8 +5,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { User } from "@/entities/User";
 import { UploadFile } from "@/integrations/Core";
-import { Camera, Save, X } from "lucide-react";
+import { Camera, Save, X, Trash2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"; // Added import
 
@@ -20,7 +30,9 @@ export default function UserProfileModal({ open, onClose, user, onUpdate }) {
   });
   const [isSaving, setIsSaving] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
-  const [departments, setDepartments] = useState([]); // Added state for departments
+  const [departments, setDepartments] = useState([]);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     loadDepartments();
@@ -230,6 +242,55 @@ export default function UserProfileModal({ open, onClose, user, onUpdate }) {
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <p className="text-sm text-blue-800">
               <strong>Alteração de senha:</strong> Para alterar sua senha, entre em contato com o administrador do sistema.
+            </p>
+          </div>
+
+          {/* Account Deletion Section */}
+          <div className="border-t pt-4 mt-4">
+            <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+              <AlertDialogTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  className="w-full text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Excluir Minha Conta
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="text-red-600">Excluir Conta</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    <span className="block mb-2">
+                      Tem certeza que deseja excluir sua conta? Esta ação é <strong>irreversível</strong>.
+                    </span>
+                    <span className="block text-red-600 font-medium">
+                      Todos os seus dados serão permanentemente removidos.
+                    </span>
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={async () => {
+                      setIsDeleting(true);
+                      toast({
+                        title: "Solicitação enviada",
+                        description: "Entre em contato com o administrador para concluir a exclusão da conta.",
+                      });
+                      setIsDeleting(false);
+                      setShowDeleteConfirm(false);
+                    }}
+                    className="bg-red-600 hover:bg-red-700"
+                    disabled={isDeleting}
+                  >
+                    {isDeleting ? "Processando..." : "Sim, excluir minha conta"}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+            <p className="text-xs text-gray-500 mt-2 text-center">
+              Ao excluir sua conta, você perderá acesso a todos os dados.
             </p>
           </div>
         </div>

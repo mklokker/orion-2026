@@ -265,15 +265,23 @@ export default function PlanoAcaoKanban({ items, planos, users, onUpdate }) {
         </CardContent>
       </Card>
 
-      {/* Kanban Board */}
+      {/* Kanban Board - touch-friendly with horizontal scroll on mobile */}
       <DragDropContext onDragEnd={handleDragEnd}>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:overflow-visible overflow-x-auto pb-4 snap-x snap-mandatory md:snap-none">
+          <style>{`
+            @media (max-width: 768px) {
+              .kanban-column {
+                min-width: 85vw;
+                scroll-snap-align: center;
+              }
+            }
+          `}</style>
           {STATUS_COLUMNS.map(column => {
             const columnItems = getItemsByStatus(column.id);
             const Icon = column.icon;
 
             return (
-              <div key={column.id} className="flex flex-col">
+              <div key={column.id} className="flex flex-col kanban-column">
                 <div className={`${column.color} rounded-t-lg px-4 py-3 flex items-center justify-between`}>
                   <div className="flex items-center gap-2">
                     <Icon className={`w-5 h-5 ${column.iconColor}`} />
