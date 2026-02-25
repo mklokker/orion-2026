@@ -45,7 +45,7 @@ import PlanoAcaoItemModal from "./PlanoAcaoItemModal";
 const PlanoAcao = base44.entities.PlanoAcao;
 const PlanoAcaoItem = base44.entities.PlanoAcaoItem;
 
-export default function PlanoAcaoViewModal({ open, onClose, plano, items, users, categories, indicators, objectives, atas, onUpdate }) {
+export default function PlanoAcaoViewModal({ open, onClose, plano, items, users, categories, indicators, objectives, atas, onUpdate, onEdit }) {
   const { toast } = useToast();
   const [showItemModal, setShowItemModal] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
