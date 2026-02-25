@@ -160,20 +160,20 @@ export default function PlanoAcaoItemModal({ open, onClose, onSave, planoId, ite
                     className="pl-10"
                   />
                 </div>
-                <div className="max-h-24 overflow-y-auto border rounded-md">
+                <div className="max-h-24 overflow-y-auto border dark:border-[#2e2e2e] rounded-md">
                   {filterUsers(whoSearch).map(user => (
                     <div
                       key={user.email}
                       onClick={() => setForm({ ...form, who: user.email })}
-                      className={`p-2 cursor-pointer hover:bg-gray-100 text-sm ${
-                        form.who === user.email ? 'bg-indigo-100 text-indigo-700 font-medium' : ''
+                      className={`p-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-[#2a2a2a] text-sm dark:text-[#a1a1a1] ${
+                        form.who === user.email ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 font-medium' : ''
                       }`}
                     >
                       {user.display_name || user.full_name || user.email}
                     </div>
                   ))}
                 </div>
-                {form.who && <p className="text-xs text-indigo-600 mt-1">Selecionado: {getUserName(form.who)}</p>}
+                {form.who && <p className="text-xs text-indigo-600 dark:text-indigo-400 mt-1">Selecionado: {getUserName(form.who)}</p>}
               </div>
 
               <div>
@@ -187,10 +187,10 @@ export default function PlanoAcaoItemModal({ open, onClose, onSave, planoId, ite
                     className="pl-10"
                   />
                 </div>
-                <div className="max-h-24 overflow-y-auto border rounded-md">
+                <div className="max-h-24 overflow-y-auto border dark:border-[#2e2e2e] rounded-md">
                   <div
                     onClick={() => setForm({ ...form, delegate: "" })}
-                    className={`p-2 cursor-pointer hover:bg-gray-100 text-sm ${!form.delegate ? 'bg-indigo-100' : ''}`}
+                    className={`p-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-[#2a2a2a] text-sm dark:text-[#a1a1a1] ${!form.delegate ? 'bg-indigo-100 dark:bg-indigo-900/30' : ''}`}
                   >
                     -- Nenhum --
                   </div>
@@ -198,8 +198,8 @@ export default function PlanoAcaoItemModal({ open, onClose, onSave, planoId, ite
                     <div
                       key={user.email}
                       onClick={() => setForm({ ...form, delegate: user.email })}
-                      className={`p-2 cursor-pointer hover:bg-gray-100 text-sm ${
-                        form.delegate === user.email ? 'bg-indigo-100 text-indigo-700 font-medium' : ''
+                      className={`p-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-[#2a2a2a] text-sm dark:text-[#a1a1a1] ${
+                        form.delegate === user.email ? 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400 font-medium' : ''
                       }`}
                     >
                       {user.display_name || user.full_name || user.email}
