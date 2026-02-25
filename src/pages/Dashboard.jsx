@@ -428,7 +428,7 @@ export default function Dashboard() {
                   }
                   setCurrentPage(1);
                 }}
-                className="w-auto dark:bg-slate-900 dark:text-white dark:border-slate-600"
+                className="w-auto bg-white border-gray-300 text-gray-700 dark:bg-slate-900 dark:text-white dark:border-slate-600"
               />
               <Label htmlFor="end-date" className="dark:text-gray-300">Até:</Label>
               <Input
@@ -444,7 +444,7 @@ export default function Dashboard() {
                   }
                   setCurrentPage(1);
                 }}
-                className="w-auto dark:bg-slate-900 dark:text-white dark:border-slate-600"
+                className="w-auto bg-white border-gray-300 text-gray-700 dark:bg-slate-900 dark:text-white dark:border-slate-600"
               />
             </div>
             {(filterPeriod !== 'all' || customStartDate || customEndDate) && (
@@ -474,7 +474,7 @@ export default function Dashboard() {
                 setCurrentPage(1);
               }}
             >
-              <SelectTrigger id="user-filter" className="bg-white dark:bg-slate-800 dark:text-white dark:border-slate-600 mt-1">
+              <SelectTrigger id="user-filter" className="bg-white border-gray-300 text-gray-700 dark:bg-slate-800 dark:text-white dark:border-slate-600 mt-1">
                 <SelectValue placeholder="Todos" />
               </SelectTrigger>
               <SelectContent>
@@ -497,7 +497,7 @@ export default function Dashboard() {
                 setCurrentPage(1);
               }}
             >
-              <SelectTrigger id="priority-filter" className="bg-white dark:bg-slate-800 dark:text-white dark:border-slate-600 mt-1">
+              <SelectTrigger id="priority-filter" className="bg-white border-gray-300 text-gray-700 dark:bg-slate-800 dark:text-white dark:border-slate-600 mt-1">
                 <SelectValue placeholder="Todas" />
               </SelectTrigger>
               <SelectContent>
@@ -520,7 +520,7 @@ export default function Dashboard() {
                 setCurrentPage(1);
               }}
             />
-            <Label htmlFor="my-items-only" className="text-sm cursor-pointer dark:text-gray-300">
+            <Label htmlFor="my-items-only" className="text-sm cursor-pointer text-gray-700 dark:text-gray-300">
               Ver apenas meus itens
             </Label>
           </div>
