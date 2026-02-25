@@ -18,6 +18,8 @@ import {
   Eraser,
   Users,
   ScrollText,
+  Building2,
+  ChevronDown,
 } from "lucide-react";
 import {
   Sidebar,
@@ -28,11 +30,19 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubItem,
+  SidebarMenuSubButton,
   SidebarHeader,
   SidebarFooter,
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -135,11 +145,17 @@ export default function Layout({ children }) {
     { title: "Cursos", url: createPageUrl("Cursos"), icon: GraduationCap },
     { title: "Atas e Alinhamentos", url: createPageUrl("AtasAlinhamentos"), icon: ScrollText },
     { title: "Removedor", url: createPageUrl("Removedor"), icon: Eraser },
-    { title: "Produtividade Geral", url: createPageUrl("ProdutividadeGeral"), icon: TrendingUp },
     { title: "Ranking", url: createPageUrl("Ranking"), icon: Star },
+  ];
+
+  const gestaoRIItems = [
+    { title: "Produtividade Geral", url: createPageUrl("ProdutividadeGeral"), icon: TrendingUp },
     { title: "Relatórios", url: createPageUrl("Relatorios"), icon: BarChart3 },
     ...(isAdmin ? [{ title: "Administração", url: createPageUrl("Admin"), icon: Settings }] : [])
   ];
+
+  const isGestaoRIActive = gestaoRIItems.some(item => location.pathname === item.url);
+  const [gestaoRIOpen, setGestaoRIOpen] = React.useState(isGestaoRIActive);
 
   React.useEffect(() => {
     loadInitialData();
@@ -353,6 +369,42 @@ export default function Layout({ children }) {
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   ))}
+                  
+                  {/* Gestão RI - Menu com sub-itens */}
+                  <Collapsible open={gestaoRIOpen} onOpenChange={setGestaoRIOpen}>
+                    <SidebarMenuItem>
+                      <CollapsibleTrigger asChild>
+                        <SidebarMenuButton
+                          className={`hover:bg-blue-50 hover:text-primary transition-all duration-200 rounded-lg mb-1 w-full ${
+                            isGestaoRIActive ? 'bg-gradient-to-r from-primary to-primary-accent text-white hover:text-white' : ''
+                          }`}
+                        >
+                          <Building2 className="w-5 h-5" />
+                          <span className="font-medium flex-1">Gestão RI</span>
+                          <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${gestaoRIOpen ? 'rotate-180' : ''}`} />
+                        </SidebarMenuButton>
+                      </CollapsibleTrigger>
+                      <CollapsibleContent>
+                        <SidebarMenuSub>
+                          {gestaoRIItems.map((subItem) => (
+                            <SidebarMenuSubItem key={subItem.title}>
+                              <SidebarMenuSubButton
+                                asChild
+                                className={`hover:bg-blue-50 hover:text-primary transition-all duration-200 rounded-lg ${
+                                  location.pathname === subItem.url ? 'bg-blue-100 text-primary font-semibold' : ''
+                                }`}
+                              >
+                                <Link to={subItem.url} className="flex items-center gap-2">
+                                  <subItem.icon className="w-4 h-4" />
+                                  <span>{subItem.title}</span>
+                                </Link>
+                              </SidebarMenuSubButton>
+                            </SidebarMenuSubItem>
+                          ))}
+                        </SidebarMenuSub>
+                      </CollapsibleContent>
+                    </SidebarMenuItem>
+                  </Collapsible>
                 </SidebarMenu>
               </SidebarGroupContent>
             </SidebarGroup>
