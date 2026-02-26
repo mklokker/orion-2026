@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Task } from "@/entities/Task";
 import { Service } from "@/entities/Service";
 import { User } from "@/entities/User";
@@ -26,6 +26,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import PullToRefresh from "@/components/mobile/PullToRefresh";
+import { MobileSelect, useIsMobile } from "@/components/ui/mobile-select";
 import TaskViewEditModal from "../components/tasks/TaskViewEditModal";
 import ServiceViewEditModal from "../components/services/ServiceViewEditModal";
 
@@ -79,6 +81,7 @@ const statusColors = {
 
 export default function CargaDiaria() {
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   const [itemsByUser, setItemsByUser] = useState({});
   const [users, setUsers] = useState([]);
   const [orderedUsers, setOrderedUsers] = useState([]);
@@ -94,6 +97,11 @@ export default function CargaDiaria() {
 
   useEffect(() => {
     loadData();
+  }, []);
+
+  // Pull to refresh handler
+  const handlePullRefresh = useCallback(async () => {
+    await loadData();
   }, []);
 
   const loadData = async () => {
@@ -391,8 +399,21 @@ export default function CargaDiaria() {
 
   const selectedUserObj = users.find(u => u.email === selectedUserEmail);
 
+  // Options for MobileSelect
+  const statusOptions = [
+    { value: "all", label: "Todos os status" },
+    { value: "Pendente", label: "Pendente" },
+    { value: "Em Execução", label: "Em Execução" },
+    { value: "Atrasada", label: "Atrasada" },
+  ];
+
+  const userOptions = users
+    .filter(u => u.email !== selectedItem?.assigned_to)
+    .map(u => ({ value: u.email, label: u.display_name || u.full_name }));
+
   return (
     <>
+      <PullToRefresh onRefresh={handlePullRefresh} className="min-h-screen">
       <div className="p-4 md:p-8 min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
         <div className="max-w-full mx-auto space-y-6">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 no-print">
@@ -573,17 +594,27 @@ export default function CargaDiaria() {
                 className="pl-10"
               />
             </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Filtrar por status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os status</SelectItem>
-                <SelectItem value="Pendente">Pendente</SelectItem>
-                <SelectItem value="Em Execução">Em Execução</SelectItem>
-                <SelectItem value="Atrasada">Atrasada</SelectItem>
-              </SelectContent>
-            </Select>
+            {isMobile ? (
+              <MobileSelect
+                value={statusFilter}
+                onValueChange={setStatusFilter}
+                options={statusOptions}
+                title="Filtrar por Status"
+                placeholder="Filtrar por status"
+              />
+            ) : (
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Filtrar por status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os status</SelectItem>
+                  <SelectItem value="Pendente">Pendente</SelectItem>
+                  <SelectItem value="Em Execução">Em Execução</SelectItem>
+                  <SelectItem value="Atrasada">Atrasada</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
           </div>
 
           <div className="flex-1 overflow-y-auto space-y-3 pr-2">
@@ -642,23 +673,36 @@ export default function CargaDiaria() {
                           </Button>
                         )}
 
-                        <Select onValueChange={(value) => handleMoveItem(item, value)}>
-                          <SelectTrigger className="h-9">
-                            <div className="flex items-center gap-2">
-                              <ArrowRight className="w-4 h-4" />
-                              <span className="text-xs">Mover</span>
-                            </div>
-                          </SelectTrigger>
-                          <SelectContent>
-                            {users
+                        {isMobile ? (
+                          <MobileSelect
+                            value=""
+                            onValueChange={(value) => handleMoveItem(item, value)}
+                            options={users
                               .filter(u => u.email !== item.assigned_to)
-                              .map(user => (
-                                <SelectItem key={user.email} value={user.email}>
-                                  {user.display_name || user.full_name}
-                                </SelectItem>
-                              ))}
-                          </SelectContent>
-                        </Select>
+                              .map(u => ({ value: u.email, label: u.display_name || u.full_name }))}
+                            title="Mover para"
+                            placeholder="Mover"
+                            triggerClassName="h-9"
+                          />
+                        ) : (
+                          <Select onValueChange={(value) => handleMoveItem(item, value)}>
+                            <SelectTrigger className="h-9">
+                              <div className="flex items-center gap-2">
+                                <ArrowRight className="w-4 h-4" />
+                                <span className="text-xs">Mover</span>
+                              </div>
+                            </SelectTrigger>
+                            <SelectContent>
+                              {users
+                                .filter(u => u.email !== item.assigned_to)
+                                .map(user => (
+                                  <SelectItem key={user.email} value={user.email}>
+                                    {user.display_name || user.full_name}
+                                  </SelectItem>
+                                ))}
+                            </SelectContent>
+                          </Select>
+                        )}
                       </div>
                     </div>
                   </CardContent>
@@ -698,6 +742,7 @@ export default function CargaDiaria() {
           onUpdate={loadData}
         />
       )}
+      </PullToRefresh>
 
       <style>{`
         @media print {
