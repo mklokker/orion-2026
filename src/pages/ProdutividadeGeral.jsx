@@ -338,7 +338,7 @@ export default function ProdutividadeGeral() {
                   type="date"
                   value={filters.startDate}
                   onChange={(e) => handleDateFilterChange("startDate", e.target.value)}
-                  className="h-9 md:h-10 text-sm"
+                  className="h-9 md:h-10 text-sm bg-white border-gray-300 text-gray-700 dark:bg-[#121212] dark:border-[#2e2e2e] dark:text-white"
                 />
               </div>
               <div className="space-y-1 md:space-y-2">
@@ -347,7 +347,7 @@ export default function ProdutividadeGeral() {
                   type="date"
                   value={filters.endDate}
                   onChange={(e) => handleDateFilterChange("endDate", e.target.value)}
-                  className="h-9 md:h-10 text-sm"
+                  className="h-9 md:h-10 text-sm bg-white border-gray-300 text-gray-700 dark:bg-[#121212] dark:border-[#2e2e2e] dark:text-white"
                 />
               </div>
 
@@ -356,7 +356,7 @@ export default function ProdutividadeGeral() {
                 <div className="space-y-1 md:space-y-2 col-span-2 md:col-span-1">
                   <label className="text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300">Usuário</label>
                   <Select value={filters.user} onValueChange={(value) => setFilters({...filters, user: value})}>
-                    <SelectTrigger className="h-9 md:h-10 text-sm">
+                    <SelectTrigger className="h-9 md:h-10 text-sm bg-white border-gray-300 text-gray-700 dark:bg-[#121212] dark:border-[#2e2e2e] dark:text-white">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -372,10 +372,10 @@ export default function ProdutividadeGeral() {
               )}
             </div>
             <div className="mt-3 md:mt-4 flex flex-wrap gap-1.5 md:gap-2">
-                <Button variant="outline" onClick={() => setPeriod("thisWeek")} size="sm" className="text-xs md:text-sm h-7 md:h-9 px-2 md:px-4">Esta Semana</Button>
-                <Button variant="outline" onClick={() => setPeriod("lastWeek")} size="sm" className="text-xs md:text-sm h-7 md:h-9 px-2 md:px-4">Sem. Passada</Button>
-                <Button variant="outline" onClick={() => setPeriod("thisMonth")} size="sm" className="text-xs md:text-sm h-7 md:h-9 px-2 md:px-4">Este Mês</Button>
-                <Button variant="outline" onClick={() => setPeriod("lastMonth")} size="sm" className="text-xs md:text-sm h-7 md:h-9 px-2 md:px-4">Mês Passado</Button>
+                <Button variant="outline" onClick={() => setPeriod("thisWeek")} size="sm" className="text-xs md:text-sm h-7 md:h-9 px-2 md:px-4 bg-white border-gray-300 text-gray-700 hover:bg-gray-50 dark:bg-[#1a1a1a] dark:border-[#2e2e2e] dark:text-[#a1a1a1] dark:hover:bg-[#2a2a2a]">Esta Semana</Button>
+                <Button variant="outline" onClick={() => setPeriod("lastWeek")} size="sm" className="text-xs md:text-sm h-7 md:h-9 px-2 md:px-4 bg-white border-gray-300 text-gray-700 hover:bg-gray-50 dark:bg-[#1a1a1a] dark:border-[#2e2e2e] dark:text-[#a1a1a1] dark:hover:bg-[#2a2a2a]">Sem. Passada</Button>
+                <Button variant="outline" onClick={() => setPeriod("thisMonth")} size="sm" className="text-xs md:text-sm h-7 md:h-9 px-2 md:px-4 bg-white border-gray-300 text-gray-700 hover:bg-gray-50 dark:bg-[#1a1a1a] dark:border-[#2e2e2e] dark:text-[#a1a1a1] dark:hover:bg-[#2a2a2a]">Este Mês</Button>
+                <Button variant="outline" onClick={() => setPeriod("lastMonth")} size="sm" className="text-xs md:text-sm h-7 md:h-9 px-2 md:px-4 bg-white border-gray-300 text-gray-700 hover:bg-gray-50 dark:bg-[#1a1a1a] dark:border-[#2e2e2e] dark:text-[#a1a1a1] dark:hover:bg-[#2a2a2a]">Mês Passado</Button>
             </div>
           </CardContent>
         </Card>
