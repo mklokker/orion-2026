@@ -21,6 +21,15 @@ const navItems = [
 export default function MobileBottomNav({ onMoreClick, unreadChatCount = 0 }) {
   const location = useLocation();
 
+  // Handle main tab navigation - prevent reload
+  const handleTabClick = (e, url) => {
+    if (url === "#more") {
+      e.preventDefault();
+      onMoreClick?.();
+    }
+    // Let React Router handle the navigation naturally - no need to prevent default
+  };
+
   return (
     <nav 
       className="fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-t border-gray-200/50 dark:border-gray-700/50 z-50 md:hidden select-none"
@@ -35,7 +44,7 @@ export default function MobileBottomNav({ onMoreClick, unreadChatCount = 0 }) {
             <Link
               key={item.title}
               to={isMore ? "#" : item.url}
-              onClick={isMore ? (e) => { e.preventDefault(); onMoreClick?.(); } : undefined}
+              onClick={(e) => handleTabClick(e, item.url)}
               className={`flex flex-col items-center justify-center flex-1 h-full relative transition-colors select-none touch-manipulation bottom-nav-item ${
                 isActive 
                   ? "text-blue-600 dark:text-blue-400" 

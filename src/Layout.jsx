@@ -1,5 +1,5 @@
 import React from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate, Routes, Route } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -121,6 +121,41 @@ const setCachedSettings = (settings) => {
 export default function Layout({ children, currentPageName }) {
   const location = useLocation();
   const navigate = useNavigate();
+  
+  // Track scroll positions and state for each main tab
+  const scrollPositionsRef = React.useRef({});
+  const pageStatesRef = React.useRef({});
+  
+  // Detect main tab routes
+  const mainTabRoutes = ['/Dashboard', '/', '/GestaoTarefas', '/Chat', '/Acervo'];
+  const isMainTab = mainTabRoutes.includes(location.pathname) || location.pathname === '';
+  
+  // Save scroll position before navigation
+  React.useEffect(() => {
+    const saveScrollPosition = () => {
+      const mainContent = document.querySelector('.main-content-scroll');
+      if (mainContent && isMainTab) {
+        scrollPositionsRef.current[location.pathname] = mainContent.scrollTop;
+      }
+    };
+    
+    return () => {
+      saveScrollPosition();
+    };
+  }, [location.pathname, isMainTab]);
+  
+  // Restore scroll position after navigation to main tab
+  React.useEffect(() => {
+    if (isMainTab) {
+      const mainContent = document.querySelector('.main-content-scroll');
+      if (mainContent && scrollPositionsRef.current[location.pathname] !== undefined) {
+        // Use setTimeout to ensure DOM is ready
+        setTimeout(() => {
+          mainContent.scrollTop = scrollPositionsRef.current[location.pathname];
+        }, 0);
+      }
+    }
+  }, [location.pathname, isMainTab]);
   const [user, setUser] = React.useState(null);
   const [showProfileModal, setShowProfileModal] = React.useState(false);
   const [appSettings, setAppSettings] = React.useState(null);
@@ -574,14 +609,14 @@ export default function Layout({ children, currentPageName }) {
             </div>
           </header>
 
-          <div className="flex-1 overflow-auto pb-20 md:pb-0">
+          <div className="flex-1 overflow-auto pb-20 md:pb-0 main-content-scroll">
             <AnimatePresence mode="wait">
               <motion.div
-                key={location.pathname}
-                initial={{ opacity: 0, x: 20 }}
+                key={isMainTab ? 'main-tabs' : location.pathname}
+                initial={{ opacity: 0, x: isMainTab ? 0 : 20 }}
                 animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                transition={{ duration: 0.2, ease: "easeInOut" }}
+                exit={{ opacity: 0, x: isMainTab ? 0 : -20 }}
+                transition={{ duration: isMainTab ? 0 : 0.2, ease: "easeInOut" }}
                 className="h-full"
               >
                 {children}
