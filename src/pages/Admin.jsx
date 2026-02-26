@@ -30,6 +30,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { MobileSelect, useIsMobile } from "@/components/ui/mobile-select";
 
 // Funções helper declaradas antes do componente
 const getInitials = (name) => {
@@ -47,6 +48,7 @@ const getUserDisplayName = (user) => {
 
 export default function Admin() {
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   const [currentUser, setCurrentUser] = useState(null);
   const [departments, setDepartments] = useState([]);
   const [users, setUsers] = useState([]);
@@ -469,22 +471,35 @@ export default function Admin() {
 
               <div className="space-y-2">
                 <Label htmlFor="edit_department">Departamento</Label>
-                <Select 
-                  value={editingUser.department_id} 
-                  onValueChange={(value) => setEditingUser({ ...editingUser, department_id: value })}
-                >
-                  <SelectTrigger id="edit_department">
-                    <SelectValue placeholder="Selecione o departamento" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={null}>Nenhum departamento</SelectItem> {/* Use empty string for no department */}
-                    {departments.map(dept => (
-                      <SelectItem key={dept.id} value={dept.id}>
-                        {dept.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {isMobile ? (
+                  <MobileSelect
+                    value={editingUser.department_id}
+                    onValueChange={(value) => setEditingUser({ ...editingUser, department_id: value })}
+                    options={[
+                      { value: "", label: "Nenhum departamento" },
+                      ...departments.map(dept => ({ value: dept.id, label: dept.name }))
+                    ]}
+                    title="Selecione o Departamento"
+                    placeholder="Selecione o departamento"
+                  />
+                ) : (
+                  <Select 
+                    value={editingUser.department_id} 
+                    onValueChange={(value) => setEditingUser({ ...editingUser, department_id: value })}
+                  >
+                    <SelectTrigger id="edit_department">
+                      <SelectValue placeholder="Selecione o departamento" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={null}>Nenhum departamento</SelectItem>
+                      {departments.map(dept => (
+                        <SelectItem key={dept.id} value={dept.id}>
+                          {dept.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
 
               <div className="space-y-2">

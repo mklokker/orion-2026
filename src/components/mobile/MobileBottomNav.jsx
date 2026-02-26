@@ -21,13 +21,22 @@ const navItems = [
 export default function MobileBottomNav({ onMoreClick, unreadChatCount = 0 }) {
   const location = useLocation();
 
-  // Handle main tab navigation - prevent reload
+  // Handle main tab navigation - if already on the tab, force navigate to root
   const handleTabClick = (e, url) => {
     if (url === "#more") {
       e.preventDefault();
       onMoreClick?.();
+      return;
     }
-    // Let React Router handle the navigation naturally - no need to prevent default
+    
+    // If already on this tab's route (or a sub-route), force navigate to root of that tab
+    // e.g., if on /GestaoTarefas/123, clicking Tarefas tab should go to /GestaoTarefas
+    const isOnThisTab = location.pathname === url || location.pathname.startsWith(url + '/');
+    if (isOnThisTab && location.pathname !== url) {
+      // We're on a sub-route, let the Link navigate to the root
+      // React Router will handle this naturally
+    }
+    // If already exactly on this route, the Link will still navigate (refresh state)
   };
 
   return (

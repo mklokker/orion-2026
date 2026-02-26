@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { MobileSelect, useIsMobile } from "@/components/ui/mobile-select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Eye, MoreVertical, Search, UserCheck, Activity, BarChart3, Clock } from "lucide-react";
 import { format, subDays, startOfWeek, endOfWeek, eachDayOfInterval, startOfMonth, endOfMonth, endOfDay, startOfDay, isWithinInterval } from "date-fns";
@@ -83,6 +84,7 @@ const filterUniqueProtocolsByUser = (items) => {
 };
 
 export default function ProdutividadeGeral() {
+  const isMobile = useIsMobile();
   const [items, setItems] = useState([]);
   const [users, setUsers] = useState([]);
   const [processedData, setProcessedData] = useState([]);
@@ -355,19 +357,33 @@ export default function ProdutividadeGeral() {
               {currentUserData?.role === 'admin' && (
                 <div className="space-y-1 md:space-y-2 col-span-2 md:col-span-1">
                   <label className="text-xs md:text-sm font-medium text-gray-700 dark:text-gray-300">Usuário</label>
-                  <Select value={filters.user} onValueChange={(value) => setFilters({...filters, user: value})}>
-                    <SelectTrigger className="h-9 md:h-10 text-sm bg-white border-gray-300 text-gray-700 dark:bg-[#121212] dark:border-[#2e2e2e] dark:text-white">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos</SelectItem>
-                      {users.map(user => (
-                        <SelectItem key={user.id} value={user.email}>
-                          {user.display_name || user.full_name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  {isMobile ? (
+                    <MobileSelect
+                      value={filters.user}
+                      onValueChange={(value) => setFilters({...filters, user: value})}
+                      options={[
+                        { value: "all", label: "Todos" },
+                        ...users.map(user => ({ value: user.email, label: user.display_name || user.full_name }))
+                      ]}
+                      title="Selecione o Usuário"
+                      placeholder="Selecione"
+                      triggerClassName="h-9 md:h-10 text-sm"
+                    />
+                  ) : (
+                    <Select value={filters.user} onValueChange={(value) => setFilters({...filters, user: value})}>
+                      <SelectTrigger className="h-9 md:h-10 text-sm bg-white border-gray-300 text-gray-700 dark:bg-[#121212] dark:border-[#2e2e2e] dark:text-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Todos</SelectItem>
+                        {users.map(user => (
+                          <SelectItem key={user.id} value={user.email}>
+                            {user.display_name || user.full_name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 </div>
               )}
             </div>

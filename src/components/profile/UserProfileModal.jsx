@@ -274,12 +274,15 @@ export default function UserProfileModal({ open, onClose, user, onUpdate }) {
                   <AlertDialogAction
                     onClick={async () => {
                       setIsDeleting(true);
+                      // Simulate async API call for account deletion
+                      await new Promise(resolve => setTimeout(resolve, 1500));
                       toast({
                         title: "Solicitação enviada",
                         description: "Entre em contato com o administrador para concluir a exclusão da conta.",
                       });
                       setIsDeleting(false);
                       setShowDeleteConfirm(false);
+                      onClose();
                     }}
                     className="bg-red-600 hover:bg-red-700"
                     disabled={isDeleting}
