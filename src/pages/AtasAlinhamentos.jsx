@@ -345,11 +345,11 @@ export default function AtasAlinhamentos() {
                 placeholder="Buscar..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 h-9 md:h-10 text-sm"
+                className="pl-10 h-9 md:h-10 text-sm bg-white border-gray-300 text-gray-700 dark:bg-[#121212] dark:border-[#2e2e2e] dark:text-white"
               />
             </div>
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="w-full md:w-48 h-9 md:h-10 text-sm">
+              <SelectTrigger className="w-full md:w-48 h-9 md:h-10 text-sm bg-white border-gray-300 text-gray-700 dark:bg-[#121212] dark:border-[#2e2e2e] dark:text-white">
                 <SelectValue placeholder="Categoria" />
               </SelectTrigger>
               <SelectContent>

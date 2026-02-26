@@ -281,11 +281,11 @@ export default function PlanoAcaoPage() {
                 placeholder="Buscar por título..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
+                className="pl-10 bg-white border-gray-300 text-gray-700 dark:bg-[#121212] dark:border-[#2e2e2e] dark:text-white"
               />
             </div>
             <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full md:w-48">
+              <SelectTrigger className="w-full md:w-48 bg-white border-gray-300 text-gray-700 dark:bg-[#121212] dark:border-[#2e2e2e] dark:text-white">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
@@ -296,7 +296,7 @@ export default function PlanoAcaoPage() {
               </SelectContent>
             </Select>
             <Select value={typeFilter} onValueChange={setTypeFilter}>
-              <SelectTrigger className="w-full md:w-48">
+              <SelectTrigger className="w-full md:w-48 bg-white border-gray-300 text-gray-700 dark:bg-[#121212] dark:border-[#2e2e2e] dark:text-white">
                 <SelectValue placeholder="Tipo" />
               </SelectTrigger>
               <SelectContent>

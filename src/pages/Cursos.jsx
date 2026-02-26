@@ -330,7 +330,7 @@ export default function Cursos() {
                 placeholder="Buscar cursos..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
+                className="pl-10 bg-white border-gray-300 text-gray-700 dark:bg-[#121212] dark:border-[#2e2e2e] dark:text-white"
               />
             </div>
           </CardContent>

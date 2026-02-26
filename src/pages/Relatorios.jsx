@@ -222,25 +222,27 @@ export default function Relatorios() {
             <CardContent className="pt-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 <div className="space-y-2">
-                  <label className="text-sm font-medium dark:text-gray-300">Data Inicial</label>
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Data Inicial</label>
                   <Input
                     type="date"
                     value={filters.startDate}
                     onChange={(e) => setFilters({...filters, startDate: e.target.value})}
+                    className="bg-white border-gray-300 text-gray-700 dark:bg-[#121212] dark:border-[#2e2e2e] dark:text-white"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Data Final</label>
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Data Final</label>
                   <Input
                     type="date"
                     value={filters.endDate}
                     onChange={(e) => setFilters({...filters, endDate: e.target.value})}
+                    className="bg-white border-gray-300 text-gray-700 dark:bg-[#121212] dark:border-[#2e2e2e] dark:text-white"
                   />
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Status</label>
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Status</label>
                   <Select value={filters.status} onValueChange={(value) => setFilters({...filters, status: value})}>
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger className="w-full bg-white border-gray-300 text-gray-700 dark:bg-[#121212] dark:border-[#2e2e2e] dark:text-white">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -253,13 +255,13 @@ export default function Relatorios() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Usuário</label>
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Usuário</label>
                   <Select
                     value={filters.user}
                     onValueChange={(value) => setFilters({...filters, user: value})}
                     disabled={!isAdmin}
                   >
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger className="w-full bg-white border-gray-300 text-gray-700 dark:bg-[#121212] dark:border-[#2e2e2e] dark:text-white">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -275,9 +277,9 @@ export default function Relatorios() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Prioridade</label>
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Prioridade</label>
                   <Select value={filters.priority} onValueChange={(value) => setFilters({...filters, priority: value})}>
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger className="w-full bg-white border-gray-300 text-gray-700 dark:bg-[#121212] dark:border-[#2e2e2e] dark:text-white">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -291,14 +293,14 @@ export default function Relatorios() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-sm font-medium">Buscar</label>
+                  <label className="text-sm font-medium text-gray-700 dark:text-gray-300">Buscar</label>
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                     <Input
                       placeholder="Protocolo ou descrição..."
                       value={filters.search}
                       onChange={(e) => setFilters({...filters, search: e.target.value})}
-                      className="pl-10"
+                      className="pl-10 bg-white border-gray-300 text-gray-700 dark:bg-[#121212] dark:border-[#2e2e2e] dark:text-white"
                     />
                   </div>
                 </div>

@@ -385,13 +385,13 @@ export default function Acervo() {
                   placeholder="Buscar..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 h-9 md:h-10 text-sm"
+                  className="pl-9 h-9 md:h-10 text-sm bg-white border-gray-300 text-gray-700 dark:bg-[#121212] dark:border-[#2e2e2e] dark:text-white"
                 />
               </div>
 
               <div className="flex items-center gap-2">
                 <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                  <SelectTrigger className="h-9 md:h-10 text-sm">
+                  <SelectTrigger className="h-9 md:h-10 text-sm bg-white border-gray-300 text-gray-700 dark:bg-[#121212] dark:border-[#2e2e2e] dark:text-white">
                     <SelectValue placeholder="Categoria" />
                   </SelectTrigger>
                   <SelectContent>
@@ -418,7 +418,7 @@ export default function Acervo() {
               <Button
                 variant={showOnlyFavorites ? "default" : "outline"}
                 onClick={() => setShowOnlyFavorites(!showOnlyFavorites)}
-                className="gap-2 h-9 md:h-10 text-sm"
+                className={`gap-2 h-9 md:h-10 text-sm ${!showOnlyFavorites ? 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50 dark:bg-[#1a1a1a] dark:border-[#2e2e2e] dark:text-[#a1a1a1] dark:hover:bg-[#2a2a2a]' : ''}`}
               >
                 <Star className={`w-4 h-4 ${showOnlyFavorites ? 'fill-current' : ''}`} />
                 <span className="hidden md:inline">{showOnlyFavorites ? 'Mostrando Favoritos' : 'Meus Favoritos'}</span>
