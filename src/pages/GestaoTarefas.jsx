@@ -34,6 +34,8 @@ import ServiceViewEditModal from "../components/services/ServiceViewEditModal";
 import BulkActionsModal from "../components/gestao/BulkActionsModal";
 import BulkTextLaunchModal from "../components/gestao/BulkTextLaunchModal";
 import MobileTaskCard from "../components/gestao/MobileTaskCard";
+import PullToRefresh from "@/components/mobile/PullToRefresh";
+import { MobileSelect, useIsMobile } from "@/components/ui/mobile-select";
 import { TaskInteraction } from "@/entities/TaskInteraction";
 import { ServiceInteraction } from "@/entities/ServiceInteraction";
 import { useQueryClient } from "@tanstack/react-query";
@@ -110,6 +112,7 @@ const filterUniqueProtocolsByUser = (items) => {
 export default function GestaoTarefas() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const isMobile = useIsMobile();
   
   // Using React Query Hooks
   const { data: currentUser } = useCurrentUser();
@@ -120,6 +123,11 @@ export default function GestaoTarefas() {
   
   const { data: tasksData = [], refetch: refetchTasks } = useTasks(isAdmin, currentUser?.email);
   const { data: servicesData = [], refetch: refetchServices } = useServices(isAdmin, currentUser?.email);
+
+  // Pull to refresh handler
+  const handlePullRefresh = React.useCallback(async () => {
+    await Promise.all([refetchTasks(), refetchServices()]);
+  }, [refetchTasks, refetchServices]);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTasks, setSelectedTasks] = useState([]);
@@ -533,7 +541,23 @@ export default function GestaoTarefas() {
       concluidas: allFilteredItems.filter(item => item.status === "Concluída").length
   };
 
+  // Options for MobileSelect
+  const departmentOptions = [
+    { value: "all", label: "Todos os Departamentos" },
+    ...departments.map(dept => ({ value: dept.id, label: dept.name }))
+  ];
+
+  const priorityOptions = [
+    { value: "all", label: "Todas as Prioridades" },
+    { value: "P1", label: "P1 - Crítica" },
+    { value: "P2", label: "P2 - Alta" },
+    { value: "P3", label: "P3 - Média" },
+    { value: "P4", label: "P4 - Baixa" },
+    { value: "P5", label: "P5 - Mínima" },
+  ];
+
   return (
+    <PullToRefresh onRefresh={handlePullRefresh} className="min-h-screen">
     <div className="p-4 md:p-8 min-h-screen bg-gray-50 dark:bg-slate-900">
       <AutoStatusUpdater />
       <div className="max-w-full mx-auto space-y-6">
@@ -635,34 +659,54 @@ export default function GestaoTarefas() {
 
             <div className="space-y-1">
               <Label className="text-xs text-gray-500 dark:text-gray-400">Departamento</Label>
-              <Select value={selectedDepartment} onValueChange={(v) => { setSelectedDepartment(v); setCurrentPage(1); }}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Todos" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos os Departamentos</SelectItem>
-                  {departments.map(dept => (
-                    <SelectItem key={dept.id} value={dept.id}>{dept.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {isMobile ? (
+                <MobileSelect
+                  value={selectedDepartment}
+                  onValueChange={(v) => { setSelectedDepartment(v); setCurrentPage(1); }}
+                  options={departmentOptions}
+                  title="Selecione o Departamento"
+                  placeholder="Todos os Departamentos"
+                />
+              ) : (
+                <Select value={selectedDepartment} onValueChange={(v) => { setSelectedDepartment(v); setCurrentPage(1); }}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Todos" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos os Departamentos</SelectItem>
+                    {departments.map(dept => (
+                      <SelectItem key={dept.id} value={dept.id}>{dept.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
 
             <div className="space-y-1">
               <Label className="text-xs text-gray-500 dark:text-gray-400">Prioridade</Label>
-              <Select value={selectedPriority} onValueChange={(v) => { setSelectedPriority(v); setCurrentPage(1); }}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Todas" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todas as Prioridades</SelectItem>
-                  <SelectItem value="P1">P1 - Crítica</SelectItem>
-                  <SelectItem value="P2">P2 - Alta</SelectItem>
-                  <SelectItem value="P3">P3 - Média</SelectItem>
-                  <SelectItem value="P4">P4 - Baixa</SelectItem>
-                  <SelectItem value="P5">P5 - Mínima</SelectItem>
-                </SelectContent>
-              </Select>
+              {isMobile ? (
+                <MobileSelect
+                  value={selectedPriority}
+                  onValueChange={(v) => { setSelectedPriority(v); setCurrentPage(1); }}
+                  options={priorityOptions}
+                  title="Selecione a Prioridade"
+                  placeholder="Todas as Prioridades"
+                />
+              ) : (
+                <Select value={selectedPriority} onValueChange={(v) => { setSelectedPriority(v); setCurrentPage(1); }}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Todas" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todas as Prioridades</SelectItem>
+                    <SelectItem value="P1">P1 - Crítica</SelectItem>
+                    <SelectItem value="P2">P2 - Alta</SelectItem>
+                    <SelectItem value="P3">P3 - Média</SelectItem>
+                    <SelectItem value="P4">P4 - Baixa</SelectItem>
+                    <SelectItem value="P5">P5 - Mínima</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
             </div>
 
             <div className="space-y-1">
@@ -935,5 +979,6 @@ export default function GestaoTarefas() {
         onCreateServices={handleCreateServices}
       />
     </div>
+    </PullToRefresh>
   );
 }
