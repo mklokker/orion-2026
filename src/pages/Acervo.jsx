@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Document } from "@/entities/Document";
 import { DocumentCategory } from "@/entities/DocumentCategory";
 import { DocumentFavorite } from "@/entities/DocumentFavorite";
@@ -35,6 +35,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import PullToRefresh from "@/components/mobile/PullToRefresh";
+import { MobileSelect, useIsMobile } from "@/components/ui/mobile-select";
 import CreateDocumentModal from "../components/acervo/CreateDocumentModal";
 import DocumentViewer from "../components/acervo/DocumentViewer";
 import CategoryManager from "../components/acervo/CategoryManager";
@@ -61,6 +63,7 @@ const getFileIcon = (fileType) => {
 
 export default function Acervo() {
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   const [documents, setDocuments] = useState([]);
   const [categories, setCategories] = useState([]);
   const [favorites, setFavorites] = useState([]);
@@ -80,6 +83,11 @@ export default function Acervo() {
 
   useEffect(() => {
     loadData();
+  }, []);
+
+  // Pull to refresh handler
+  const handlePullRefresh = useCallback(async () => {
+    await loadData();
   }, []);
 
   const loadData = async () => {
@@ -280,7 +288,14 @@ export default function Acervo() {
 
   const uncategorizedDocs = filteredDocuments.filter(doc => !doc.category_id);
 
+  // Options for MobileSelect
+  const categoryOptions = [
+    { value: "all", label: "Todas" },
+    ...categories.map(cat => ({ value: cat.id, label: cat.name }))
+  ];
+
   return (
+    <PullToRefresh onRefresh={handlePullRefresh} className="min-h-screen">
     <div className="p-4 md:p-8 min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
@@ -390,19 +405,30 @@ export default function Acervo() {
               </div>
 
               <div className="flex items-center gap-2">
-                <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                  <SelectTrigger className="h-9 md:h-10 text-sm bg-white border-gray-300 text-gray-700 dark:bg-[#121212] dark:border-[#2e2e2e] dark:text-white">
-                    <SelectValue placeholder="Categoria" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todas</SelectItem>
-                    {categories.map(cat => (
-                      <SelectItem key={cat.id} value={cat.id}>
-                        {cat.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {isMobile ? (
+                  <MobileSelect
+                    value={selectedCategory}
+                    onValueChange={setSelectedCategory}
+                    options={categoryOptions}
+                    title="Selecione a Categoria"
+                    placeholder="Categoria"
+                    triggerClassName="h-9 md:h-10 text-sm"
+                  />
+                ) : (
+                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                    <SelectTrigger className="h-9 md:h-10 text-sm bg-white border-gray-300 text-gray-700 dark:bg-[#121212] dark:border-[#2e2e2e] dark:text-white">
+                      <SelectValue placeholder="Categoria" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Todas</SelectItem>
+                      {categories.map(cat => (
+                        <SelectItem key={cat.id} value={cat.id}>
+                          {cat.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
                 {selectedCategory !== "all" && (
                   <Button
                     variant="ghost"
@@ -681,5 +707,6 @@ export default function Acervo() {
         />
       )}
     </div>
+    </PullToRefresh>
   );
 }
