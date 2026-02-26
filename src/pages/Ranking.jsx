@@ -284,21 +284,21 @@ export default function Ranking() {
               </div>
               <div className="grid grid-cols-2 gap-2 md:contents">
                 <div className="space-y-1 md:space-y-2">
-                  <label className="text-xs md:text-sm font-medium dark:text-[#a1a1a1]">De</label>
+                  <label className="text-xs md:text-sm font-medium text-gray-700 dark:text-[#a1a1a1]">De</label>
                   <Input
                     type="date"
                     value={startDate}
                     onChange={(e) => setStartDate(e.target.value)}
-                    className="h-9 md:h-10"
+                    className="h-9 md:h-10 bg-white border-gray-300 text-gray-700 dark:bg-[#121212] dark:border-[#2e2e2e] dark:text-white"
                   />
                 </div>
                 <div className="space-y-1 md:space-y-2">
-                  <label className="text-xs md:text-sm font-medium dark:text-[#a1a1a1]">Até</label>
+                  <label className="text-xs md:text-sm font-medium text-gray-700 dark:text-[#a1a1a1]">Até</label>
                   <Input
                     type="date"
                     value={endDate}
                     onChange={(e) => setEndDate(e.target.value)}
-                    className="h-9 md:h-10"
+                    className="h-9 md:h-10 bg-white border-gray-300 text-gray-700 dark:bg-[#121212] dark:border-[#2e2e2e] dark:text-white"
                   />
                 </div>
               </div>

@@ -671,7 +671,7 @@ export default function GestaoTarefas() {
                 type="date" 
                 value={startDate} 
                 onChange={(e) => { setStartDate(e.target.value); setCurrentPage(1); }}
-                className="dark:bg-slate-900 dark:text-white dark:border-slate-600"
+                className="bg-white border-gray-300 text-gray-700 dark:bg-slate-900 dark:text-white dark:border-slate-600"
               />
             </div>
 
@@ -681,7 +681,7 @@ export default function GestaoTarefas() {
                 type="date" 
                 value={endDate} 
                 onChange={(e) => { setEndDate(e.target.value); setCurrentPage(1); }}
-                className="dark:bg-slate-900 dark:text-white dark:border-slate-600"
+                className="bg-white border-gray-300 text-gray-700 dark:bg-slate-900 dark:text-white dark:border-slate-600"
               />
             </div>
           </div>
