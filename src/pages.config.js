@@ -62,6 +62,7 @@ import ProdutividadeGeral from './pages/ProdutividadeGeral';
 import Ranking from './pages/Ranking';
 import Relatorios from './pages/Relatorios';
 import Removedor from './pages/Removedor';
+import ImprimirProva from './pages/ImprimirProva';
 import __Layout from './Layout.jsx';
 
 
@@ -81,6 +82,7 @@ export const PAGES = {
     "Ranking": Ranking,
     "Relatorios": Relatorios,
     "Removedor": Removedor,
+    "ImprimirProva": ImprimirProva,
 }
 
 export const pagesConfig = {
