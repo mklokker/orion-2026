@@ -60,15 +60,6 @@ export default function GroupSettingsModal({
   const isAdmin = conversation.admins?.includes(currentUser?.email);
   const participants = conversation.participants || [];
 
-  // Compute users to add early (before any conditional JSX) to avoid hook ordering issues
-  const filteredUsersToAdd = useMemo(() => {
-    const notInGroup = allUsers?.filter(u => 
-      !participants.includes(u.email) && 
-      u.email !== currentUser?.email
-    ) || [];
-    return filterAndSortUsersBySearch(notInGroup, searchAdd);
-  }, [allUsers, participants, currentUser?.email, searchAdd]);
-
   const handleSaveName = async () => {
     await onUpdate({ name: groupName });
     setIsEditing(false);
@@ -114,6 +105,15 @@ export default function GroupSettingsModal({
   const otherUser = !isGroup 
     ? users.find(u => u.email !== currentUser?.email)
     : null;
+
+  // Compute users to add early (before any conditional JSX) to avoid hook ordering issues
+  const filteredUsersToAdd = useMemo(() => {
+    const notInGroup = allUsers?.filter(u => 
+      !participants.includes(u.email) && 
+      u.email !== currentUser?.email
+    ) || [];
+    return filterAndSortUsersBySearch(notInGroup, searchAdd);
+  }, [allUsers, participants, currentUser?.email, searchAdd]);
 
   return (
     <>
