@@ -1,201 +1,191 @@
 /**
  * useChatNotifications — Global chat notification hook
- * Handles: document title, browser notifications, in-app toasts, debounce/grouping
- * Works from ANY page in the app (plug into Layout).
+ *
+ * Layer 1 – In-app: badge on Chat nav item + toast from any page
+ * Layer 2 – Cross-section: works even when user is on Tasks/Acervo/etc.
+ * Layer 3 – Browser: Web Notification API (title change + OS notification)
+ *
+ * Usage: mount once in Layout.js via <GlobalChatNotifications />
  */
 import { useEffect, useRef, useCallback } from "react";
 import { ChatMessage } from "@/entities/ChatMessage";
 import { ChatConversation } from "@/entities/ChatConversation";
 import { playNotificationSound } from "@/components/chat/NotificationSounds";
 
-const TITLE_BASE = document.title.replace(/^\(\d+\)\s*/, "") || "Orion";
-const DEBOUNCE_MS = 3000; // group notifications within 3s per conversation
-
-// Module-level unread counter (shared across hook instances)
+// ─── Module-level shared unread state ────────────────────────
 let _globalUnread = 0;
-const _listeners = new Set();
-const notifyListeners = () => _listeners.forEach(fn => fn(_globalUnread));
+const _subscribers = new Set();
+
+export const getGlobalUnread = () => _globalUnread;
 
 export const setGlobalUnread = (count) => {
-  _globalUnread = count;
-  notifyListeners();
+  _globalUnread = Math.max(0, count);
+  _subscribers.forEach(fn => fn(_globalUnread));
+  _updateTitle();
 };
 
-export const incrementGlobalUnread = (by = 1) => {
-  _globalUnread += by;
-  notifyListeners();
-};
+export const addGlobalUnread = (n = 1) => setGlobalUnread(_globalUnread + n);
+export const subtractGlobalUnread = (n = 0) => setGlobalUnread(_globalUnread - n);
 
-export const decrementGlobalUnread = (conversationId, count) => {
-  _globalUnread = Math.max(0, _globalUnread - count);
-  notifyListeners();
-};
-
-export function useGlobalUnreadCount(onChange) {
+export const useGlobalUnreadCount = (cb) => {
   useEffect(() => {
-    _listeners.add(onChange);
-    onChange(_globalUnread);
-    return () => _listeners.delete(onChange);
-  }, [onChange]);
+    _subscribers.add(cb);
+    cb(_globalUnread);
+    return () => _subscribers.delete(cb);
+  }, [cb]);
+};
+
+function _updateTitle() {
+  const base = "Orion";
+  document.title = _globalUnread > 0 ? `(${_globalUnread}) ${base}` : base;
 }
 
-// ─── Main hook ───────────────────────────────────────────────
+// ─── Main notification hook ───────────────────────────────────
+const DEBOUNCE_MS = 2500;
+
 export function useChatNotifications({
   currentUser,
   presence,
-  onToast,           // (title, body, conversationId) => void
-  onUnreadChange,    // (counts: { [convId]: number }) => void
-  currentConversationId, // currently open conversation (skip notifications for it)
+  currentConversationId, // currently open conv – skip its notifications
+  onToast,               // (title, body, conversationId) => void
+  onUnreadDelta,         // ({ [convId]: number }) => void – called with incremental counts
 }) {
   const notifiedRef = useRef(new Set());
-  const debounceTimers = useRef({});
-  const pendingByConv = useRef({});
-  const unreadCounts = useRef({});
+  const debounce = useRef({});     // { [convId]: timeoutId }
+  const pending = useRef({});      // { [convId]: msg[] }
 
-  // Update document title whenever global unread changes
-  useEffect(() => {
-    const update = (count) => {
-      document.title = count > 0 ? `(${count}) ${TITLE_BASE}` : TITLE_BASE;
-    };
-    _listeners.add(update);
-    update(_globalUnread);
-    return () => {
-      _listeners.delete(update);
-      document.title = TITLE_BASE;
-    };
-  }, []);
-
-  const shouldSuppress = useCallback(() => {
+  // ── Suppress check ────────────────────────────────────────
+  const isSuppressed = useCallback(() => {
     if (!presence) return false;
     if (presence.status === "dnd" || presence.manual_status === "dnd") return true;
     if (presence.mute_until && new Date() < new Date(presence.mute_until)) return true;
     return false;
   }, [presence]);
 
-  const fireBrowserNotification = useCallback((title, body, convId) => {
+  // ── Browser Notification ───────────────────────────────────
+  const fireBrowser = useCallback((title, body, convId) => {
     if (typeof Notification === "undefined") return;
     if (Notification.permission !== "granted") return;
-    if (!presence?.push_enabled) return;
+    if (presence?.push_enabled === false) return;
     try {
       const n = new Notification(title, {
         body,
         icon: "/favicon.ico",
-        tag: `chat-${convId}`,
+        tag: `orion-chat-${convId}`,
         renotify: true,
-        silent: false,
       });
-      n.onclick = () => {
-        window.focus();
-        n.close();
-      };
+      n.onclick = () => { window.focus(); n.close(); };
     } catch (_) {}
   }, [presence]);
 
-  const processNotification = useCallback((convId, messages, conversationName, isGroup) => {
-    if (!currentUser) return;
-    if (shouldSuppress()) return;
+  // ── Fire the grouped notification ─────────────────────────
+  const fireGrouped = useCallback((convId, msgs, convName, isGroup) => {
+    if (!currentUser || isSuppressed()) return;
+    if (!msgs.length) return;
 
-    const count = messages.length;
-    const latest = messages[messages.length - 1];
+    const count = msgs.length;
+    const latest = msgs[msgs.length - 1];
     const senderName = latest.sender_name || latest.sender_email;
-    const title = isGroup ? `${senderName} em ${conversationName}` : senderName;
+    const title = isGroup ? `${senderName} em ${convName}` : senderName;
     const body = count > 1
       ? `${count} novas mensagens`
-      : (latest.type === "text" ? latest.content : "📎 Enviou um arquivo");
+      : (latest.type !== "text" ? "📎 Enviou um arquivo" : (latest.content?.slice(0, 80) || ""));
 
-    // Play sound
+    // 1. Sound
     const soundType = presence?.notification_sound || "default";
-    if (soundType !== "none") {
-      playNotificationSound(soundType);
-    }
+    if (soundType !== "none") playNotificationSound(soundType);
 
-    // Browser notification (if in background or other tab)
-    if (document.hidden || window.location.pathname !== "/Chat") {
-      fireBrowserNotification(title, body, convId);
-    }
-
-    // In-app toast
+    // 2. In-app toast (any page)
     onToast?.(title, body, convId);
 
-    // Update unread counter
-    incrementGlobalUnread(count);
-  }, [currentUser, presence, shouldSuppress, fireBrowserNotification, onToast]);
-
-  const scheduleNotification = useCallback((convId, msgData, conversationName, isGroup) => {
-    if (!pendingByConv.current[convId]) {
-      pendingByConv.current[convId] = [];
-    }
-    pendingByConv.current[convId].push(msgData);
-
-    if (debounceTimers.current[convId]) {
-      clearTimeout(debounceTimers.current[convId]);
+    // 3. Browser notification if hidden/background/other route
+    const onChatPage = window.location.pathname.toLowerCase().includes("chat");
+    if (!onChatPage || document.hidden) {
+      fireBrowser(title, body, convId);
     }
 
-    debounceTimers.current[convId] = setTimeout(() => {
-      const msgs = pendingByConv.current[convId] || [];
-      pendingByConv.current[convId] = [];
-      if (msgs.length > 0) {
-        processNotification(convId, msgs, conversationName, isGroup);
-      }
+    // 4. Update global badge counter
+    addGlobalUnread(count);
+  }, [currentUser, isSuppressed, presence, onToast, fireBrowser]);
+
+  // ── Schedule debounced notification per conversation ───────
+  const schedule = useCallback((convId, msg, convName, isGroup) => {
+    if (!pending.current[convId]) pending.current[convId] = [];
+    pending.current[convId].push(msg);
+
+    if (debounce.current[convId]) clearTimeout(debounce.current[convId]);
+    debounce.current[convId] = setTimeout(() => {
+      const msgs = pending.current[convId] || [];
+      pending.current[convId] = [];
+      fireGrouped(convId, msgs, convName, isGroup);
     }, DEBOUNCE_MS);
-  }, [processNotification]);
+  }, [fireGrouped]);
 
-  // Subscribe to real-time messages from ANY conversation
+  // ── Subscribe to real-time messages ───────────────────────
   useEffect(() => {
     if (!currentUser) return;
 
     const unsub = ChatMessage.subscribe(async (event) => {
       if (event.type !== "create") return;
       const msg = event.data;
-      if (!msg) return;
+      if (!msg || !msg.id) return;
 
-      // Skip own messages
+      // Own message – skip
       if (msg.sender_email === currentUser.email) return;
-      // Skip already read
+      // Already read – skip
       if (msg.read_by?.includes(currentUser.email)) return;
-      // Skip already notified
-      if (notifiedRef.current.has(msg.id)) return;
-      // Skip currently open conversation
-      if (msg.conversation_id === currentConversationId) return;
-      // Skip deleted messages
+      // Deleted – skip
       if (msg.is_deleted) return;
+      // Currently viewing this conversation – skip
+      if (msg.conversation_id === currentConversationId) return;
+      // Already notified – skip
+      if (notifiedRef.current.has(msg.id)) return;
 
       notifiedRef.current.add(msg.id);
 
-      // Increment local unread count for this conversation
-      unreadCounts.current[msg.conversation_id] = (unreadCounts.current[msg.conversation_id] || 0) + 1;
-      onUnreadChange?.({ ...unreadCounts.current });
+      // Update per-conversation unread delta (for ChatList badges)
+      onUnreadDelta?.({ [msg.conversation_id]: 1 });
 
-      // Find conversation metadata for notification text
+      // Fetch conversation for name / type / mute info
       try {
         const convs = await ChatConversation.filter({ id: msg.conversation_id });
         const conv = convs[0];
         if (!conv) return;
         if (!conv.participants?.includes(currentUser.email)) return;
-
-        // Check if conversation is muted
         if (conv.muted_by?.includes(currentUser.email)) return;
 
-        scheduleNotification(
-          msg.conversation_id,
-          msg,
-          conv.name || "Conversa",
-          conv.type === "group"
-        );
+        const isMention = msg.content?.includes(`@${currentUser.full_name}`) ||
+                          msg.content?.includes(`@${currentUser.email}`);
+
+        let shouldNotify = true;
+        if (conv.type === "group" && !isMention && presence?.notify_group_messages === false) {
+          shouldNotify = false;
+        }
+        if (shouldNotify) {
+          schedule(msg.conversation_id, msg, conv.name || "Conversa", conv.type === "group");
+        }
       } catch (_) {}
     });
 
     return () => unsub();
-  }, [currentUser, currentConversationId, scheduleNotification, onUnreadChange]);
+  }, [currentUser, currentConversationId, schedule, onUnreadDelta, presence]);
 
-  // Mark conversation as read and update counters
-  const markConversationRead = useCallback((convId, count = 0) => {
-    const prev = unreadCounts.current[convId] || 0;
-    const removed = count || prev;
-    delete unreadCounts.current[convId];
-    onUnreadChange?.({ ...unreadCounts.current });
-    decrementGlobalUnread(convId, removed);
-  }, [onUnreadChange]);
+  // ── Title cleanup on unmount ───────────────────────────────
+  useEffect(() => {
+    return () => { document.title = "Orion"; };
+  }, []);
 
-  return { markConversationRead };
+  return null;
+}
+
+// ── Request browser notification permission with nice UX ─────
+export function requestNotificationPermission(onGranted, onDenied) {
+  if (typeof Notification === "undefined") return;
+  if (Notification.permission === "granted") { onGranted?.(); return; }
+  if (Notification.permission === "denied") { onDenied?.(); return; }
+
+  Notification.requestPermission().then(permission => {
+    if (permission === "granted") onGranted?.();
+    else onDenied?.();
+  });
 }
