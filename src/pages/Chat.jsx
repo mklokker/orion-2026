@@ -505,7 +505,7 @@ export default function Chat() {
         participants: [currentUser.email, otherUser.email]
       });
 
-      await loadConversations(currentUser.email);
+      // Real-time subscription will auto-add to conversations
       handleSelectConversation(newConv);
     } catch (error) {
       console.error("Erro ao criar conversa:", error);
@@ -530,7 +530,7 @@ export default function Chat() {
         type: "system"
       });
 
-      await loadConversations(currentUser.email);
+      // Real-time subscription will auto-add to conversations
       handleSelectConversation(newConv);
     } catch (error) {
       console.error("Erro ao criar grupo:", error);
@@ -541,9 +541,7 @@ export default function Chat() {
     if (!selectedConversation) return;
     try {
       await ChatConversation.update(selectedConversation.id, updates);
-      await loadConversations(currentUser.email);
-      const updated = await ChatConversation.filter({ id: selectedConversation.id });
-      if (updated.length > 0) setSelectedConversation(updated[0]);
+      // Real-time subscription will update the conversation
     } catch (error) {
       console.error("Erro ao atualizar:", error);
     }
@@ -565,7 +563,7 @@ export default function Chat() {
 
       setSelectedConversation(null);
       setShowSettings(false);
-      await loadConversations(currentUser.email);
+      // Real-time subscription will handle removal
     } catch (error) {
       console.error("Erro ao sair:", error);
     }
