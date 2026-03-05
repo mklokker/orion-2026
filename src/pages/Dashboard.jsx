@@ -332,9 +332,9 @@ export default function Dashboard() {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-          <Card className="border-0 shadow-md text-white" style={{ backgroundColor: "var(--primary, #4338CA)" }}>
+          <Card className="border-0 shadow-md bg-primary text-primary-foreground">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium opacity-90 flex items-center gap-2">
+              <CardTitle className="text-sm font-medium opacity-90 flex items-center gap-2 text-primary-foreground">
                 <FileText className="w-4 h-4" />
                 Total {hasActiveFilters ? "(filtrado)" : "(mês)"}
               </CardTitle>
@@ -344,9 +344,9 @@ export default function Dashboard() {
             </CardContent>
           </Card>
           
-          <Card className="border-0 shadow-md text-white" style={{ backgroundColor: "var(--primary-accent, #3730A3)" }}>
+          <Card className="border-0 shadow-md bg-secondary text-secondary-foreground">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium opacity-90 flex items-center gap-2">
+              <CardTitle className="text-sm font-medium opacity-90 flex items-center gap-2 text-secondary-foreground">
                 <Clock className="w-4 h-4" />
                 Ativas {hasActiveFilters ? "(filtrado)" : "(mês)"}
               </CardTitle>
@@ -356,9 +356,9 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-md text-white" style={{ backgroundColor: "var(--success, #10B981)" }}>
+          <Card className="border-0 shadow-md" style={{ backgroundColor: "var(--app-success, #16A34A)", color: "#FFFFFF" }}>
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium opacity-90 flex items-center gap-2">
+              <CardTitle className="text-sm font-medium opacity-90 flex items-center gap-2 text-inherit">
                 <CheckCircle2 className="w-4 h-4" />
                 Concluídas {hasActiveFilters ? "(filtrado)" : "(mês)"}
               </CardTitle>
@@ -368,9 +368,9 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-md text-white" style={{ backgroundColor: "var(--danger, #EF4444)" }}>
+          <Card className="border-0 shadow-md bg-destructive text-destructive-foreground">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium opacity-90 flex items-center gap-2">
+              <CardTitle className="text-sm font-medium opacity-90 flex items-center gap-2 text-destructive-foreground">
                 <AlertCircle className="w-4 h-4" />
                 Atrasadas {hasActiveFilters ? "(filtrado)" : "(mês)"}
               </CardTitle>

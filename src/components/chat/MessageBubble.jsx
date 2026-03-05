@@ -326,7 +326,7 @@ export default function MessageBubble({
         {/* Sender name with badge style - em grupos sempre mostra, em 1:1 só quando muda */}
         {!isOwn && (isGroupChat || showAvatar) && (
           <div className="mb-1">
-            <span className="inline-block text-base font-bold text-white bg-gradient-to-r from-blue-500 to-indigo-600 px-3 py-1 rounded-full shadow-sm">
+            <span className="inline-block text-sm font-bold text-primary-foreground bg-primary px-3 py-1 rounded-full shadow-sm">
               {message.sender_name}
             </span>
           </div>
