@@ -14,8 +14,10 @@ import GroupSettingsModal from "@/components/chat/GroupSettingsModal";
 import ImageViewer from "@/components/chat/ImageViewer";
 import PresenceSettings from "@/components/chat/PresenceSettings";
 import AudioPermissionBanner from "@/components/chat/AudioPermissionBanner";
+import TaskRequestApprovalModal from "@/components/chat/TaskRequestApprovalModal";
 import { useToast } from "@/components/ui/use-toast";
 import { playNotificationSound } from "@/components/chat/NotificationSounds";
+import { Department } from "@/entities/Department";
 
 export default function Chat() {
   const { toast } = useToast();
@@ -35,6 +37,9 @@ export default function Chat() {
   const [myPresence, setMyPresence] = useState(null);
   const [showPresenceSettings, setShowPresenceSettings] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [showTaskApprovalModal, setShowTaskApprovalModal] = useState(false);
+  const [selectedTaskRequestId, setSelectedTaskRequestId] = useState(null);
+  const [departments, setDepartments] = useState([]);
 
   const typingTimeoutRef = useRef(null);
   const notifiedMessagesRef = useRef(new Set());
@@ -220,6 +225,14 @@ export default function Chat() {
           // If user is not admin, they can only see themselves
           setUsers([userData]);
         }
+      }
+      
+      // Load departments for task approval
+      try {
+        const depts = await Department.list();
+        setDepartments(depts);
+      } catch (e) {
+        console.error("Erro ao carregar departamentos:", e);
       }
       
       await loadConversations(userData.email);
@@ -692,6 +705,13 @@ export default function Chat() {
     ? users.filter(u => selectedConversation.participants?.includes(u.email))
     : [];
 
+  const isAdmin = currentUser?.role === "admin";
+
+  const handleApproveTaskRequest = (requestId) => {
+    setSelectedTaskRequestId(requestId);
+    setShowTaskApprovalModal(true);
+  };
+
   return (
     <div className="h-[calc(100vh-64px)] md:h-screen flex bg-gray-100 dark:bg-slate-900">
       {/* Sidebar - Chat List */}
@@ -731,6 +751,8 @@ export default function Chat() {
           onPinMessage={handlePinMessage}
           typingUsers={typingUsers}
           presenceMap={presenceMap}
+          isAdmin={isAdmin}
+          onApproveTaskRequest={handleApproveTaskRequest}
         />
       </div>
 
@@ -776,6 +798,34 @@ export default function Chat() {
 
       {/* Banner para solicitar permissão de áudio */}
       <AudioPermissionBanner />
+
+      {/* Task Request Approval Modal */}
+      <TaskRequestApprovalModal
+        open={showTaskApprovalModal}
+        onClose={() => {
+          setShowTaskApprovalModal(false);
+          setSelectedTaskRequestId(null);
+        }}
+        requestId={selectedTaskRequestId}
+        currentUser={currentUser}
+        departments={departments}
+        onApproved={(request, status) => {
+          // Send a message to the conversation about the result
+          if (request?.conversation_id) {
+            const statusText = status === "approved" 
+              ? "✅ Solicitação aprovada! As tarefas/serviços foram criados."
+              : "❌ Solicitação rejeitada.";
+            ChatMessage.create({
+              conversation_id: request.conversation_id,
+              sender_email: currentUser.email,
+              sender_name: currentUser.full_name || currentUser.display_name,
+              content: statusText,
+              type: "text",
+              read_by: [currentUser.email]
+            }).catch(console.error);
+          }
+        }}
+      />
     </div>
   );
 }
