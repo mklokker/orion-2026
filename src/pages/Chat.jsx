@@ -210,7 +210,10 @@ export default function Chat() {
 
   // Load messages when conversation changes + reset global unread for this conv
   useEffect(() => {
-    if (selectedConversation) {
+    if (selectedConversation?.id) {
+      // Clear messages immediately to show loading state
+      setMessages([]);
+      // Then load fresh messages
       loadMessages(selectedConversation.id);
       markAsRead(selectedConversation.id);
     }
@@ -449,6 +452,11 @@ export default function Chat() {
   };
 
   const handleSelectConversation = (conv) => {
+    // Avoid re-selecting the same conversation
+    if (selectedConversation?.id === conv.id) {
+      if (isMobileView) setShowConversation(true);
+      return;
+    }
     setSelectedConversation(conv);
     if (isMobileView) setShowConversation(true);
   };
