@@ -263,7 +263,7 @@ export default function TaskRequestModal({
           {step === "input" ? (
             <>
               <Button variant="outline" onClick={handleClose}>Cancelar</Button>
-              <Button onClick={handleProcess} disabled={!text.trim()}>
+              <Button onClick={handleProcess} disabled={!text.trim()} className="bg-primary text-primary-foreground hover:bg-primary/90">
                 Processar <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </>
@@ -273,7 +273,7 @@ export default function TaskRequestModal({
               <Button 
                 onClick={handleSendRequest} 
                 disabled={validCount === 0 || sending}
-                className="gap-2"
+                className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
               >
                 <Send className="w-4 h-4" />
                 {sending ? "Enviando..." : `Enviar Solicitação (${validCount})`}
