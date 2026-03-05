@@ -223,12 +223,8 @@ function SidebarContent({
   onNavClick,
   currentTheme,
 }) {
-  const getThemeLabel = () => {
-    const labels = { light: "Light", dark: "Dark", pastel: "Pastel", midnight: "Midnight", forest: "Forest" };
-    return labels[currentTheme] || "Light";
-  };
-  
-  const onGetThemeLabel = getThemeLabel;
+  const themeLabels = { light: "Claro", dark: "Escuro", pastel: "Pastel", midnight: "Midnight", forest: "Forest" };
+  const onGetThemeLabel = () => themeLabels[currentTheme] || "Claro";
   return (
     <div className="flex flex-col h-full">
       {/* Header / Logo */}
@@ -614,13 +610,14 @@ function LayoutContent({ children, currentPageName }) {
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider delayDuration={300}>
+        {/* AppSettings custom colors applied as non-conflicting CSS vars */}
         {appSettings && (
           <style>{`
             :root {
-              --primary: ${appSettings.primary_color};
-              --primary-accent: ${appSettings.primary_accent_color};
-              --success: ${appSettings.success_color};
-              --danger: ${appSettings.danger_color};
+              --app-primary: ${appSettings.primary_color || '#2563EB'};
+              --app-primary-accent: ${appSettings.primary_accent_color || '#1E40AF'};
+              --app-success: ${appSettings.success_color || '#16A34A'};
+              --app-danger: ${appSettings.danger_color || '#DC2626'};
             }
           `}</style>
         )}
