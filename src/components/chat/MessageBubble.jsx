@@ -157,13 +157,7 @@ export default function MessageBubble({
       return (
         <>
           {replyPreview}
-          <img
-            src={gifSrc}
-            alt="GIF"
-            className="max-w-full w-auto rounded-lg block"
-            style={{ maxWidth: "100%", maxHeight: "240px" }}
-            loading="lazy"
-          />
+          <GifMessage src={gifSrc} isOwn={isOwn} />
         </>
       );
     }
