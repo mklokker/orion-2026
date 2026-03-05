@@ -46,6 +46,7 @@ import NotificationCenter from "./components/notifications/NotificationCenter";
 import TaskViewEditModal from "./components/tasks/TaskViewEditModal";
 import ServiceViewEditModal from "./components/services/ServiceViewEditModal";
 import { Toaster } from "./components/ui/toaster";
+import { useToast } from "./components/ui/use-toast";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import MobileBottomNav from "./components/mobile/MobileBottomNav";
 import MobileMoreMenu from "./components/mobile/MobileMoreMenu";
