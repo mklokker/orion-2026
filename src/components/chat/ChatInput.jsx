@@ -19,6 +19,10 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useToast } from "@/components/ui/use-toast";
+import MentionAutocomplete from "./MentionAutocomplete";
+
+// Padrão de detecção de @ trigger
+const AT_TRIGGER_PATTERN = /@(\w*)$/;
 
 // Lista expandida de emojis organizados por categoria
 const EMOJI_CATEGORIES = {
@@ -40,7 +44,9 @@ export default function ChatInput({
   onTyping,
   replyingTo,
   onCancelReply,
-  disabled
+  disabled,
+  participants = [],
+  allUsers = []
 }) {
   const { toast } = useToast();
   const [message, setMessage] = useState("");
@@ -50,6 +56,12 @@ export default function ChatInput({
   const [currentUploadFile, setCurrentUploadFile] = useState("");
   const fileInputRef = useRef(null);
   const textareaRef = useRef(null);
+  
+  // Mention autocomplete
+  const [mentions, setMentions] = useState([]);
+  const [showMentionAutocomplete, setShowMentionAutocomplete] = useState(false);
+  const [mentionSearchTerm, setMentionSearchTerm] = useState("");
+  const [mentionPosition, setMentionPosition] = useState({ top: 0, left: 0 });
 
   const validateFileSize = (file) => {
     if (file.size > MAX_FILE_SIZE) {
@@ -65,6 +77,20 @@ export default function ChatInput({
 
   const gifPreview = detectGiphyMessage(message);
 
+  const handleMentionSelect = (user) => {
+    const beforeAt = message.substring(0, message.lastIndexOf("@"));
+    const newMessage = beforeAt + `@${user.display_name || user.full_name}`;
+    setMessage(newMessage);
+    setShowMentionAutocomplete(false);
+    
+    // Adicionar email à lista de menções
+    if (!mentions.includes(user.email)) {
+      setMentions([...mentions, user.email]);
+    }
+    
+    requestAnimationFrame(() => textareaRef.current?.focus());
+  };
+
   const handleSend = async () => {
     if ((!message.trim() && files.length === 0) || uploading) return;
     // Prevent double-send if Enter is held
@@ -75,8 +101,15 @@ export default function ChatInput({
     const gifUrl = detectGiphyMessage(message);
     if (gifUrl && files.length === 0) {
       try {
-        await onSend({ content: gifUrl, type: "gif", gif_url: gifUrl, original_url: message.trim() });
+        await onSend({ 
+          content: gifUrl, 
+          type: "gif", 
+          gif_url: gifUrl, 
+          original_url: message.trim(),
+          mentions
+        });
         setMessage("");
+        setMentions([]);
         onCancelReply?.();
         requestAnimationFrame(() => textareaRef.current?.focus());
       } catch (error) {
@@ -125,14 +158,16 @@ export default function ChatInput({
             file_url: f.url,
             file_name: f.name,
             file_type: f.type,
-            file_size: f.size
+            file_size: f.size,
+            mentions
           });
         }
       } else {
-        await onSend({ content: message.trim(), type: "text" });
+        await onSend({ content: message.trim(), type: "text", mentions });
       }
 
       setMessage("");
+      setMentions([]);
       setFiles([]);
       onCancelReply?.();
       // Restore focus after state update (works on mobile too — keeps keyboard open)
@@ -157,6 +192,11 @@ export default function ChatInput({
     setCurrentUploadFile("");
     isSendingRef.current = false;
   };
+
+  // Obter usuários para autocomplete
+  const conversationUsers = allUsers.filter(u => 
+    participants.includes(u.email)
+  ) || [];
 
   const handleKeyDown = (e) => {
     // Enter sends; Shift+Enter or Ctrl+Enter inserts newline
@@ -187,8 +227,35 @@ export default function ChatInput({
   };
 
   const handleChange = (e) => {
-    setMessage(e.target.value);
+    const newMessage = e.target.value;
+    setMessage(newMessage);
     onTyping?.();
+    
+    // Detectar @ trigger para autocomplete
+    const match = newMessage.match(AT_TRIGGER_PATTERN);
+    if (match) {
+      setShowMentionAutocomplete(true);
+      setMentionSearchTerm(match[1]);
+      
+      // Calcular posição do autocomplete (sob o @)
+      if (textareaRef.current) {
+        const caretPos = newMessage.length;
+        const lines = newMessage.substring(0, caretPos).split("\n");
+        const lineNum = lines.length - 1;
+        const colNum = lines[lineNum].length;
+        
+        // Estimativa aproximada de posição
+        const charWidth = 8;
+        const lineHeight = 24;
+        setMentionPosition({
+          top: lineHeight * lineNum,
+          left: Math.max(0, colNum * charWidth - 20)
+        });
+      }
+    } else {
+      setShowMentionAutocomplete(false);
+      setMentionSearchTerm("");
+    }
   };
 
   const addEmoji = (emoji) => {
@@ -255,11 +322,21 @@ export default function ChatInput({
 
   return (
     <div 
-      className={`border-t border-border bg-card p-2 md:p-3 transition-colors ${isDragging ? "bg-blue-50 border-blue-300 border-2 border-dashed" : ""}`}
+      className={`border-t border-border bg-card p-2 md:p-3 transition-colors relative ${isDragging ? "bg-blue-50 border-blue-300 border-2 border-dashed" : ""}`}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
+      {/* Mention autocomplete */}
+      {showMentionAutocomplete && (
+        <MentionAutocomplete
+          searchTerm={mentionSearchTerm}
+          users={conversationUsers}
+          currentUserEmail={participants[0]}
+          onSelect={handleMentionSelect}
+          position={mentionPosition}
+        />
+      )}
       {/* Upload progress */}
       {uploading && files.length > 0 && (
         <div className="mb-3 p-3 bg-blue-50 rounded-lg border border-blue-200">

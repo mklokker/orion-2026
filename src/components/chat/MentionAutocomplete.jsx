@@ -1,0 +1,80 @@
+import React, { useMemo, useEffect, useState } from "react";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+
+/**
+ * MentionAutocomplete component
+ * Renderiza lista de sugestões de @ quando digitado
+ */
+export default function MentionAutocomplete({
+  searchTerm,
+  users,
+  currentUserEmail,
+  onSelect,
+  position = { top: 0, left: 0 }
+}) {
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
+  // Filtrar usuários: remove o usuário atual, busca case-insensitive
+  const filteredUsers = useMemo(() => {
+    if (!searchTerm || !users) return [];
+    const lowerSearch = searchTerm.toLowerCase();
+    return users.filter(u => 
+      u.email !== currentUserEmail &&
+      (u.display_name?.toLowerCase().includes(lowerSearch) ||
+       u.full_name?.toLowerCase().includes(lowerSearch) ||
+       u.email.toLowerCase().includes(lowerSearch))
+    );
+  }, [searchTerm, users, currentUserEmail]);
+
+  // Reset selected index quando filtro mudar
+  useEffect(() => {
+    setSelectedIndex(0);
+  }, [searchTerm]);
+
+  const getInitials = (name) => {
+    if (!name) return "?";
+    const parts = name.split(" ");
+    if (parts.length >= 2) {
+      return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+  };
+
+  if (filteredUsers.length === 0) return null;
+
+  return (
+    <div
+      className="absolute z-50 bg-white border border-gray-200 rounded-lg shadow-lg max-w-xs w-max max-h-64 overflow-y-auto"
+      style={{
+        top: `${position.top}px`,
+        left: `${position.left}px`
+      }}
+    >
+      {filteredUsers.map((user, idx) => {
+        const displayName = user.display_name || user.full_name || user.email.split("@")[0];
+        return (
+          <button
+            key={user.email}
+            onClick={() => onSelect(user)}
+            className={`w-full flex items-center gap-2 px-3 py-2 text-left text-sm transition-colors ${
+              idx === selectedIndex
+                ? "bg-blue-100 text-blue-900"
+                : "hover:bg-gray-100 text-gray-900"
+            }`}
+          >
+            <Avatar className="w-6 h-6 shrink-0">
+              <AvatarImage src={user.profile_picture} />
+              <AvatarFallback className="text-xs bg-blue-500 text-white">
+                {getInitials(displayName)}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <p className="font-medium truncate">{displayName}</p>
+              <p className="text-xs text-gray-500 truncate">{user.email}</p>
+            </div>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
