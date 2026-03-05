@@ -12,6 +12,7 @@ import {
   AlertCircle
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
+import { detectGiphyMessage } from "./GiphyUtils";
 import {
   Popover,
   PopoverContent,
