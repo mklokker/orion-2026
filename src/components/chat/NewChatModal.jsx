@@ -179,7 +179,7 @@ export default function NewChatModal({
                 <p className="text-center text-gray-500 py-8">Nenhum usuário encontrado</p>
               )}
             </div>
-          </ScrollArea>
+          </div>
 
           {/* Create group button */}
           {isGroupMode && (

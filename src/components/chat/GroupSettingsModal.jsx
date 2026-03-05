@@ -232,7 +232,7 @@ export default function GroupSettingsModal({
                         );
                       })}
                     </div>
-                  </ScrollArea>
+                  </div>
                 </TabsContent>
 
                 {isAdmin && (
