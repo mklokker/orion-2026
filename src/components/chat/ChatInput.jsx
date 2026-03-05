@@ -196,6 +196,7 @@ export default function ChatInput({
 
   // Handle drag and drop
   const [isDragging, setIsDragging] = useState(false);
+  const isSendingRef = useRef(false);
 
   const handleDragOver = (e) => {
     e.preventDefault();
