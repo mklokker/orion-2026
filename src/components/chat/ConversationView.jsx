@@ -105,8 +105,8 @@ export default function ConversationView({
 
   if (!conversation) {
     return (
-      <div className="flex-1 flex items-center justify-center bg-gray-50 dark:bg-slate-900">
-        <div className="text-center text-gray-500 dark:text-gray-400">
+      <div className="flex-1 flex items-center justify-center bg-muted/30">
+        <div className="text-center text-muted-foreground">
           <Users className="w-16 h-16 mx-auto mb-4 opacity-30" />
           <p>Selecione uma conversa para começar</p>
         </div>
@@ -166,9 +166,9 @@ export default function ConversationView({
   };
 
   return (
-    <div className="flex flex-col h-full bg-[#e5ddd5] dark:bg-slate-800">
+    <div className="flex flex-col h-full bg-muted/30">
       {/* Header */}
-      <div className="flex items-center gap-3 p-3 bg-gray-100 dark:bg-slate-900 border-b dark:border-slate-700">
+      <div className="flex items-center gap-3 p-3 bg-card border-b border-border">
         <Button variant="ghost" size="icon" className="md:hidden" onClick={onBack}>
           <ArrowLeft className="w-5 h-5" />
         </Button>
@@ -190,11 +190,11 @@ export default function ConversationView({
         </div>
 
         <div className="flex-1 min-w-0 cursor-pointer" onClick={onOpenSettings}>
-          <h3 className="font-semibold text-gray-900 dark:text-white truncate">{display.name}</h3>
+          <h3 className="font-semibold text-foreground truncate">{display.name}</h3>
           <p className={`text-xs truncate ${
             display.status === "online" ? "text-green-600" : 
             display.status === "away" ? "text-yellow-600" : 
-            display.status === "dnd" ? "text-red-600" : "text-gray-500"
+            display.status === "dnd" ? "text-red-600" : "text-muted-foreground"
           }`}>
             {display.subtitle}
           </p>
@@ -243,7 +243,7 @@ export default function ConversationView({
           <div key={date}>
             {/* Date separator */}
             <div className="flex justify-center my-4">
-              <span className="text-xs bg-white/80 dark:bg-slate-700 text-gray-600 dark:text-gray-300 px-3 py-1 rounded-full shadow-sm">
+              <span className="text-xs bg-card/90 text-muted-foreground px-3 py-1 rounded-full shadow-sm border border-border/50">
                 {isSameDay(new Date(date), new Date())
                   ? "Hoje"
                   : format(new Date(date), "dd 'de' MMMM", { locale: ptBR })}
@@ -300,11 +300,11 @@ export default function ConversationView({
       {showScrollButton && (
         <Button
           onClick={scrollToBottom}
-          className="absolute bottom-24 right-6 z-50 rounded-full w-10 h-10 bg-white shadow-lg hover:bg-gray-100 border"
+          className="absolute bottom-24 right-6 z-50 rounded-full w-10 h-10 bg-card shadow-lg hover:bg-accent border border-border"
           size="icon"
           variant="ghost"
         >
-          <ArrowDown className="w-5 h-5 text-gray-600" />
+          <ArrowDown className="w-5 h-5 text-foreground" />
         </Button>
       )}
 
