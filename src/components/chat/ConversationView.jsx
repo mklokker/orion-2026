@@ -243,8 +243,9 @@ export default function ConversationView({
         onScrollToMessage={scrollToMessage}
       />
 
-      {/* Messages */}
-      <ScrollArea className="flex-1 min-h-0 px-2 md:px-4 py-2 md:py-4 relative" ref={scrollRef} onScrollCapture={handleScroll}>
+      {/* Messages - área com scroll próprio */}
+      <ScrollArea className="flex-1 min-h-0 overflow-hidden relative w-full" ref={scrollRef} onScrollCapture={handleScroll}>
+        <div className="px-2 md:px-4 py-2 md:py-4 w-full min-w-0 overflow-x-hidden">
         {Object.entries(groupedMessages).map(([date, msgs]) => (
           <div key={date}>
             {/* Date separator */}
