@@ -745,7 +745,7 @@ export default function Chat() {
   };
 
   return (
-    <div className="relative flex bg-background overflow-hidden" style={{ height: 'calc(100dvh - 56px)' }}>
+    <div className="relative flex bg-background overflow-hidden" style={{ height: '100dvh' }}>
       {/* Desktop: padding e gap normais */}
       <div className="hidden md:flex w-full h-full p-3 gap-3">
         {/* Lista - Desktop */}
