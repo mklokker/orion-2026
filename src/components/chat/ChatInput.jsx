@@ -290,6 +290,24 @@ export default function ChatInput({
         </div>
       )}
 
+      {/* GIF preview */}
+      {gifPreview && files.length === 0 && (
+        <div className="mb-2 flex items-start gap-2 p-2 bg-muted/50 rounded-lg">
+          <img
+            src={gifPreview}
+            alt="GIF preview"
+            className="max-h-32 max-w-[200px] rounded-lg object-contain"
+          />
+          <button
+            onClick={() => setMessage("")}
+            className="mt-1 p-1 rounded-full hover:bg-accent"
+            title="Remover GIF"
+          >
+            <X className="w-4 h-4 text-muted-foreground" />
+          </button>
+        </div>
+      )}
+
       {/* File previews */}
       {files.length > 0 && (
         <div className="flex gap-2 mb-2 flex-wrap">
