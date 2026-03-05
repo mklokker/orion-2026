@@ -576,18 +576,11 @@ export default function Layout({ children, currentPageName }) {
     } catch (e) { console.error("Notification click error:", e); }
   };
 
-  const handleRequestNotification = () => {
-    Notification.requestPermission().then(perm => {
-      setNotificationPermission(perm);
-      if (perm === "granted") new Notification("Notificações Ativadas!", { body: "Você receberá alertas agora." });
-    });
-  };
-
   const sidebarProps = {
     user, appSettings, navigationItems, gestaoRIItems, isAdmin, isGestaoRIActive, location,
     isDarkMode, toggleTheme, notificationPermission,
-    onRequestNotification: handleRequestNotification,
-    unreadCount,
+    onRequestNotification: requestNotificationPermission,
+    unreadCount: notificationUnreadCount,
     onOpenNotifications: () => setShowNotifications(true),
     onShowProfile: () => setShowProfileModal(true),
     onLogout: () => User.logout(),
