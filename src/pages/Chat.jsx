@@ -28,7 +28,7 @@ export default function Chat() {
   const [currentUser, setCurrentUser] = useState(null);
   const [users, setUsers] = useState([]);
   const [conversations, setConversations] = useState([]);
-  const [selectedConversation, setSelectedConversation] = useState(null);
+  const [selectedConversationId, setSelectedConversationId] = useState(null);
   const [unreadCounts, setUnreadCounts] = useState({});
   const [showNewChat, setShowNewChat] = useState(false);
   const [isGroupMode, setIsGroupMode] = useState(false);
@@ -56,6 +56,11 @@ export default function Chat() {
   const conversationsRef = useRef([]);
 
   // Keep refs in sync with state
+  // Derive selectedConversation from selectedConversationId for backward compatibility
+  const selectedConversation = selectedConversationId 
+    ? conversations.find(c => c.id === selectedConversationId)
+    : null;
+
   useEffect(() => {
     selectedConversationRef.current = selectedConversation;
   }, [selectedConversation]);
@@ -108,15 +113,12 @@ export default function Chat() {
         }
       } else if (event.type === 'update') {
         setConversations(prev => prev.map(c => c.id === event.id ? event.data : c));
-        // Update selected conversation if it's the one being updated
-        if (selectedConversationRef.current?.id === event.id) {
-          setSelectedConversation(event.data);
-        }
+        // selectedConversation will auto-update from selectedConversationId via derived state
       } else if (event.type === 'delete') {
-        setConversations(prev => prev.filter(c => c.id !== event.id));
-        if (selectedConversationRef.current?.id === event.id) {
-          setSelectedConversation(null);
-        }
+         setConversations(prev => prev.filter(c => c.id !== event.id));
+         if (selectedConversationRef.current?.id === event.id) {
+           setSelectedConversationId(null);
+         }
       }
     });
 
@@ -143,6 +145,15 @@ export default function Chat() {
       if (event.type === 'create') {
         // Normalize message conversation_id
         const normalizedMsgConvId = msgConversationId ?? event.data?.conversation_id;
+        const currentSelectedId = selectedConversationRef.current?.id;
+
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[Chat] Message event:', { 
+            msgConvId: normalizedMsgConvId, 
+            selectedConvId: currentSelectedId,
+            matches: normalizedMsgConvId === currentSelectedId
+          });
+        }
 
         // If message is for the selected conversation, add it
         if (selectedConv && normalizedMsgConvId === selectedConv.id) {
@@ -224,21 +235,29 @@ export default function Chat() {
     };
   }, [currentUser]);
 
-  // Load messages when conversation changes + reset global unread for this conv
+  // Load messages when conversation ID changes
   useEffect(() => {
-    if (selectedConversation) {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[Chat] Loading messages for:', { conversationId: selectedConversation.id });
-      }
-      // Usar novo sistema de estado com cache + validação stale
-      conversationState.loadMessages(selectedConversation.id, async (conversationId, signal) => {
-        const response = await getChatMessages({ conversation_id: conversationId });
-        if (signal.aborted) throw new Error("Aborted");
-        return response?.data?.messages || [];
-      });
-      markAsRead(selectedConversation.id);
+    if (!selectedConversationId) {
+      conversationState.clearCache();
+      return;
     }
-  }, [selectedConversation?.id, conversationState]);
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Chat] selectedConversationId changed:', selectedConversationId);
+    }
+
+    // Load messages for the selected conversation
+    conversationState.loadMessages(selectedConversationId, async (conversationId, signal) => {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Chat] Fetching messages for:', conversationId);
+      }
+      const response = await getChatMessages({ conversation_id: conversationId });
+      if (signal.aborted) throw new Error("Aborted");
+      return response?.data?.messages || [];
+    });
+    
+    markAsRead(selectedConversationId);
+  }, [selectedConversationId, conversationState]);
 
   // Keep global unread badge in sync with local unreadCounts
   useEffect(() => {
@@ -482,9 +501,9 @@ export default function Chat() {
 
   const handleSelectConversation = (conv) => {
     if (process.env.NODE_ENV === 'development') {
-      console.log('[Chat] Selected conversation:', { id: conv.id, type: conv.type, name: conv.name });
+      console.log('[Chat] Selecting conversation:', { id: conv.id, type: conv.type });
     }
-    setSelectedConversation(conv);
+    setSelectedConversationId(conv.id);
     if (isMobileView) setShowConversation(true);
   };
 
@@ -494,9 +513,9 @@ export default function Chat() {
       // Limpar cache para forçar reload
       conversationState.clearCache();
       await loadConversations(currentUser.email, false);
-      if (selectedConversation?.id) {
-        await conversationState.loadMessages(selectedConversation.id, fetchMessages);
-        await markAsRead(selectedConversation.id);
+      if (selectedConversationId) {
+        await conversationState.loadMessages(selectedConversationId, fetchMessages);
+        await markAsRead(selectedConversationId);
       }
       toast({
         title: "Atualizado",
@@ -509,29 +528,52 @@ export default function Chat() {
   };
 
   const handleSendMessage = async (msgData) => {
-    if (!selectedConversation || !currentUser) return;
+    if (!selectedConversationId || !currentUser) return;
 
     try {
+      // Optimistic UI: add message immediately with temporary ID
+      const tempId = `temp-${Date.now()}`;
+      const optimisticMsg = {
+        id: tempId,
+        conversation_id: selectedConversationId,
+        sender_email: currentUser.email,
+        sender_name: currentUser.display_name || currentUser.full_name,
+        ...msgData,
+        read_by: [{ email: currentUser.email, read_at: new Date().toISOString() }],
+        created_date: new Date().toISOString(),
+        is_edited: false,
+        is_deleted: false,
+        status: "sending"
+      };
+
+      // Add to UI immediately
+      conversationState.addMessage(selectedConversationId, optimisticMsg);
+
+      // Send to backend
       const newMsg = await ChatMessage.create({
-         conversation_id: selectedConversation.id,
-         sender_email: currentUser.email,
-         sender_name: currentUser.display_name || currentUser.full_name,
-         ...msgData,
-         read_by: [{ email: currentUser.email, read_at: new Date().toISOString() }]
-       });
+        conversation_id: selectedConversationId,
+        sender_email: currentUser.email,
+        sender_name: currentUser.display_name || currentUser.full_name,
+        ...msgData,
+        read_by: [{ email: currentUser.email, read_at: new Date().toISOString() }]
+      });
+
+      // Replace optimistic message with real one
+      conversationState.removeMessage(selectedConversationId, tempId);
+      conversationState.addMessage(selectedConversationId, newMsg);
 
       // Update conversation with new timestamp
       const now = new Date().toISOString();
-      await ChatConversation.update(selectedConversation.id, {
+      await ChatConversation.update(selectedConversationId, {
         last_message: msgData.type === "text" ? msgData.content : `📎 ${msgData.file_name || "Arquivo"}`,
         last_message_at: now,
         last_message_by: currentUser.email,
         typing_users: []
       });
 
-      // Local state updates são via real-time subscriptions
-      // Otimistic update via conversationState (validado com currentConversationId)
-      conversationState.addMessage(selectedConversation.id, newMsg);
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Chat] Message sent:', { id: newMsg.id, conversationId: selectedConversationId });
+      }
       
     } catch (error) {
       console.error("Erro ao enviar:", error);
@@ -643,7 +685,7 @@ export default function Chat() {
         read_by: [{ email: currentUser.email, read_at: new Date().toISOString() }]
       });
 
-      setSelectedConversation(null);
+      setSelectedConversationId(null);
       setShowSettings(false);
       // Real-time subscription will handle removal
     } catch (error) {
@@ -655,7 +697,7 @@ export default function Chat() {
     if (!selectedConversation) return;
     try {
       await deleteGroup({ conversation_id: selectedConversation.id });
-      setSelectedConversation(null);
+      setSelectedConversationId(null);
       setShowSettings(false);
       // Real-time subscription will handle removal
       toast({
@@ -809,7 +851,7 @@ export default function Chat() {
 
   const handleBack = () => {
     setShowConversation(false);
-    setSelectedConversation(null);
+    setSelectedConversationId(null);
   };
 
   return (
@@ -822,7 +864,7 @@ export default function Chat() {
             conversations={conversations}
             users={users}
             currentUser={currentUser}
-            selectedId={selectedConversation?.id}
+            selectedId={selectedConversationId}
             onSelect={handleSelectConversation}
             onNewChat={() => { setIsGroupMode(false); setShowNewChat(true); }}
             onNewGroup={() => { setIsGroupMode(true); setShowNewChat(true); }}
@@ -874,7 +916,7 @@ export default function Chat() {
             conversations={conversations}
             users={users}
             currentUser={currentUser}
-            selectedId={selectedConversation?.id}
+            selectedId={selectedConversationId}
             onSelect={handleSelectConversation}
             onNewChat={() => { setIsGroupMode(false); setShowNewChat(true); }}
             onNewGroup={() => { setIsGroupMode(true); setShowNewChat(true); }}
