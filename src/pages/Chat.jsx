@@ -143,18 +143,28 @@ export default function Chat() {
             return [...prev, event.data];
           });
           // Mark as read immediately if from someone else
-          if (event.data.sender_email !== user.email && !event.data.read_by?.includes(user.email)) {
-            ChatMessage.update(event.data.id, {
-              read_by: [...(event.data.read_by || []), user.email]
-            }).catch(() => {});
+          if (event.data.sender_email !== user.email) {
+            const readByArray = event.data.read_by || [];
+            const notReadYet = !readByArray.some(r => r.email === user.email);
+            if (notReadYet) {
+              ChatMessage.update(event.data.id, {
+                read_by: [
+                  ...readByArray,
+                  { email: user.email, read_at: new Date().toISOString() }
+                ]
+              }).catch(() => {});
+            }
           }
         } else {
-          // Message is for another conversation - update unread count
-          if (event.data.sender_email !== user.email && !event.data.read_by?.includes(user.email)) {
-            setUnreadCounts(prev => ({
-              ...prev,
-              [msgConversationId]: (prev[msgConversationId] || 0) + 1
-            }));
+           // Message is for another conversation - update unread count
+           const readByArray = event.data.read_by || [];
+           const isUnread = event.data.sender_email !== user.email && 
+                           !readByArray.some(r => r.email === user.email);
+           if (isUnread) {
+             setUnreadCounts(prev => ({
+               ...prev,
+               [msgConversationId]: (prev[msgConversationId] || 0) + 1
+             }));
 
             // Send notification if not already notified
             if (!notifiedMessagesRef.current.has(event.data.id)) {
@@ -401,17 +411,24 @@ export default function Chat() {
     try {
       const response = await getChatMessages({ conversation_id: conversationId });
       const msgs = response?.data?.messages || [];
-      const unreadMsgs = msgs.filter(m => 
-        m.sender_email !== currentUser.email && 
-        !m.read_by?.includes(currentUser.email)
-      );
+      const now = new Date().toISOString();
       
-      // Batch update - mark all as read
-      await Promise.all(unreadMsgs.map(msg =>
-        ChatMessage.update(msg.id, {
-          read_by: [...(msg.read_by || []), currentUser.email]
-        })
-      ));
+      const unreadMsgs = msgs.filter(m => {
+        const senderMatches = m.sender_email !== currentUser.email;
+        const readByArray = m.read_by || [];
+        const notReadByCurrentUser = !readByArray.some(r => r.email === currentUser.email);
+        return senderMatches && notReadByCurrentUser;
+      });
+      
+      // Batch update - mark all as read com timestamp
+      await Promise.all(unreadMsgs.map(msg => {
+        const readByArray = msg.read_by || [];
+        const newReadBy = [
+          ...readByArray,
+          { email: currentUser.email, read_at: now }
+        ];
+        return ChatMessage.update(msg.id, { read_by: newReadBy });
+      }));
       
       setUnreadCounts(prev => {
         const updated = { ...prev };
@@ -451,12 +468,12 @@ export default function Chat() {
 
     try {
       const newMsg = await ChatMessage.create({
-        conversation_id: selectedConversation.id,
-        sender_email: currentUser.email,
-        sender_name: currentUser.display_name || currentUser.full_name,
-        ...msgData,
-        read_by: [currentUser.email]
-      });
+         conversation_id: selectedConversation.id,
+         sender_email: currentUser.email,
+         sender_name: currentUser.display_name || currentUser.full_name,
+         ...msgData,
+         read_by: [{ email: currentUser.email, read_at: new Date().toISOString() }]
+       });
 
       // Update conversation with new timestamp
       const now = new Date().toISOString();
@@ -548,7 +565,8 @@ export default function Chat() {
         sender_email: currentUser.email,
         sender_name: currentUser.full_name,
         content: `${currentUser.full_name} criou o grupo "${name}"`,
-        type: "system"
+        type: "system",
+        read_by: [{ email: currentUser.email, read_at: new Date().toISOString() }]
       });
 
       // Real-time subscription will auto-add to conversations
@@ -579,7 +597,8 @@ export default function Chat() {
         sender_email: currentUser.email,
         sender_name: currentUser.full_name,
         content: `${currentUser.full_name} saiu do grupo`,
-        type: "system"
+        type: "system",
+        read_by: [{ email: currentUser.email, read_at: new Date().toISOString() }]
       });
 
       setSelectedConversation(null);
@@ -910,13 +929,13 @@ export default function Chat() {
               ? "✅ Solicitação aprovada! As tarefas/serviços foram criados."
               : "❌ Solicitação rejeitada.";
             ChatMessage.create({
-              conversation_id: request.conversation_id,
-              sender_email: currentUser.email,
-              sender_name: currentUser.full_name || currentUser.display_name,
-              content: statusText,
-              type: "text",
-              read_by: [currentUser.email]
-            }).catch(console.error);
+               conversation_id: request.conversation_id,
+               sender_email: currentUser.email,
+               sender_name: currentUser.full_name || currentUser.display_name,
+               content: statusText,
+               type: "text",
+               read_by: [{ email: currentUser.email, read_at: new Date().toISOString() }]
+             }).catch(console.error);
           }
         }}
       />
