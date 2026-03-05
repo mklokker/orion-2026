@@ -1,5 +1,10 @@
 import React, { useMemo, useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { 
+  filterAndSortUsersBySearch, 
+  getUserDisplayName, 
+  getInitials 
+} from "./userSearchUtils";
 
 /**
  * MentionAutocomplete component
@@ -14,16 +19,11 @@ export default function MentionAutocomplete({
 }) {
   const [selectedIndex, setSelectedIndex] = useState(0);
 
-  // Filtrar usuários: remove o usuário atual, busca case-insensitive
+  // Filtrar usuários: remove o usuário atual, busca com prioridade no nome
   const filteredUsers = useMemo(() => {
-    if (!searchTerm || !users) return [];
-    const lowerSearch = searchTerm.toLowerCase();
-    return users.filter(u => 
-      u.email !== currentUserEmail &&
-      (u.display_name?.toLowerCase().includes(lowerSearch) ||
-       u.full_name?.toLowerCase().includes(lowerSearch) ||
-       u.email.toLowerCase().includes(lowerSearch))
-    );
+    if (!users) return [];
+    const filtered = filterAndSortUsersBySearch(users, searchTerm, currentUserEmail);
+    return filtered;
   }, [searchTerm, users, currentUserEmail]);
 
   // Reset selected index quando filtro mudar
