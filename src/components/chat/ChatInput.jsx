@@ -54,6 +54,7 @@ export default function ChatInput({
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [currentUploadFile, setCurrentUploadFile] = useState("");
+  const [textareaHeight, setTextareaHeight] = useState(44);
   const fileInputRef = useRef(null);
   const textareaRef = useRef(null);
   
@@ -62,6 +63,23 @@ export default function ChatInput({
   const [showMentionAutocomplete, setShowMentionAutocomplete] = useState(false);
   const [mentionSearchTerm, setMentionSearchTerm] = useState("");
   const [mentionPosition, setMentionPosition] = useState({ top: 0, left: 0 });
+
+  // Auto-resize textarea
+  const MIN_HEIGHT = 44;
+  const MAX_HEIGHT = 200; // 8 linhas aprox
+
+  const adjustTextareaHeight = useCallback(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    // Reset height to calculate scrollHeight correctly
+    textarea.style.height = "auto";
+    const scrollHeight = Math.min(textarea.scrollHeight, MAX_HEIGHT);
+    const newHeight = Math.max(scrollHeight, MIN_HEIGHT);
+    
+    setTextareaHeight(newHeight);
+    textarea.style.height = `${newHeight}px`;
+  }, []);
 
   const validateFileSize = (file) => {
     if (file.size > MAX_FILE_SIZE) {
@@ -110,8 +128,14 @@ export default function ChatInput({
         });
         setMessage("");
         setMentions([]);
+        setTextareaHeight(MIN_HEIGHT);
         onCancelReply?.();
-        requestAnimationFrame(() => textareaRef.current?.focus());
+        requestAnimationFrame(() => {
+          if (textareaRef.current) {
+            textareaRef.current.style.height = `${MIN_HEIGHT}px`;
+            textareaRef.current.focus();
+          }
+        });
       } catch (error) {
         console.error("Erro ao enviar GIF:", error);
       }
@@ -169,10 +193,14 @@ export default function ChatInput({
       setMessage("");
       setMentions([]);
       setFiles([]);
+      setTextareaHeight(MIN_HEIGHT);
       onCancelReply?.();
       // Restore focus after state update (works on mobile too — keeps keyboard open)
       requestAnimationFrame(() => {
-        textareaRef.current?.focus();
+        if (textareaRef.current) {
+          textareaRef.current.style.height = `${MIN_HEIGHT}px`;
+          textareaRef.current.focus();
+        }
       });
     } catch (error) {
       console.error("Erro ao enviar:", error);
@@ -183,7 +211,10 @@ export default function ChatInput({
       });
       // Keep focus so user can retry
       requestAnimationFrame(() => {
-        textareaRef.current?.focus();
+        if (textareaRef.current) {
+          textareaRef.current.style.height = `${MIN_HEIGHT}px`;
+          textareaRef.current.focus();
+        }
       });
     }
     
@@ -204,6 +235,7 @@ export default function ChatInput({
       e.preventDefault();
       handleSend();
     }
+    // Shift+Enter is handled by browser (inserts newline naturally)
   };
 
   const handleFileSelect = (e) => {
@@ -230,6 +262,9 @@ export default function ChatInput({
     const newMessage = e.target.value;
     setMessage(newMessage);
     onTyping?.();
+
+    // Auto-resize textarea
+    adjustTextareaHeight();
     
     // Detectar @ trigger para autocomplete
     const match = newMessage.match(AT_TRIGGER_PATTERN);
@@ -461,16 +496,21 @@ export default function ChatInput({
           accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
         />
 
-        {/* Text input */}
+        {/* Text input - auto-expanding */}
         <Textarea
           ref={textareaRef}
-          placeholder={isDragging ? "Solte o arquivo aqui..." : "Digite uma mensagem..."}
+          placeholder={isDragging ? "Solte o arquivo aqui..." : "Digite uma mensagem... (Shift+Enter para quebra de linha)"}
           value={message}
           onChange={handleChange}
           onKeyDown={handleKeyDown}
           onPaste={handlePaste}
           disabled={disabled || uploading}
-          className="min-h-[44px] max-h-32 resize-none flex-1 text-base md:text-sm"
+          className="resize-none flex-1 text-sm md:text-base p-2 md:p-3 leading-5 overflow-hidden"
+          style={{
+            height: `${textareaHeight}px`,
+            minHeight: `${MIN_HEIGHT}px`,
+            maxHeight: `${MAX_HEIGHT}px`
+          }}
           rows={1}
         />
 
