@@ -382,9 +382,9 @@ function SidebarContent({
 }
 
 // ─────────────────────────────────────────────
-// Main Layout
+// Layout Content (inner component with context)
 // ─────────────────────────────────────────────
-export default function Layout({ children, currentPageName }) {
+function LayoutContent({ children, currentPageName }) {
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -730,6 +730,20 @@ export default function Layout({ children, currentPageName }) {
         <Toaster />
       </TooltipProvider>
     </QueryClientProvider>
+  );
+}
+
+// ─────────────────────────────────────────────
+// Main Layout (with provider wrapper)
+// ─────────────────────────────────────────────
+export default function Layout({ children, currentPageName }) {
+  return (
+    <NotificationProvider>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider delayDuration={300}>
+          <LayoutContent children={children} currentPageName={currentPageName} />
+        </TooltipProvider>
+      </QueryClientProvider>
     </NotificationProvider>
   );
 }
