@@ -1,20 +1,16 @@
-import React, { useState } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
 import { Checkbox } from "@/components/ui/checkbox";
 import { Search, Users, X, UserPlus } from "lucide-react";
-
-const getInitials = (name) => {
-  if (!name) return "?";
-  const parts = name.split(" ");
-  if (parts.length >= 2) {
-    return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
-  }
-  return name.substring(0, 2).toUpperCase();
-};
+import { 
+  filterAndSortUsersBySearch, 
+  getUserDisplayName, 
+  getInitials,
+  debounce 
+} from "./userSearchUtils";
 
 export default function NewChatModal({
   open,
@@ -29,11 +25,14 @@ export default function NewChatModal({
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [groupName, setGroupName] = useState("");
 
-  const availableUsers = users.filter(u => u.email !== currentUser?.email);
+  const availableUsers = useMemo(
+    () => users.filter(u => u.email !== currentUser?.email),
+    [users, currentUser?.email]
+  );
   
-  const filteredUsers = availableUsers.filter(u => 
-    u.full_name?.toLowerCase().includes(search.toLowerCase()) ||
-    u.email?.toLowerCase().includes(search.toLowerCase())
+  const filteredUsers = useMemo(
+    () => filterAndSortUsersBySearch(availableUsers, search),
+    [availableUsers, search]
   );
 
   const toggleUser = (user) => {
@@ -137,10 +136,11 @@ export default function NewChatModal({
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <Input
-              placeholder="Buscar usuários..."
+              placeholder="Buscar por nome..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="pl-9"
+              autoFocus
             />
           </div>
 
@@ -163,14 +163,14 @@ export default function NewChatModal({
                     <Avatar className="w-10 h-10">
                       <AvatarImage src={user.profile_picture} />
                       <AvatarFallback className="bg-blue-100 text-blue-700">
-                        {getInitials(user.full_name)}
+                        {getInitials(getUserDisplayName(user))}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-gray-900 truncate">
-                        {user.display_name || user.full_name}
+                      <p className="font-medium text-foreground truncate">
+                        {getUserDisplayName(user)}
                       </p>
-                      <p className="text-sm text-gray-500 truncate">{user.email}</p>
+                      <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                     </div>
                   </div>
                 );
