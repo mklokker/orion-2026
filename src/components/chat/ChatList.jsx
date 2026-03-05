@@ -3,7 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Plus, Users, Check, CheckCheck, Settings, Pin, PinOff, Globe, RefreshCw } from "lucide-react";
+import { Search, Plus, Users, Check, CheckCheck, Settings, Pin, PinOff, Globe, RefreshCw, FileText } from "lucide-react";
 
 // Inline scroll area to avoid react-router indirect import
 const ScrollArea = ({ children, className }) => (
@@ -73,11 +73,21 @@ export default function ChatList({
   };
 
   const getConversationDisplay = (conv) => {
+    if (conv.type === "self") {
+      return {
+        name: "Anotações",
+        avatar: null,
+        isGroup: false,
+        isSelf: true,
+        otherEmail: null
+      };
+    }
     if (conv.type === "group") {
       return {
         name: conv.name || "Grupo sem nome",
         avatar: conv.avatar_url,
         isGroup: true,
+        isSelf: false,
         otherEmail: null
       };
     }
@@ -88,6 +98,7 @@ export default function ChatList({
       name: otherUser?.display_name || otherUser?.full_name || otherEmail || "Usuário",
       avatar: otherUser?.profile_picture,
       isGroup: false,
+      isSelf: false,
       otherEmail
     };
   };
@@ -178,11 +189,11 @@ export default function ChatList({
                   <div className="relative shrink-0">
                     <Avatar className="w-11 h-11 md:w-12 md:h-12">
                       <AvatarImage src={display.avatar} />
-                      <AvatarFallback className={`${display.isGroup ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"}`}>
-                        {display.isGroup ? <Users className="w-5 h-5" /> : getInitials(display.name)}
+                      <AvatarFallback className={`${display.isSelf ? "bg-purple-100 text-purple-700" : display.isGroup ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"}`}>
+                        {display.isSelf ? <FileText className="w-5 h-5" /> : display.isGroup ? <Users className="w-5 h-5" /> : getInitials(display.name)}
                       </AvatarFallback>
                     </Avatar>
-                    {!display.isGroup && display.otherEmail && (
+                    {!display.isGroup && !display.isSelf && display.otherEmail && (
                       <PresenceIndicator 
                         status={presenceMap[display.otherEmail] || "offline"}
                         size="md"
