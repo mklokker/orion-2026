@@ -230,84 +230,88 @@ export default function GroupSettingsModal({
                   </div>
                 </TabsContent>
 
-                {isAdmin && (
-                  <TabsContent value="add" className="mt-4 space-y-3">
-                    {/* Selected users chips */}
-                    {selectedToAdd.length > 0 && (
-                      <div className="flex flex-wrap gap-2">
-                        {selectedToAdd.map(user => (
-                          <div
-                            key={user.email}
-                            className="flex items-center gap-1 bg-green-100 text-green-700 px-2 py-1 rounded-full text-sm"
-                          >
-                            <span>{user.full_name?.split(" ")[0]}</span>
-                            <button onClick={() => toggleUserToAdd(user)}>
-                              <X className="w-3 h-3" />
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* Search */}
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                      <Input
-                        placeholder="Buscar usuários..."
-                        value={searchAdd}
-                        onChange={(e) => setSearchAdd(e.target.value)}
-                        className="pl-9"
-                      />
-                    </div>
-
-                    {/* Users list */}
-                    <div className="h-[150px] overflow-y-auto">
-                      <div className="space-y-1">
-                        {filteredUsersToAdd.map(user => {
-                          const isSelected = selectedToAdd.find(u => u.email === user.email);
-                          return (
+                <TabsContent value="add" className="mt-4 space-y-3">
+                  {isAdmin ? (
+                    <>
+                      {/* Selected users chips */}
+                      {selectedToAdd.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                          {selectedToAdd.map(user => (
                             <div
                               key={user.email}
-                              onClick={() => toggleUserToAdd(user)}
-                              className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer hover:bg-gray-100 ${
-                                isSelected ? "bg-green-50" : ""
-                              }`}
+                              className="flex items-center gap-1 bg-green-100 text-green-700 px-2 py-1 rounded-full text-sm"
                             >
-                              <Checkbox checked={!!isSelected} />
-                              <Avatar className="w-8 h-8">
-                                <AvatarImage src={user.profile_picture} />
-                                <AvatarFallback className="bg-blue-100 text-blue-700 text-xs">
-                                  {getInitials(getUserDisplayName(user))}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div className="flex-1 min-w-0">
-                                <p className="font-medium text-sm truncate text-foreground">{getUserDisplayName(user)}</p>
-                                <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-                              </div>
+                              <span>{user.full_name?.split(" ")[0]}</span>
+                              <button onClick={() => toggleUserToAdd(user)}>
+                                <X className="w-3 h-3" />
+                              </button>
                             </div>
-                          );
-                        })}
-                        {filteredUsersToAdd.length === 0 && (
-                          <p className="text-center text-gray-500 py-4 text-sm">
-                            {usersNotInGroup.length === 0 
-                              ? "Todos os usuários já estão no grupo" 
-                              : "Nenhum usuário encontrado"}
-                          </p>
-                        )}
-                      </div>
-                    </div>
+                          ))}
+                        </div>
+                      )}
 
-                    {/* Add button */}
-                    <Button 
-                      onClick={handleAddMembers} 
-                      disabled={selectedToAdd.length === 0}
-                      className="w-full bg-green-500 hover:bg-green-600"
-                    >
-                      <UserPlus className="w-4 h-4 mr-2" />
-                      Adicionar {selectedToAdd.length > 0 ? `(${selectedToAdd.length})` : ""}
-                    </Button>
-                  </TabsContent>
-                )}
+                      {/* Search */}
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <Input
+                          placeholder="Buscar usuários..."
+                          value={searchAdd}
+                          onChange={(e) => setSearchAdd(e.target.value)}
+                          className="pl-9"
+                        />
+                      </div>
+
+                      {/* Users list */}
+                      <div className="h-[150px] overflow-y-auto">
+                        <div className="space-y-1">
+                          {filteredUsersToAdd.map(user => {
+                            const isSelected = selectedToAdd.find(u => u.email === user.email);
+                            return (
+                              <div
+                                key={user.email}
+                                onClick={() => toggleUserToAdd(user)}
+                                className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer hover:bg-gray-100 ${
+                                  isSelected ? "bg-green-50" : ""
+                                }`}
+                              >
+                                <Checkbox checked={!!isSelected} />
+                                <Avatar className="w-8 h-8">
+                                  <AvatarImage src={user.profile_picture} />
+                                  <AvatarFallback className="bg-blue-100 text-blue-700 text-xs">
+                                    {getInitials(getUserDisplayName(user))}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-medium text-sm truncate text-foreground">{getUserDisplayName(user)}</p>
+                                  <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+                                </div>
+                              </div>
+                            );
+                          })}
+                          {filteredUsersToAdd.length === 0 && (
+                            <p className="text-center text-gray-500 py-4 text-sm">
+                              {usersNotInGroup.length === 0 
+                                ? "Todos os usuários já estão no grupo" 
+                                : "Nenhum usuário encontrado"}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Add button */}
+                      <Button 
+                        onClick={handleAddMembers} 
+                        disabled={selectedToAdd.length === 0}
+                        className="w-full bg-green-500 hover:bg-green-600"
+                      >
+                        <UserPlus className="w-4 h-4 mr-2" />
+                        Adicionar {selectedToAdd.length > 0 ? `(${selectedToAdd.length})` : ""}
+                      </Button>
+                    </>
+                  ) : (
+                    <p className="text-center text-gray-500 py-4 text-sm">Apenas admins podem adicionar participantes</p>
+                  )}
+                </TabsContent>
               </Tabs>
             )}
 
