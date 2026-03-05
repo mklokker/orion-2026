@@ -213,9 +213,11 @@ export default function Chat() {
     if (selectedConversation?.id) {
       // Clear messages immediately to show loading state
       setMessages([]);
-      // Then load fresh messages
-      loadMessages(selectedConversation.id);
-      markAsRead(selectedConversation.id);
+      // Then load fresh messages and mark as read
+      const convId = selectedConversation.id;
+      loadMessages(convId).then(() => {
+        markAsRead(convId);
+      });
     }
   }, [selectedConversation?.id]);
 
