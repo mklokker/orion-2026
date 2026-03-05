@@ -49,8 +49,10 @@ export default function ReadReceiptBadge({ message, users, isGroup = false }) {
             {readByNames.map((r, idx) => (
               <div key={idx} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm text-foreground truncate">{r.name}</p>
-                  <p className="text-xs text-muted-foreground truncate">{r.email}</p>
+                  <p className="font-medium text-sm text-foreground truncate">{r.name || r.email}</p>
+                  {r.name && r.email && (
+                    <p className="text-xs text-muted-foreground truncate">{r.email}</p>
+                  )}
                 </div>
                 {r.readAt && (
                   <span className="text-xs text-muted-foreground shrink-0 ml-2 whitespace-nowrap">
