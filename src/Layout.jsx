@@ -98,9 +98,9 @@ function NavItem({ item, isActive, expanded, onClick }) {
       onClick={onClick}
       aria-label={item.title}
       className={`
-        relative flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group w-full
+        relative flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group w-full font-semibold
         ${isActive
-          ? "bg-primary text-primary-foreground"
+          ? "bg-primary text-primary-foreground shadow-md"
           : "text-foreground hover:bg-accent hover:text-accent-foreground"
         }
       `}
