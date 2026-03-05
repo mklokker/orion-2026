@@ -422,7 +422,7 @@ export default function Chat() {
     }
   };
 
-  const markAsRead = async (conversationId) => {
+  const markAsRead = async (conversationId, retryCount = 0) => {
     if (!currentUser) return;
     try {
       const response = await getChatMessages({ conversation_id: conversationId });
@@ -445,7 +445,8 @@ export default function Chat() {
       
       // Batch update - mark all as read com timestamp
       if (unreadMsgs.length > 0) {
-        await Promise.all(unreadMsgs.map(msg => {
+        console.log(`[markAsRead] Marcando ${unreadMsgs.length} mensagens como lidas na conversa ${conversationId}`);
+        const results = await Promise.allSettled(unreadMsgs.map(msg => {
           const readByArray = msg.read_by || [];
           const newReadBy = [
             ...readByArray,
@@ -453,9 +454,34 @@ export default function Chat() {
           ];
           return ChatMessage.update(msg.id, { read_by: newReadBy });
         }));
+        
+        const failures = results.filter(r => r.status === "rejected");
+        if (failures.length > 0) {
+          console.warn(`[markAsRead] ${failures.length} de ${unreadMsgs.length} falharam ao marcar como lido`);
+          // Retry once on failure
+          if (retryCount < 1) {
+            console.log("[markAsRead] Retentando em 2s...");
+            setTimeout(() => markAsRead(conversationId, retryCount + 1), 2000);
+          }
+        } else {
+          console.log(`[markAsRead] Todas ${unreadMsgs.length} mensagens marcadas com sucesso`);
+        }
+
+        // Also update local messages state so UI reflects read status immediately
+        setMessages(prev => prev.map(m => {
+          if (m.sender_email !== currentUser.email && !(m.read_by || []).some(r => r.email === currentUser.email)) {
+            return { ...m, read_by: [...(m.read_by || []), { email: currentUser.email, read_at: now }] };
+          }
+          return m;
+        }));
       }
     } catch (error) {
       console.error("Erro ao marcar como lido:", error);
+      // Retry on error (rate limit, network issues)
+      if (retryCount < 1) {
+        console.log("[markAsRead] Retentando em 3s após erro...");
+        setTimeout(() => markAsRead(conversationId, retryCount + 1), 3000);
+      }
     }
   };
 

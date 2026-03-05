@@ -134,8 +134,8 @@ export function useChatNotifications({
 
       // Own message – skip
       if (msg.sender_email === currentUser.email) return;
-      // Already read – skip
-      if (msg.read_by?.includes(currentUser.email)) return;
+      // Already read – skip (read_by is array of {email, read_at} objects)
+      if ((msg.read_by || []).some(r => r.email === currentUser.email)) return;
       // Deleted – skip
       if (msg.is_deleted) return;
       // Currently viewing this conversation – skip
