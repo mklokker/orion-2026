@@ -64,12 +64,14 @@ export default function ChatInput({
 
   const handleSend = async () => {
     if ((!message.trim() && files.length === 0) || uploading) return;
+    // Prevent double-send if Enter is held
+    if (isSendingRef.current) return;
+    isSendingRef.current = true;
 
     setUploading(true);
     setUploadProgress(0);
     
     try {
-      // Upload files first with progress tracking
       const uploadedFiles = [];
       const totalFiles = files.length;
       
@@ -77,16 +79,13 @@ export default function ChatInput({
         const file = files[i];
         setCurrentUploadFile(file.file.name);
         
-        // Simulate progress for each file (since we can't get real progress from the API)
         const baseProgress = (i / totalFiles) * 100;
         const fileProgress = 100 / totalFiles;
         
-        // Start progress animation
         setUploadProgress(baseProgress + fileProgress * 0.1);
         
         const { file_url } = await base44.integrations.Core.UploadFile({ file: file.file });
         
-        // Complete this file's progress
         setUploadProgress(baseProgress + fileProgress);
         
         uploadedFiles.push({
@@ -100,7 +99,6 @@ export default function ChatInput({
 
       setUploadProgress(100);
 
-      // Send message(s)
       if (uploadedFiles.length > 0) {
         for (const f of uploadedFiles) {
           await onSend({
@@ -119,22 +117,32 @@ export default function ChatInput({
       setMessage("");
       setFiles([]);
       onCancelReply?.();
+      // Restore focus after state update (works on mobile too — keeps keyboard open)
+      requestAnimationFrame(() => {
+        textareaRef.current?.focus();
+      });
     } catch (error) {
       console.error("Erro ao enviar:", error);
       toast({
-        title: "Erro ao enviar arquivo",
-        description: "Ocorreu um erro ao fazer upload. Tente novamente.",
+        title: "Erro ao enviar mensagem",
+        description: "Ocorreu um erro. Tente novamente.",
         variant: "destructive"
+      });
+      // Keep focus so user can retry
+      requestAnimationFrame(() => {
+        textareaRef.current?.focus();
       });
     }
     
     setUploading(false);
     setUploadProgress(0);
     setCurrentUploadFile("");
+    isSendingRef.current = false;
   };
 
   const handleKeyDown = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+    // Enter sends; Shift+Enter or Ctrl+Enter inserts newline
+    if (e.key === "Enter" && !e.shiftKey && !e.ctrlKey) {
       e.preventDefault();
       handleSend();
     }
