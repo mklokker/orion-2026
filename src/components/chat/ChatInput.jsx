@@ -19,10 +19,10 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { useToast } from "@/components/ui/use-toast";
-import MentionAutocomplete from "./MentionAutocomplete";
+import MentionModal from "./MentionModal";
 
 // Padrão de detecção de @ trigger
-const AT_TRIGGER_PATTERN = /@(\w*)$/;
+const AT_TRIGGER_PATTERN = /@$/;
 
 // Lista expandida de emojis organizados por categoria
 const EMOJI_CATEGORIES = {
@@ -57,11 +57,9 @@ export default function ChatInput({
   const fileInputRef = useRef(null);
   const textareaRef = useRef(null);
   
-  // Mention autocomplete
+  // Mention modal
   const [mentions, setMentions] = useState([]);
-  const [showMentionAutocomplete, setShowMentionAutocomplete] = useState(false);
-  const [mentionSearchTerm, setMentionSearchTerm] = useState("");
-  const [mentionPosition, setMentionPosition] = useState({ top: 0, left: 0 });
+  const [showMentionModal, setShowMentionModal] = useState(false);
 
   const validateFileSize = (file) => {
     if (file.size > MAX_FILE_SIZE) {
@@ -78,10 +76,12 @@ export default function ChatInput({
   const gifPreview = detectGiphyMessage(message);
 
   const handleMentionSelect = (user) => {
+    // Substituir @ por @nome do usuário
     const beforeAt = message.substring(0, message.lastIndexOf("@"));
-    const newMessage = beforeAt + `@${user.display_name || user.full_name}`;
+    const displayName = user.display_name || user.full_name || user.email.split("@")[0];
+    const newMessage = beforeAt + `@${displayName} `;
     setMessage(newMessage);
-    setShowMentionAutocomplete(false);
+    setShowMentionModal(false);
     
     // Adicionar email à lista de menções
     if (!mentions.includes(user.email)) {
@@ -231,30 +231,10 @@ export default function ChatInput({
     setMessage(newMessage);
     onTyping?.();
     
-    // Detectar @ trigger para autocomplete
+    // Detectar @ trigger para abrir modal
     const match = newMessage.match(AT_TRIGGER_PATTERN);
     if (match) {
-      setShowMentionAutocomplete(true);
-      setMentionSearchTerm(match[1]);
-      
-      // Calcular posição do autocomplete (sob o @)
-      if (textareaRef.current) {
-        const caretPos = newMessage.length;
-        const lines = newMessage.substring(0, caretPos).split("\n");
-        const lineNum = lines.length - 1;
-        const colNum = lines[lineNum].length;
-        
-        // Estimativa aproximada de posição
-        const charWidth = 8;
-        const lineHeight = 24;
-        setMentionPosition({
-          top: lineHeight * lineNum,
-          left: Math.max(0, colNum * charWidth - 20)
-        });
-      }
-    } else {
-      setShowMentionAutocomplete(false);
-      setMentionSearchTerm("");
+      setShowMentionModal(true);
     }
   };
 
@@ -327,16 +307,14 @@ export default function ChatInput({
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      {/* Mention autocomplete */}
-      {showMentionAutocomplete && (
-        <MentionAutocomplete
-          searchTerm={mentionSearchTerm}
-          users={conversationUsers}
-          currentUserEmail={participants[0]}
-          onSelect={handleMentionSelect}
-          position={mentionPosition}
-        />
-      )}
+      {/* Mention Modal */}
+      <MentionModal
+        open={showMentionModal}
+        onClose={() => setShowMentionModal(false)}
+        users={conversationUsers}
+        currentUserEmail={participants[0]}
+        onSelect={handleMentionSelect}
+      />
       {/* Upload progress */}
       {uploading && files.length > 0 && (
         <div className="mb-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
