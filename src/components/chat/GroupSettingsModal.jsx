@@ -191,7 +191,7 @@ export default function GroupSettingsModal({
                 </TabsList>
 
                 <TabsContent value="members" className="mt-4">
-                  <ScrollArea className="h-[200px]">
+                  <div className="h-[200px] overflow-y-auto">
                     <div className="space-y-2">
                       {participants.map(email => {
                         const user = allUsers?.find(u => u.email === email);
@@ -266,7 +266,7 @@ export default function GroupSettingsModal({
                     </div>
 
                     {/* Users list */}
-                    <ScrollArea className="h-[150px]">
+                    <div className="h-[150px] overflow-y-auto">
                       <div className="space-y-1">
                         {filteredUsersToAdd.map(user => {
                           const isSelected = selectedToAdd.find(u => u.email === user.email);
@@ -300,7 +300,7 @@ export default function GroupSettingsModal({
                           </p>
                         )}
                       </div>
-                    </ScrollArea>
+                    </div>
 
                     {/* Add button */}
                     <Button 

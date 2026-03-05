@@ -145,7 +145,7 @@ export default function NewChatModal({
           </div>
 
           {/* Users list */}
-          <ScrollArea className="h-[300px]">
+          <div className="h-[300px] overflow-y-auto">
             <div className="space-y-1">
               {filteredUsers.map(user => {
                 const isSelected = selectedUsers.find(u => u.email === user.email);
