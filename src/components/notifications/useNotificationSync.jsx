@@ -1,5 +1,5 @@
 import { useEffect, useCallback, useRef } from 'react';
-import { useNotificationStore, playNotificationSound } from './NotificationStore';
+import { useNotifications } from './NotificationContext';
 import { base44 } from '@/api/base44Client';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -13,7 +13,12 @@ import { useToast } from '@/components/ui/use-toast';
  * - Som opcional
  */
 export function useNotificationSync(userEmail, enabled = true) {
-  const store = useNotificationStore();
+  const {
+    addNotification,
+    updateDocumentTitle,
+    dispatchDesktopNotification,
+    soundEnabled
+  } = useNotifications();
   const { toast } = useToast();
   const unsubscribeRef = useRef(null);
   const lastNotificationTimeRef = useRef({});
@@ -28,6 +33,24 @@ export function useNotificationSync(userEmail, enabled = true) {
     return labels[type] || 'Nova Notificação';
   }, []);
 
+  const playSound = useCallback(() => {
+    if (!soundEnabled) return;
+    try {
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.value = 800;
+      gain.gain.setValueAtTime(0.3, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.1);
+    } catch (error) {
+      console.warn('[Notifications] Could not play sound:', error);
+    }
+  }, [soundEnabled]);
+
   const handleNewNotification = useCallback(async (notification) => {
     // Debounce: evita múltiplos toasts do mesmo evento em <2s
     const key = notification.id;
@@ -39,11 +62,11 @@ export function useNotificationSync(userEmail, enabled = true) {
 
     console.log('[useNotificationSync] New notification:', notification.id);
 
-    // Adiciona ao store
-    store.addNotification(notification);
+    // Adiciona ao contexto
+    addNotification(notification);
 
     // Atualiza título com novo count
-    store.updateDocumentTitle();
+    updateDocumentTitle();
 
     // Toast in-app
     toast({
@@ -53,7 +76,6 @@ export function useNotificationSync(userEmail, enabled = true) {
         {
           label: 'Abrir',
           onClick: () => {
-            // Store pode ser consumido via contexto para navegar
             window.dispatchEvent(new CustomEvent('notification-click', { detail: notification }));
           }
         }
@@ -61,12 +83,12 @@ export function useNotificationSync(userEmail, enabled = true) {
     });
 
     // Som
-    playNotificationSound();
+    playSound();
 
     // Desktop notification se estiver em background
     const isInBackground = document.hidden;
     if (isInBackground) {
-      store.dispatchDesktopNotification(
+      dispatchDesktopNotification(
         getNotificationTypeLabel(notification.type),
         {
           body: notification.message,
@@ -76,7 +98,7 @@ export function useNotificationSync(userEmail, enabled = true) {
         }
       );
     }
-  }, [store, toast, getNotificationTypeLabel]);
+  }, [addNotification, updateDocumentTitle, dispatchDesktopNotification, toast, getNotificationTypeLabel, playSound]);
 
   // Inicia subscription ao Notification entity
   useEffect(() => {
@@ -98,14 +120,5 @@ export function useNotificationSync(userEmail, enabled = true) {
     };
   }, [enabled, userEmail, handleNewNotification]);
 
-  // Sincroniza título quando unread count muda
-  useEffect(() => {
-    const unsubscribe = useNotificationStore.subscribe(
-      (state) => state.notifications,
-      () => {
-        store.updateDocumentTitle();
-      }
-    );
-    return unsubscribe;
-  }, [store]);
+
 }
