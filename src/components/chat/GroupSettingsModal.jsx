@@ -54,11 +54,9 @@ export default function GroupSettingsModal({
   const [searchAdd, setSearchAdd] = useState("");
   const [selectedToAdd, setSelectedToAdd] = useState([]);
 
-  if (!conversation) return null;
-
-  const isGroup = conversation.type === "group";
-  const isAdmin = conversation.admins?.includes(currentUser?.email);
-  const participants = conversation.participants || [];
+  const isGroup = conversation?.type === "group";
+  const isAdmin = conversation?.admins?.includes(currentUser?.email);
+  const participants = conversation?.participants || [];
 
   // Compute users to add early — must be before any conditional JSX to respect hook ordering
   const filteredUsersToAdd = useMemo(() => {
@@ -68,6 +66,8 @@ export default function GroupSettingsModal({
     ) || [];
     return filterAndSortUsersBySearch(notInGroup, searchAdd);
   }, [allUsers, participants, currentUser?.email, searchAdd]);
+
+  if (!conversation) return null;
 
   const handleSaveName = async () => {
     await onUpdate({ name: groupName });
