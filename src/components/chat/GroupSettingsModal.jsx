@@ -288,7 +288,7 @@ export default function GroupSettingsModal({
                           })}
                           {filteredUsersToAdd.length === 0 && (
                             <p className="text-center text-gray-500 py-4 text-sm">
-                              {usersNotInGroup.length === 0 
+                              {(allUsers?.filter(u => !participants.includes(u.email) && u.email !== currentUser?.email) || []).length === 0
                                 ? "Todos os usuários já estão no grupo" 
                                 : "Nenhum usuário encontrado"}
                             </p>
