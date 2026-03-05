@@ -52,6 +52,15 @@ export function useNotificationSync(userEmail, enabled = true) {
   }, [soundEnabled]);
 
   const handleNewNotification = useCallback(async (notification) => {
+    // FILTRO DEFENSIVO: validar escopo antes de processar
+    if (notification.user_email !== userEmail) {
+      console.warn(
+        `[useNotificationSync] SECURITY: Ignored notification ${notification.id} - ` +
+        `intended for ${notification.user_email}, current user is ${userEmail}`
+      );
+      return;
+    }
+
     // Debounce: evita múltiplos toasts do mesmo evento em <2s
     const key = notification.id;
     const now = Date.now();
@@ -60,10 +69,10 @@ export function useNotificationSync(userEmail, enabled = true) {
     }
     lastNotificationTimeRef.current[key] = now;
 
-    console.log('[useNotificationSync] New notification:', notification.id);
+    console.log('[useNotificationSync] New notification for current user:', notification.id);
 
-    // Adiciona ao contexto
-    addNotification(notification);
+    // Adiciona ao contexto (com validação adicional)
+    addNotification(notification, userEmail);
 
     // Atualiza título com novo count
     updateDocumentTitle();
@@ -98,17 +107,26 @@ export function useNotificationSync(userEmail, enabled = true) {
         }
       );
     }
-  }, [addNotification, updateDocumentTitle, dispatchDesktopNotification, toast, getNotificationTypeLabel, playSound]);
+  }, [addNotification, updateDocumentTitle, dispatchDesktopNotification, toast, getNotificationTypeLabel, playSound, userEmail]);
 
   // Inicia subscription ao Notification entity
   useEffect(() => {
     if (!enabled || !userEmail) return;
 
+    console.log(`[useNotificationSync] Starting subscription for ${userEmail}`);
+
     // Subscribe a mudanças (create, update, delete)
     unsubscribeRef.current = base44.entities.Notification.subscribe((event) => {
       // Só nos interessa CREATE de notificações para o usuário atual
-      if (event.type === 'create' && event.data?.user_email === userEmail) {
-        handleNewNotification(event.data);
+      if (event.type === 'create') {
+        if (event.data?.user_email === userEmail) {
+          handleNewNotification(event.data);
+        } else if (event.data?.user_email) {
+          console.log(
+            `[useNotificationSync] Ignored event - notification for ${event.data.user_email}, ` +
+            `current user is ${userEmail}`
+          );
+        }
       }
     });
 
