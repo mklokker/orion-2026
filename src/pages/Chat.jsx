@@ -19,8 +19,6 @@ import { useToast } from "@/components/ui/use-toast";
 import { playNotificationSound } from "@/components/chat/NotificationSounds";
 import { Department } from "@/entities/Department";
 import { setGlobalUnread } from "@/components/chat/useChatNotifications";
-import { useConversationState } from "@/components/chat/useConversationState";
-import ConversationLoadingSkeleton from "@/components/chat/ConversationLoadingSkeleton";
 import { base44 } from "@/api/base44Client";
 
 export default function Chat() {
@@ -28,7 +26,8 @@ export default function Chat() {
   const [currentUser, setCurrentUser] = useState(null);
   const [users, setUsers] = useState([]);
   const [conversations, setConversations] = useState([]);
-  const [selectedConversationId, setSelectedConversationId] = useState(null);
+  const [selectedConversation, setSelectedConversation] = useState(null);
+  const [messages, setMessages] = useState([]);
   const [unreadCounts, setUnreadCounts] = useState({});
   const [showNewChat, setShowNewChat] = useState(false);
   const [isGroupMode, setIsGroupMode] = useState(false);
@@ -44,9 +43,6 @@ export default function Chat() {
   const [selectedTaskRequestId, setSelectedTaskRequestId] = useState(null);
   const [departments, setDepartments] = useState([]);
 
-  // Novo: gerenciar estado de conversa com cache e validação
-  const conversationState = useConversationState();
-
   const typingTimeoutRef = useRef(null);
   const notifiedMessagesRef = useRef(new Set());
   const lastNotificationTimeRef = useRef({});
@@ -56,11 +52,6 @@ export default function Chat() {
   const conversationsRef = useRef([]);
 
   // Keep refs in sync with state
-  // Derive selectedConversation from selectedConversationId for backward compatibility
-  const selectedConversation = selectedConversationId 
-    ? conversations.find(c => c.id === selectedConversationId)
-    : null;
-
   useEffect(() => {
     selectedConversationRef.current = selectedConversation;
   }, [selectedConversation]);
@@ -113,12 +104,15 @@ export default function Chat() {
         }
       } else if (event.type === 'update') {
         setConversations(prev => prev.map(c => c.id === event.id ? event.data : c));
-        // selectedConversation will auto-update from selectedConversationId via derived state
+        // Update selected conversation if it's the one being updated
+        if (selectedConversationRef.current?.id === event.id) {
+          setSelectedConversation(event.data);
+        }
       } else if (event.type === 'delete') {
-         setConversations(prev => prev.filter(c => c.id !== event.id));
-         if (selectedConversationRef.current?.id === event.id) {
-           setSelectedConversationId(null);
-         }
+        setConversations(prev => prev.filter(c => c.id !== event.id));
+        if (selectedConversationRef.current?.id === event.id) {
+          setSelectedConversation(null);
+        }
       }
     });
 
@@ -143,36 +137,23 @@ export default function Chat() {
       const msgConversationId = event.data?.conversation_id;
 
       if (event.type === 'create') {
-        // Normalize message conversation_id
-        const normalizedMsgConvId = msgConversationId ?? event.data?.conversation_id;
-        const currentSelectedId = selectedConversationRef.current?.id;
-
-        if (process.env.NODE_ENV === 'development') {
-          console.log('[Chat] Message event:', { 
-            msgConvId: normalizedMsgConvId, 
-            selectedConvId: currentSelectedId,
-            matches: normalizedMsgConvId === currentSelectedId
-          });
-        }
-
         // If message is for the selected conversation, add it
-        if (selectedConv && normalizedMsgConvId === selectedConv.id) {
-          // Validar se é realmente a conversa atual (previne race condition)
-          const stateConversationId = conversationState.currentConversationId;
-          if (stateConversationId === normalizedMsgConvId) {
-            conversationState.addMessage(normalizedMsgConvId, event.data);
-            // Mark as read immediately if from someone else
-            if (event.data.sender_email !== user.email) {
-              const readByArray = event.data.read_by || [];
-              const notReadYet = !readByArray.some(r => r.email === user.email);
-              if (notReadYet) {
-                ChatMessage.update(event.data.id, {
-                  read_by: [
-                    ...readByArray,
-                    { email: user.email, read_at: new Date().toISOString() }
-                  ]
-                }).catch(() => {});
-              }
+        if (selectedConv && msgConversationId === selectedConv.id) {
+          setMessages(prev => {
+            if (prev.some(m => m.id === event.data.id)) return prev;
+            return [...prev, event.data];
+          });
+          // Mark as read immediately if from someone else
+          if (event.data.sender_email !== user.email) {
+            const readByArray = event.data.read_by || [];
+            const notReadYet = !readByArray.some(r => r.email === user.email);
+            if (notReadYet) {
+              ChatMessage.update(event.data.id, {
+                read_by: [
+                  ...readByArray,
+                  { email: user.email, read_at: new Date().toISOString() }
+                ]
+              }).catch(() => {});
             }
           }
         } else {
@@ -183,7 +164,7 @@ export default function Chat() {
            if (isUnread) {
              setUnreadCounts(prev => ({
                ...prev,
-               [normalizedMsgConvId]: (prev[normalizedMsgConvId] || 0) + 1
+               [msgConversationId]: (prev[msgConversationId] || 0) + 1
              }));
 
             // Send notification if not already notified
@@ -212,20 +193,12 @@ export default function Chat() {
           }
         }
       } else if (event.type === 'update') {
-        const normalizedMsgConvId = msgConversationId ?? event.data?.conversation_id;
-        if (selectedConv && normalizedMsgConvId === selectedConv.id) {
-          // Validar se é a conversa atual
-          if (conversationState.currentConversationId === normalizedMsgConvId) {
-            conversationState.updateMessage(normalizedMsgConvId, event.id, event.data);
-          }
+        if (selectedConv && msgConversationId === selectedConv.id) {
+          setMessages(prev => prev.map(m => m.id === event.id ? event.data : m));
         }
       } else if (event.type === 'delete') {
-        const normalizedMsgConvId = msgConversationId ?? event.data?.conversation_id;
-        if (selectedConv && normalizedMsgConvId === selectedConv.id) {
-          // Validar se é a conversa atual
-          if (conversationState.currentConversationId === normalizedMsgConvId) {
-            conversationState.removeMessage(normalizedMsgConvId, event.id);
-          }
+        if (selectedConv && msgConversationId === selectedConv.id) {
+          setMessages(prev => prev.filter(m => m.id !== event.id));
         }
       }
     });
@@ -235,29 +208,13 @@ export default function Chat() {
     };
   }, [currentUser]);
 
-  // Load messages when conversation ID changes
+  // Load messages when conversation changes + reset global unread for this conv
   useEffect(() => {
-    if (!selectedConversationId) {
-      conversationState.clearCache();
-      return;
+    if (selectedConversation) {
+      loadMessages(selectedConversation.id);
+      markAsRead(selectedConversation.id);
     }
-
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[Chat] selectedConversationId changed:', selectedConversationId);
-    }
-
-    // Load messages for the selected conversation
-    conversationState.loadMessages(selectedConversationId, async (conversationId, signal) => {
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[Chat] Fetching messages for:', conversationId);
-      }
-      const response = await getChatMessages({ conversation_id: conversationId });
-      if (signal.aborted) throw new Error("Aborted");
-      return response?.data?.messages || [];
-    });
-    
-    markAsRead(selectedConversationId);
-  }, [selectedConversationId, conversationState]);
+  }, [selectedConversation?.id]);
 
   // Keep global unread badge in sync with local unreadCounts
   useEffect(() => {
@@ -375,18 +332,7 @@ export default function Chat() {
     try {
       // Use backend function to get conversations (works for all users)
       const response = await getChatConversations();
-      let myConvs = response?.data?.conversations || [];
-      
-      // Normalize conversation IDs - ensure every conversation has a normalized .id field
-      myConvs = myConvs.map(conv => ({
-        ...conv,
-        id: conv.id ?? conv._id ?? conv.conversation_id
-      }));
-      
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[Chat] Conversations loaded and normalized:', myConvs.map(c => ({ id: c.id, type: c.type })));
-      }
-      
+      const myConvs = response?.data?.conversations || [];
       setConversations(myConvs);
       
       // Calculate unread counts only on initial load to avoid rate limit
@@ -395,11 +341,10 @@ export default function Chat() {
         for (const conv of myConvs.slice(0, 10)) { // Limit to 10 to avoid rate limit
           try {
             const msgs = await ChatMessage.filter({ conversation_id: conv.id });
-            const unread = msgs.filter(m => {
-              if (m.sender_email === userEmail) return false;
-              const readByArray = m.read_by || [];
-              return !readByArray.some(r => r.email === userEmail);
-            }).length;
+            const unread = msgs.filter(m => 
+              m.sender_email !== userEmail && 
+              !m.read_by?.includes(userEmail)
+            ).length;
             if (unread > 0) counts[conv.id] = unread;
           } catch (e) {
             // Skip on rate limit
@@ -415,12 +360,16 @@ export default function Chat() {
     }
   };
 
-  // Função de fetch para usar com useConversationState
-  const fetchMessages = useCallback(async (conversationId, signal) => {
-    const response = await getChatMessages({ conversation_id: conversationId });
-    if (signal.aborted) throw new Error("Aborted");
-    return response?.data?.messages || [];
-  }, []);
+  const loadMessages = async (conversationId) => {
+    try {
+      // Use backend function to get messages (works for all users)
+      const response = await getChatMessages({ conversation_id: conversationId });
+      const msgs = response?.data?.messages || [];
+      setMessages(msgs);
+    } catch (error) {
+      console.error("Erro ao carregar mensagens:", error);
+    }
+  };
 
   const sendNotification = (title, body, senderEmail, conversationId) => {
     // Don't notify if user is in DND mode
@@ -500,22 +449,17 @@ export default function Chat() {
   };
 
   const handleSelectConversation = (conv) => {
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[Chat] Selecting conversation:', { id: conv.id, type: conv.type });
-    }
-    setSelectedConversationId(conv.id);
+    setSelectedConversation(conv);
     if (isMobileView) setShowConversation(true);
   };
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
-      // Limpar cache para forçar reload
-      conversationState.clearCache();
       await loadConversations(currentUser.email, false);
-      if (selectedConversationId) {
-        await conversationState.loadMessages(selectedConversationId, fetchMessages);
-        await markAsRead(selectedConversationId);
+      if (selectedConversation?.id) {
+        await loadMessages(selectedConversation.id);
+        await markAsRead(selectedConversation.id);
       }
       toast({
         title: "Atualizado",
@@ -528,52 +472,32 @@ export default function Chat() {
   };
 
   const handleSendMessage = async (msgData) => {
-    if (!selectedConversationId || !currentUser) return;
+    if (!selectedConversation || !currentUser) return;
 
     try {
-      // Optimistic UI: add message immediately with temporary ID
-      const tempId = `temp-${Date.now()}`;
-      const optimisticMsg = {
-        id: tempId,
-        conversation_id: selectedConversationId,
-        sender_email: currentUser.email,
-        sender_name: currentUser.display_name || currentUser.full_name,
-        ...msgData,
-        read_by: [{ email: currentUser.email, read_at: new Date().toISOString() }],
-        created_date: new Date().toISOString(),
-        is_edited: false,
-        is_deleted: false,
-        status: "sending"
-      };
-
-      // Add to UI immediately
-      conversationState.addMessage(selectedConversationId, optimisticMsg);
-
-      // Send to backend
       const newMsg = await ChatMessage.create({
-        conversation_id: selectedConversationId,
-        sender_email: currentUser.email,
-        sender_name: currentUser.display_name || currentUser.full_name,
-        ...msgData,
-        read_by: [{ email: currentUser.email, read_at: new Date().toISOString() }]
-      });
-
-      // Replace optimistic message with real one
-      conversationState.removeMessage(selectedConversationId, tempId);
-      conversationState.addMessage(selectedConversationId, newMsg);
+         conversation_id: selectedConversation.id,
+         sender_email: currentUser.email,
+         sender_name: currentUser.display_name || currentUser.full_name,
+         ...msgData,
+         read_by: [{ email: currentUser.email, read_at: new Date().toISOString() }]
+       });
 
       // Update conversation with new timestamp
       const now = new Date().toISOString();
-      await ChatConversation.update(selectedConversationId, {
+      await ChatConversation.update(selectedConversation.id, {
         last_message: msgData.type === "text" ? msgData.content : `📎 ${msgData.file_name || "Arquivo"}`,
         last_message_at: now,
         last_message_by: currentUser.email,
         typing_users: []
       });
 
-      if (process.env.NODE_ENV === 'development') {
-        console.log('[Chat] Message sent:', { id: newMsg.id, conversationId: selectedConversationId });
-      }
+      // Local state updates are now handled by real-time subscriptions
+      // But we do optimistic update for instant UI feedback
+      setMessages(prev => {
+        if (prev.some(m => m.id === newMsg.id)) return prev;
+        return [...prev, newMsg];
+      });
       
     } catch (error) {
       console.error("Erro ao enviar:", error);
@@ -685,7 +609,7 @@ export default function Chat() {
         read_by: [{ email: currentUser.email, read_at: new Date().toISOString() }]
       });
 
-      setSelectedConversationId(null);
+      setSelectedConversation(null);
       setShowSettings(false);
       // Real-time subscription will handle removal
     } catch (error) {
@@ -697,7 +621,7 @@ export default function Chat() {
     if (!selectedConversation) return;
     try {
       await deleteGroup({ conversation_id: selectedConversation.id });
-      setSelectedConversationId(null);
+      setSelectedConversation(null);
       setShowSettings(false);
       // Real-time subscription will handle removal
       toast({
@@ -851,7 +775,7 @@ export default function Chat() {
 
   const handleBack = () => {
     setShowConversation(false);
-    setSelectedConversationId(null);
+    setSelectedConversation(null);
   };
 
   return (
@@ -864,7 +788,7 @@ export default function Chat() {
             conversations={conversations}
             users={users}
             currentUser={currentUser}
-            selectedId={selectedConversationId}
+            selectedId={selectedConversation?.id}
             onSelect={handleSelectConversation}
             onNewChat={() => { setIsGroupMode(false); setShowNewChat(true); }}
             onNewGroup={() => { setIsGroupMode(true); setShowNewChat(true); }}
@@ -878,29 +802,25 @@ export default function Chat() {
         </div>
         {/* Conversa - Desktop */}
         <div className="flex-1 flex flex-col bg-card rounded-2xl border border-border shadow-sm overflow-hidden min-w-0">
-          {conversationState.isLoading ? (
-            <ConversationLoadingSkeleton />
-          ) : (
-            <ConversationView
-              conversation={selectedConversation}
-              messages={conversationState.messages}
-              currentUser={currentUser}
-              users={users}
-              onSend={handleSendMessage}
-              onTyping={handleTyping}
-              onBack={handleBack}
-              onOpenSettings={() => setShowSettings(true)}
-              onEditMessage={handleEditMessage}
-              onDeleteMessage={handleDeleteMessage}
-              onReaction={handleReaction}
-              onImageClick={setViewingImage}
-              onPinMessage={handlePinMessage}
-              typingUsers={typingUsers}
-              presenceMap={presenceMap}
-              isAdmin={isAdmin}
-              onApproveTaskRequest={handleApproveTaskRequest}
-            />
-          )}
+          <ConversationView
+            conversation={selectedConversation}
+            messages={messages}
+            currentUser={currentUser}
+            users={users}
+            onSend={handleSendMessage}
+            onTyping={handleTyping}
+            onBack={handleBack}
+            onOpenSettings={() => setShowSettings(true)}
+            onEditMessage={handleEditMessage}
+            onDeleteMessage={handleDeleteMessage}
+            onReaction={handleReaction}
+            onImageClick={setViewingImage}
+            onPinMessage={handlePinMessage}
+            typingUsers={typingUsers}
+            presenceMap={presenceMap}
+            isAdmin={isAdmin}
+            onApproveTaskRequest={handleApproveTaskRequest}
+          />
         </div>
       </div>
 
@@ -916,7 +836,7 @@ export default function Chat() {
             conversations={conversations}
             users={users}
             currentUser={currentUser}
-            selectedId={selectedConversationId}
+            selectedId={selectedConversation?.id}
             onSelect={handleSelectConversation}
             onNewChat={() => { setIsGroupMode(false); setShowNewChat(true); }}
             onNewGroup={() => { setIsGroupMode(true); setShowNewChat(true); }}
@@ -935,29 +855,25 @@ export default function Chat() {
             showConversation ? "translate-x-0" : "translate-x-full"
           }`}
         >
-          {conversationState.isLoading ? (
-            <ConversationLoadingSkeleton />
-          ) : (
-            <ConversationView
-              conversation={selectedConversation}
-              messages={conversationState.messages}
-              currentUser={currentUser}
-              users={users}
-              onSend={handleSendMessage}
-              onTyping={handleTyping}
-              onBack={handleBack}
-              onOpenSettings={() => setShowSettings(true)}
-              onEditMessage={handleEditMessage}
-              onDeleteMessage={handleDeleteMessage}
-              onReaction={handleReaction}
-              onImageClick={setViewingImage}
-              onPinMessage={handlePinMessage}
-              typingUsers={typingUsers}
-              presenceMap={presenceMap}
-              isAdmin={isAdmin}
-              onApproveTaskRequest={handleApproveTaskRequest}
-            />
-          )}
+          <ConversationView
+            conversation={selectedConversation}
+            messages={messages}
+            currentUser={currentUser}
+            users={users}
+            onSend={handleSendMessage}
+            onTyping={handleTyping}
+            onBack={handleBack}
+            onOpenSettings={() => setShowSettings(true)}
+            onEditMessage={handleEditMessage}
+            onDeleteMessage={handleDeleteMessage}
+            onReaction={handleReaction}
+            onImageClick={setViewingImage}
+            onPinMessage={handlePinMessage}
+            typingUsers={typingUsers}
+            presenceMap={presenceMap}
+            isAdmin={isAdmin}
+            onApproveTaskRequest={handleApproveTaskRequest}
+          />
         </div>
       </div>
 
