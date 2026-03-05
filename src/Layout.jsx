@@ -458,6 +458,7 @@ export default function Layout({ children, currentPageName }) {
 
   const toggleTheme = () => setIsDarkMode(d => !d);
 
+  const { toast } = useToast();
   const isAdmin = user?.role === "admin";
   const isDashboard = ["/Dashboard", "/", ""].includes(location.pathname);
 
