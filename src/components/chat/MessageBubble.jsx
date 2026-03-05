@@ -159,7 +159,8 @@ export default function MessageBubble({
           <img
             src={message.file_url}
             alt="Imagem"
-            className="max-w-[280px] rounded-lg cursor-pointer hover:opacity-90"
+            className="max-w-full w-full rounded-lg cursor-pointer hover:opacity-90 block"
+            style={{ maxWidth: '100%' }}
             onClick={() => onImageClick?.(message.file_url)}
           />
           {message.content && <p className="mt-1 text-sm">{message.content}</p>}
