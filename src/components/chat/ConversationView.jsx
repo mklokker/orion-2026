@@ -168,16 +168,16 @@ export default function ConversationView({
   return (
     <div className="flex flex-col h-full bg-muted/30">
       {/* Header */}
-      <div className="flex items-center gap-3 p-3 bg-card border-b border-border">
-        <Button variant="ghost" size="icon" className="md:hidden" onClick={onBack}>
+      <div className="flex items-center gap-2 md:gap-3 px-2 md:px-3 py-2 md:py-3 bg-card border-b border-border">
+        <Button variant="ghost" size="icon" className="md:hidden shrink-0 h-10 w-10" onClick={onBack}>
           <ArrowLeft className="w-5 h-5" />
         </Button>
 
-        <div className="relative">
-          <Avatar className="w-10 h-10 cursor-pointer" onClick={onOpenSettings}>
+        <div className="relative shrink-0">
+          <Avatar className="w-9 h-9 md:w-10 md:h-10 cursor-pointer" onClick={onOpenSettings}>
             <AvatarImage src={display.avatar} />
             <AvatarFallback className={isGroup ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"}>
-              {isGroup ? <Users className="w-5 h-5" /> : getInitials(display.name)}
+              {isGroup ? <Users className="w-4 h-4 md:w-5 md:h-5" /> : getInitials(display.name)}
             </AvatarFallback>
           </Avatar>
           {!isGroup && display.status && (
@@ -190,7 +190,7 @@ export default function ConversationView({
         </div>
 
         <div className="flex-1 min-w-0 cursor-pointer" onClick={onOpenSettings}>
-          <h3 className="font-semibold text-foreground truncate">{display.name}</h3>
+          <h3 className="font-semibold text-foreground truncate text-sm md:text-base">{display.name}</h3>
           <p className={`text-xs truncate ${
             display.status === "online" ? "text-green-600" : 
             display.status === "away" ? "text-yellow-600" : 
@@ -200,17 +200,20 @@ export default function ConversationView({
           </p>
         </div>
 
-        <Button variant="ghost" size="icon" onClick={() => setShowFilesModal(true)} title="Ver arquivos">
-          <FolderOpen className="w-5 h-5" />
-        </Button>
+        {/* Desktop: show all buttons */}
+        <div className="hidden md:flex items-center gap-1">
+          <Button variant="ghost" size="icon" onClick={() => setShowFilesModal(true)} title="Ver arquivos">
+            <FolderOpen className="w-5 h-5" />
+          </Button>
+          <Button variant="ghost" size="icon" onClick={() => setShowTaskRequestModal(true)} title="Solicitar Tarefas">
+            <ListPlus className="w-5 h-5" />
+          </Button>
+        </div>
 
-        <Button variant="ghost" size="icon" onClick={() => setShowTaskRequestModal(true)} title="Solicitar Tarefas">
-          <ListPlus className="w-5 h-5" />
-        </Button>
-
+        {/* Mobile + Desktop: dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon">
+            <Button variant="ghost" size="icon" className="shrink-0 h-10 w-10">
               <MoreVertical className="w-5 h-5" />
             </Button>
           </DropdownMenuTrigger>
@@ -220,6 +223,9 @@ export default function ConversationView({
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => setShowFilesModal(true)}>
               <FolderOpen className="w-4 h-4 mr-2" /> Ver arquivos
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setShowTaskRequestModal(true)}>
+              <ListPlus className="w-4 h-4 mr-2" /> Solicitar Tarefas
             </DropdownMenuItem>
             <DropdownMenuItem>
               <Search className="w-4 h-4 mr-2" /> Buscar mensagens
@@ -238,7 +244,7 @@ export default function ConversationView({
       />
 
       {/* Messages */}
-      <ScrollArea className="flex-1 p-4 relative" ref={scrollRef} onScrollCapture={handleScroll}>
+      <ScrollArea className="flex-1 px-2 md:px-4 py-2 md:py-4 relative" ref={scrollRef} onScrollCapture={handleScroll}>
         {Object.entries(groupedMessages).map(([date, msgs]) => (
           <div key={date}>
             {/* Date separator */}

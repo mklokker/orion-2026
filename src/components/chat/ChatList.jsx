@@ -110,27 +110,28 @@ export default function ChatList({
   return (
     <div className="flex flex-col h-full bg-card">
       {/* Header */}
-      <div className="p-4 border-b border-border">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold text-foreground">Conversas</h2>
-          <div className="flex gap-1">
+      <div className="p-3 md:p-4 border-b border-border">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-lg md:text-xl font-bold text-foreground">Conversas</h2>
+          <div className="flex gap-0.5">
             <Button 
               variant="ghost" 
               size="icon" 
               onClick={onRefresh} 
               title="Atualizar conversas"
               disabled={isRefreshing}
+              className="h-9 w-9"
             >
-              <RefreshCw className={`w-5 h-5 ${isRefreshing ? "animate-spin" : ""}`} />
+              <RefreshCw className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`} />
             </Button>
-            <Button variant="ghost" size="icon" onClick={onOpenPresenceSettings} title="Status de presença">
-              <Settings className="w-5 h-5" />
+            <Button variant="ghost" size="icon" onClick={onOpenPresenceSettings} title="Status de presença" className="h-9 w-9">
+              <Settings className="w-4 h-4" />
             </Button>
-            <Button variant="ghost" size="icon" onClick={onNewChat} title="Nova conversa">
-              <Plus className="w-5 h-5" />
+            <Button variant="ghost" size="icon" onClick={onNewChat} title="Nova conversa" className="h-9 w-9">
+              <Plus className="w-4 h-4" />
             </Button>
-            <Button variant="ghost" size="icon" onClick={onNewGroup} title="Novo grupo">
-              <Users className="w-5 h-5" />
+            <Button variant="ghost" size="icon" onClick={onNewGroup} title="Novo grupo" className="h-9 w-9">
+              <Users className="w-4 h-4" />
             </Button>
           </div>
         </div>
@@ -140,7 +141,7 @@ export default function ChatList({
             placeholder="Buscar conversas..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="pl-9 bg-muted/50 rounded-xl"
+            className="pl-9 bg-muted/50 rounded-xl h-10"
           />
         </div>
       </div>
@@ -164,14 +165,14 @@ export default function ChatList({
                 <div
                   key={conv.id}
                   onClick={() => onSelect(conv)}
-                  className={`flex items-center gap-3 p-3 cursor-pointer transition-all rounded-xl group ${
+                  className={`flex items-center gap-2.5 md:gap-3 p-2.5 md:p-3 cursor-pointer transition-all rounded-xl group min-h-[60px] ${
                     isSelected 
                       ? "bg-primary/10 ring-2 ring-primary/30" 
-                      : "hover:bg-accent"
+                      : "hover:bg-accent active:bg-accent"
                   } ${isPinned && !isSelected ? "bg-amber-500/10" : ""}`}
                 >
-                  <div className="relative">
-                    <Avatar className="w-12 h-12">
+                  <div className="relative shrink-0">
+                    <Avatar className="w-11 h-11 md:w-12 md:h-12">
                       <AvatarImage src={display.avatar} />
                       <AvatarFallback className={`${display.isGroup ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"}`}>
                         {display.isGroup ? <Users className="w-5 h-5" /> : getInitials(display.name)}

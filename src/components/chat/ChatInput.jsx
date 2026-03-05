@@ -228,7 +228,7 @@ export default function ChatInput({
 
   return (
     <div 
-      className={`border-t bg-white p-3 transition-colors ${isDragging ? "bg-blue-50 border-blue-300 border-2 border-dashed" : ""}`}
+      className={`border-t border-border bg-card p-2 md:p-3 transition-colors ${isDragging ? "bg-blue-50 border-blue-300 border-2 border-dashed" : ""}`}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
@@ -290,25 +290,25 @@ export default function ChatInput({
       )}
 
       {/* Input area */}
-      <div className="flex items-end gap-2">
+      <div className="flex items-end gap-1 md:gap-2">
         {/* Emoji picker */}
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="ghost" size="icon" className="shrink-0" disabled={disabled}>
-              <Smile className="w-5 h-5 text-gray-500" />
+            <Button variant="ghost" size="icon" className="shrink-0 h-10 w-10" disabled={disabled}>
+              <Smile className="w-5 h-5 text-muted-foreground" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-80 p-0" side="top">
+          <PopoverContent className="w-72 md:w-80 p-0" side="top" align="start">
             <div className="max-h-72 overflow-y-auto">
               {Object.entries(EMOJI_CATEGORIES).map(([category, emojis]) => (
                 <div key={category} className="p-2">
-                  <p className="text-xs font-semibold text-gray-500 mb-1 sticky top-0 bg-white">{category}</p>
+                  <p className="text-xs font-semibold text-muted-foreground mb-1 sticky top-0 bg-popover">{category}</p>
                   <div className="flex flex-wrap gap-0.5">
                     {emojis.map((emoji, i) => (
                       <button
                         key={`${category}-${i}`}
                         onClick={() => addEmoji(emoji)}
-                        className="text-xl hover:bg-gray-100 rounded p-1 w-8 h-8 flex items-center justify-center"
+                        className="text-xl hover:bg-accent rounded p-1 w-8 h-8 flex items-center justify-center"
                       >
                         {emoji}
                       </button>
@@ -324,11 +324,11 @@ export default function ChatInput({
         <Button
           variant="ghost"
           size="icon"
-          className="shrink-0"
+          className="shrink-0 h-10 w-10"
           onClick={() => fileInputRef.current?.click()}
           disabled={disabled || uploading}
         >
-          <Paperclip className="w-5 h-5 text-gray-500" />
+          <Paperclip className="w-5 h-5 text-muted-foreground" />
         </Button>
         <input
           type="file"
@@ -348,7 +348,7 @@ export default function ChatInput({
           onKeyDown={handleKeyDown}
           onPaste={handlePaste}
           disabled={disabled || uploading}
-          className="min-h-[44px] max-h-32 resize-none flex-1"
+          className="min-h-[44px] max-h-32 resize-none flex-1 text-base md:text-sm"
           rows={1}
         />
 
@@ -356,7 +356,8 @@ export default function ChatInput({
         <Button
           onClick={handleSend}
           disabled={disabled || uploading || (!message.trim() && files.length === 0)}
-          className="shrink-0 bg-green-500 hover:bg-green-600"
+          className="shrink-0 bg-green-500 hover:bg-green-600 h-10 w-10"
+          size="icon"
         >
           {uploading ? (
             <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
