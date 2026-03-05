@@ -177,12 +177,12 @@ export default function MessageBubble({
             href={message.file_url}
             target="_blank"
             rel="noopener noreferrer"
-            className={`flex items-center gap-2 p-2 rounded-lg ${isOwn ? "bg-green-600/20" : "bg-gray-200"}`}
+            className={`flex items-center gap-2 p-2 rounded-lg min-w-0 overflow-hidden ${isOwn ? "bg-green-600/20" : "bg-gray-200"}`}
           >
-            <div className={`p-2 rounded ${isOwn ? "bg-green-500/30" : "bg-gray-300"}`}>
+            <div className={`p-2 rounded shrink-0 ${isOwn ? "bg-green-500/30" : "bg-gray-300"}`}>
               <FileIcon className="w-6 h-6" />
             </div>
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 overflow-hidden">
               <p className="text-sm font-medium truncate">{message.file_name || "Arquivo"}</p>
               <p className="text-xs opacity-70">{formatFileSize(message.file_size)}</p>
             </div>
