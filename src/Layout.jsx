@@ -591,9 +591,6 @@ function LayoutContent({ children, currentPageName }) {
   };
 
   return (
-    <NotificationProvider>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider delayDuration={300}>
         {appSettings && (
           <style>{`
             :root {
