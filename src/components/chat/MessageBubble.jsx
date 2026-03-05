@@ -151,6 +151,23 @@ export default function MessageBubble({
       </div>
     );
 
+    // GIF (Giphy)
+    if (message.type === "gif" && (message.gif_url || message.content)) {
+      const gifSrc = message.gif_url || message.content;
+      return (
+        <>
+          {replyPreview}
+          <img
+            src={gifSrc}
+            alt="GIF"
+            className="max-w-full w-auto rounded-lg block"
+            style={{ maxWidth: "100%", maxHeight: "240px" }}
+            loading="lazy"
+          />
+        </>
+      );
+    }
+
     // Image
     if (isImage && message.file_url) {
       return (
