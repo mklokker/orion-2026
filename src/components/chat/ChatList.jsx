@@ -108,9 +108,9 @@ export default function ChatList({
   });
 
   return (
-    <div className="flex flex-col h-full bg-card">
+    <div className="flex flex-col h-full bg-card overflow-hidden">
       {/* Header */}
-      <div className="p-3 md:p-4 border-b border-border">
+      <div className="p-3 md:p-4 border-b border-border shrink-0">
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg md:text-xl font-bold text-foreground">Conversas</h2>
           <div className="flex gap-0.5">
@@ -147,7 +147,7 @@ export default function ChatList({
       </div>
 
       {/* Conversations List */}
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 min-h-0">
         {sortedConversations.length === 0 ? (
           <div className="p-8 text-center text-muted-foreground">
             <p className="text-sm">Nenhuma conversa encontrada</p>

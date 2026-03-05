@@ -735,7 +735,7 @@ export default function Chat() {
   };
 
   return (
-    <div className="h-[calc(100vh-64px)] md:h-screen flex bg-background p-0 md:p-3 gap-0 md:gap-3">
+    <div className="h-[calc(100vh-120px)] md:h-screen flex bg-background p-0 md:p-3 gap-0 md:gap-3 overflow-hidden">
       {/* Sidebar - Chat List */}
       <div className={`${isMobileView && showConversation ? "hidden" : "flex"} w-full md:w-[350px] lg:w-[400px] flex-col bg-card md:rounded-2xl md:border md:border-border md:shadow-sm overflow-hidden`}>
         <ChatList
