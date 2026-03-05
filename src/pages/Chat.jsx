@@ -463,11 +463,7 @@ export default function Chat() {
     if (!selectedConversation || !currentUser) return;
 
     try {
-      const conv = await ChatConversation.filter({ id: selectedConversation.id });
-      if (conv.length === 0) return;
-      
-      const current = conv[0];
-      const typingUsers = current.typing_users || [];
+      const typingUsers = selectedConversation.typing_users || [];
       
       if (!typingUsers.includes(currentUser.email)) {
         await ChatConversation.update(selectedConversation.id, {
@@ -478,10 +474,10 @@ export default function Chat() {
       // Clear typing after 3 seconds
       if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
       typingTimeoutRef.current = setTimeout(async () => {
-        const conv2 = await ChatConversation.filter({ id: selectedConversation.id });
-        if (conv2.length > 0) {
-          await ChatConversation.update(selectedConversation.id, {
-            typing_users: (conv2[0].typing_users || []).filter(e => e !== currentUser.email)
+        const selectedConv = selectedConversationRef.current;
+        if (selectedConv) {
+          await ChatConversation.update(selectedConv.id, {
+            typing_users: (selectedConv.typing_users || []).filter(e => e !== currentUser.email)
           });
         }
       }, 3000);
