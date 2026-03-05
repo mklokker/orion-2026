@@ -158,7 +158,7 @@ export default function GroupSettingsModal({
                       onChange={(e) => setGroupName(e.target.value)}
                       className="text-center"
                     />
-                    <Button size="sm" onClick={handleSaveName}>Salvar</Button>
+                    <Button size="sm" onClick={handleSaveName} className="bg-primary text-primary-foreground hover:bg-primary/90">Salvar</Button>
                   </div>
                 ) : (
                   <div className="flex items-center gap-2 mt-3">
@@ -306,7 +306,7 @@ export default function GroupSettingsModal({
                     <Button 
                       onClick={handleAddMembers} 
                       disabled={selectedToAdd.length === 0}
-                      className="w-full bg-green-500 hover:bg-green-600"
+                      className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
                     >
                       <UserPlus className="w-4 h-4 mr-2" />
                       Adicionar {selectedToAdd.length > 0 ? `(${selectedToAdd.length})` : ""}
