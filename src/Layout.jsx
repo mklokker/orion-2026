@@ -278,25 +278,26 @@ function SidebarContent({
 
       {/* Footer */}
       <div className="border-t border-border p-2 shrink-0 space-y-1">
-        {/* Theme toggle */}
-        {expanded ? (
-          <button
-            onClick={toggleTheme}
-            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-foreground hover:bg-accent transition-colors"
-          >
-            {isDarkMode ? <Sun className="w-4 h-4 shrink-0" /> : <Moon className="w-4 h-4 shrink-0" />}
-            <span className="truncate">{isDarkMode ? "Modo Claro" : "Modo Escuro"}</span>
-          </button>
-        ) : (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button onClick={toggleTheme} className="w-full flex justify-center items-center py-2.5 rounded-lg hover:bg-accent text-foreground transition-colors">
-                {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="right">{isDarkMode ? "Modo Claro" : "Modo Escuro"}</TooltipContent>
-          </Tooltip>
-        )}
+        {/* Theme Selector */}
+          {expanded ? (
+            <button
+              onClick={toggleTheme}
+              title="Alternar tema"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-foreground hover:bg-accent transition-colors"
+            >
+              <Moon className="w-4 h-4 shrink-0" />
+              <span className="truncate">Tema: {onGetThemeLabel()}</span>
+            </button>
+          ) : (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button onClick={toggleTheme} className="w-full flex justify-center items-center py-2.5 rounded-lg hover:bg-accent text-foreground transition-colors" title="Alternar tema">
+                  <Moon className="w-4 h-4" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="right">Tema: {onGetThemeLabel()}</TooltipContent>
+            </Tooltip>
+          )}
 
         {/* Notifications */}
         {expanded ? (
@@ -453,19 +454,31 @@ function LayoutContent({ children, currentPageName }) {
     }
   }, [location.pathname, isMainTab]);
 
-  // Theme
-  const [isDarkMode, setIsDarkMode] = React.useState(() => {
+  // Theme Management (Light/Dark/Pastel/Midnight/Forest)
+  const [currentTheme, setCurrentTheme] = React.useState(() => {
     const saved = localStorage.getItem("orion_theme");
-    if (saved) return saved === "dark";
-    return window.matchMedia("(prefers-color-scheme: dark)").matches;
+    return saved || "light";
   });
 
   React.useEffect(() => {
-    document.documentElement.classList.toggle("dark", isDarkMode);
-    localStorage.setItem("orion_theme", isDarkMode ? "dark" : "light");
-  }, [isDarkMode]);
+    const html = document.documentElement;
+    // Remove all theme classes
+    html.classList.remove("dark", "theme-pastel", "theme-midnight", "theme-forest");
+    // Apply current theme
+    if (currentTheme === "dark") {
+      html.classList.add("dark");
+    } else if (currentTheme !== "light") {
+      html.classList.add(`theme-${currentTheme}`);
+    }
+    localStorage.setItem("orion_theme", currentTheme);
+  }, [currentTheme]);
 
-  const toggleTheme = () => setIsDarkMode(d => !d);
+  const toggleTheme = () => {
+    const themes = ["light", "dark", "pastel", "midnight", "forest"];
+    const currentIndex = themes.indexOf(currentTheme);
+    const nextIndex = (currentIndex + 1) % themes.length;
+    setCurrentTheme(themes[nextIndex]);
+  };
 
   const { toast } = useToast();
   const isAdmin = user?.role === "admin";
@@ -580,7 +593,7 @@ function LayoutContent({ children, currentPageName }) {
 
   const sidebarProps = {
     user, appSettings, navigationItems, gestaoRIItems, isAdmin, isGestaoRIActive, location,
-    isDarkMode, toggleTheme, notificationPermission,
+    isDarkMode: currentTheme !== "light", toggleTheme, notificationPermission,
     onRequestNotification: requestNotificationPermission,
     unreadCount: notificationUnreadCount,
     onOpenNotifications: () => setShowNotifications(true),
@@ -588,6 +601,7 @@ function LayoutContent({ children, currentPageName }) {
     onLogout: () => User.logout(),
     pinned: sidebarPinned,
     onTogglePin: togglePin,
+    currentTheme,
   };
 
   return (
