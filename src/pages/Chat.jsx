@@ -572,12 +572,10 @@ export default function Chat() {
   const handleDeleteGroup = async () => {
     if (!selectedConversation) return;
     try {
-      // Use backend function to delete (works for all users who are admins)
       await deleteGroup({ conversation_id: selectedConversation.id });
-
       setSelectedConversation(null);
       setShowSettings(false);
-      await loadConversations(currentUser.email);
+      // Real-time subscription will handle removal
       toast({
         title: "Grupo excluído",
         description: "O grupo foi excluído com sucesso"
@@ -597,7 +595,7 @@ export default function Chat() {
     if (newContent && newContent !== message.content) {
       try {
         await ChatMessage.update(message.id, { content: newContent, is_edited: true });
-        await loadMessages(selectedConversation.id);
+        // Real-time subscription will update messages
       } catch (error) {
         console.error("Erro ao editar:", error);
       }
@@ -608,7 +606,7 @@ export default function Chat() {
     if (!confirm("Excluir esta mensagem?")) return;
     try {
       await ChatMessage.update(message.id, { is_deleted: true, content: "" });
-      await loadMessages(selectedConversation.id);
+      // Real-time subscription will update messages
     } catch (error) {
       console.error("Erro ao excluir:", error);
     }
@@ -619,7 +617,7 @@ export default function Chat() {
       const msg = messages.find(m => m.id === messageId);
       if (!msg) return;
 
-      const reactions = msg.reactions || {};
+      const reactions = { ...(msg.reactions || {}) };
       const users = reactions[emoji] || [];
       
       if (users.includes(currentUser.email)) {
@@ -630,7 +628,7 @@ export default function Chat() {
       }
 
       await ChatMessage.update(messageId, { reactions });
-      await loadMessages(selectedConversation.id);
+      // Real-time subscription will update messages
     } catch (error) {
       console.error("Erro ao reagir:", error);
     }
@@ -644,7 +642,7 @@ export default function Chat() {
         pinned_by: newPinnedState ? currentUser.email : null,
         pinned_at: newPinnedState ? new Date().toISOString() : null
       });
-      await loadMessages(selectedConversation.id);
+      // Real-time subscription will update messages
       toast({
         title: newPinnedState ? "Mensagem fixada" : "Mensagem desafixada",
         description: newPinnedState 
@@ -671,8 +669,7 @@ export default function Chat() {
       await ChatConversation.update(conversation.id, {
         is_pinned_by: newPinnedBy
       });
-      
-      await loadConversations(currentUser.email, true);
+      // Real-time subscription will update the conversation
       
       toast({
         title: shouldPin ? "Conversa fixada" : "Conversa desafixada",
