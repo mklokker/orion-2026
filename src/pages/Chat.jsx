@@ -219,10 +219,13 @@ export default function Chat() {
     }
   }, [selectedConversation?.id]);
 
-  // Keep global unread badge in sync with local unreadCounts
+  // Keep global unread badge in sync with local unreadCounts (debounced)
   useEffect(() => {
-    const total = Object.values(unreadCounts).reduce((a, b) => a + b, 0);
-    setGlobalUnread(total);
+    const timer = setTimeout(() => {
+      const total = Object.values(unreadCounts).reduce((a, b) => a + b, 0);
+      setGlobalUnread(total);
+    }, 50);
+    return () => clearTimeout(timer);
   }, [unreadCounts]);
 
   const loadInitialData = async () => {
@@ -441,11 +444,21 @@ export default function Chat() {
         return ChatMessage.update(msg.id, { read_by: newReadBy });
       }));
       
+      // Clear unread count e resetar global badge
       setUnreadCounts(prev => {
         const updated = { ...prev };
         delete updated[conversationId];
         return updated;
       });
+      
+      // Recalculate and update global unread count
+      setTimeout(() => {
+        setUnreadCounts(prev => {
+          const total = Object.values(prev).reduce((a, b) => a + b, 0);
+          setGlobalUnread(total);
+          return prev;
+        });
+      }, 100);
     } catch (error) {
       console.error("Erro ao marcar como lido:", error);
     }
