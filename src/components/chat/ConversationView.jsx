@@ -19,6 +19,7 @@ import TypingIndicator from "./TypingIndicator";
 import PinnedMessages from "./PinnedMessages";
 import ConversationFilesModal from "./ConversationFilesModal";
 import TaskRequestModal from "./TaskRequestModal";
+import MessageSearchModal from "./MessageSearchModal";
 import { groupMessagesByDateBR, getDateLabelBR } from "@/components/utils/dateUtils";
 import {
   DropdownMenu,
@@ -59,6 +60,7 @@ export default function ConversationView({
   const [replyingTo, setReplyingTo] = useState(null);
   const [showFilesModal, setShowFilesModal] = useState(false);
   const [showTaskRequestModal, setShowTaskRequestModal] = useState(false);
+  const [showSearchModal, setShowSearchModal] = useState(false);
   const messageRefs = useRef({});
   const bottomRef = useRef(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
@@ -100,6 +102,19 @@ export default function ConversationView({
       }, 100);
     }
   }, [messages, conversation?.id]);
+
+  // Atalho Ctrl+F para abrir busca
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "f") {
+        e.preventDefault();
+        setShowSearchModal(true);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const isGroup = conversation?.type === "group";
   
@@ -221,7 +236,7 @@ export default function ConversationView({
             <DropdownMenuItem onClick={() => setShowTaskRequestModal(true)}>
               <ListPlus className="w-4 h-4 mr-2" /> Solicitar Tarefas
             </DropdownMenuItem>
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setShowSearchModal(true)}>
               <Search className="w-4 h-4 mr-2" /> Buscar mensagens
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -335,6 +350,14 @@ export default function ConversationView({
         currentUser={currentUser}
         conversationId={conversation?.id}
         onSendMessage={handleSend}
+      />
+
+      {/* Message Search Modal */}
+      <MessageSearchModal
+        open={showSearchModal}
+        onClose={() => setShowSearchModal(false)}
+        conversation={conversation}
+        onNavigateToMessage={scrollToMessage}
       />
     </div>
   );
