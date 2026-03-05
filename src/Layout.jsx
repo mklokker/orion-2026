@@ -221,7 +221,14 @@ function SidebarContent({
   onShowProfile,
   onLogout,
   onNavClick,
+  currentTheme,
 }) {
+  const getThemeLabel = () => {
+    const labels = { light: "Light", dark: "Dark", pastel: "Pastel", midnight: "Midnight", forest: "Forest" };
+    return labels[currentTheme] || "Light";
+  };
+  
+  const onGetThemeLabel = getThemeLabel;
   return (
     <div className="flex flex-col h-full">
       {/* Header / Logo */}
