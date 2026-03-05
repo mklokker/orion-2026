@@ -415,6 +415,12 @@ export default function Layout({ children, currentPageName }) {
   const [users, setUsers] = React.useState([]);
   const [departments, setDepartments] = React.useState([]);
   const [showMobileMore, setShowMobileMore] = React.useState(false);
+  const [chatUnreadCounts, setChatUnreadCounts] = React.useState({});
+  const [myPresenceGlobal, setMyPresenceGlobal] = React.useState(null);
+  const [globalUnreadBadge, setGlobalUnreadBadge] = React.useState(0);
+
+  // Track global unread badge for mobile nav
+  useGlobalUnreadCount(React.useCallback((n) => setGlobalUnreadBadge(n), []));
 
   // Scroll preservation
   const scrollPositionsRef = React.useRef({});
