@@ -501,11 +501,13 @@ export default function Layout({ children, currentPageName }) {
     }, []),
   });
 
+  const totalChatUnread = globalUnreadBadge || Object.values(chatUnreadCounts).reduce((a, b) => a + b, 0);
+
   const navigationItems = [
     { title: "Dashboard", url: createPageUrl("Dashboard"), icon: LayoutDashboard },
     { title: "Gestão de Tarefas", url: createPageUrl("GestaoTarefas"), icon: ClipboardList },
     { title: "Carga Diária", url: createPageUrl("CargaDiaria"), icon: FileText },
-    { title: "Chat", url: createPageUrl("Chat"), icon: MessageSquare },
+    { title: "Chat", url: createPageUrl("Chat"), icon: MessageSquare, badge: totalChatUnread },
     { title: "Acervo", url: createPageUrl("Acervo"), icon: Files },
     { title: "Cursos", url: createPageUrl("Cursos"), icon: GraduationCap },
     { title: "Atas e Alinhamentos", url: createPageUrl("AtasAlinhamentos"), icon: ScrollText },
