@@ -110,15 +110,6 @@ export default function GroupSettingsModal({
     );
   };
 
-  // Users not in the group yet & filtered
-  const filteredUsersToAdd = useMemo(() => {
-    const notInGroup = allUsers?.filter(u => 
-      !participants.includes(u.email) && 
-      u.email !== currentUser?.email
-    ) || [];
-    return filterAndSortUsersBySearch(notInGroup, searchAdd);
-  }, [allUsers, participants, currentUser?.email, searchAdd]);
-
   // For direct chats
   const otherUser = !isGroup 
     ? users.find(u => u.email !== currentUser?.email)
