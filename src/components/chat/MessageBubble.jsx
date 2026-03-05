@@ -31,6 +31,7 @@ import {
 import LinkPreview from "./LinkPreview";
 import ReadReceipt from "./ReadReceipt";
 import ReadReceiptBadge from "./ReadReceiptBadge";
+import MentionRenderer from "./MentionRenderer";
 
 // GIF inline com fallback e responsividade mobile
 function GifMessage({ src, isOwn }) {
@@ -116,7 +117,8 @@ export default function MessageBubble({
   onPin,
   onScrollToMessage,
   onApproveTaskRequest,
-  isAdmin = false
+  isAdmin = false,
+  users = []
 }) {
   const [showActions, setShowActions] = React.useState(false);
   const [menuOpen, setMenuOpen] = React.useState(false);
@@ -252,19 +254,27 @@ export default function MessageBubble({
       <>
         {replyPreview}
         <p className="text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere" style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}>
-          {parts.map((part, i) =>
-            urlRegex.test(part) ? (
-              <a
-                key={i}
-                href={part}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={`underline hover:opacity-80 ${isOwn ? "text-green-100" : "text-blue-500"}`}
-              >
-                {part}
-              </a>
-            ) : (
-              part
+          {message.mentions && message.mentions.length > 0 ? (
+            <MentionRenderer
+              content={message.content}
+              mentions={message.mentions}
+              users={users}
+            />
+          ) : (
+            parts.map((part, i) =>
+              urlRegex.test(part) ? (
+                <a
+                  key={i}
+                  href={part}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`underline hover:opacity-80 ${isOwn ? "text-green-100" : "text-blue-500"}`}
+                >
+                  {part}
+                </a>
+              ) : (
+                part
+              )
             )
           )}
         </p>
