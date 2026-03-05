@@ -186,7 +186,7 @@ export default function NewChatModal({
             <Button
               onClick={handleCreateGroup}
               disabled={selectedUsers.length < 1}
-              className="w-full bg-green-500 hover:bg-green-600"
+              className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
             >
               Criar Grupo ({selectedUsers.length} participantes)
             </Button>
