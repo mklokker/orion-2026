@@ -1,7 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { Notification } from "@/entities/Notification";
-import { Task } from "@/entities/Task";
-import { Service } from "@/entities/Service";
+import React, { useEffect } from "react";
+import { useNotificationStore } from "./NotificationStore";
 import {
   Sheet,
   SheetContent,
@@ -10,7 +8,6 @@ import {
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Bell, Check, CheckCheck, Trash2, X } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -26,77 +23,34 @@ const getNotificationIcon = (type) => {
 };
 
 export default function NotificationCenter({ open, onClose, currentUser, onNotificationClick }) {
-  const [notifications, setNotifications] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [filter, setFilter] = useState("all"); // all, unread
+  const notifications = useNotificationStore(state => state.notifications);
+  const isLoading = useNotificationStore(state => state.isLoading);
+  const filter = useNotificationStore(state => state.filter);
+  const setFilter = useNotificationStore(state => state.setFilter);
+  const loadNotifications = useNotificationStore(state => state.loadNotifications);
+  const markAsRead = useNotificationStore(state => state.markAsRead);
+  const markAllAsRead = useNotificationStore(state => state.markAllAsRead);
+  const deleteNotification = useNotificationStore(state => state.deleteNotification);
 
+  const filteredNotifications = useNotificationStore(state => state.filteredNotifications());
+  const unreadCount = useNotificationStore(state => state.unreadCount());
+
+  // Carrega notificações quando abre a central
   useEffect(() => {
-    if (open && currentUser) {
-      loadNotifications();
+    if (open && currentUser?.email) {
+      loadNotifications(currentUser.email);
     }
-  }, [open, currentUser]);
-
-  const loadNotifications = async () => {
-    setIsLoading(true);
-    try {
-      const notifs = await Notification.filter(
-        { user_email: currentUser.email },
-        "-created_date"
-      );
-      setNotifications(notifs);
-    } catch (error) {
-      console.error("Erro ao carregar notificações:", error);
-    }
-    setIsLoading(false);
-  };
-
-  const handleMarkAsRead = async (notificationId) => {
-    try {
-      await Notification.update(notificationId, { read: true });
-      setNotifications(notifications.map(n => 
-        n.id === notificationId ? { ...n, read: true } : n
-      ));
-    } catch (error) {
-      console.error("Erro ao marcar notificação como lida:", error);
-    }
-  };
-
-  const handleMarkAllAsRead = async () => {
-    try {
-      const unreadNotifs = notifications.filter(n => !n.read);
-      for (const notif of unreadNotifs) {
-        await Notification.update(notif.id, { read: true });
-      }
-      setNotifications(notifications.map(n => ({ ...n, read: true })));
-    } catch (error) {
-      console.error("Erro ao marcar todas como lidas:", error);
-    }
-  };
-
-  const handleDeleteNotification = async (notificationId) => {
-    try {
-      await Notification.delete(notificationId);
-      setNotifications(notifications.filter(n => n.id !== notificationId));
-    } catch (error) {
-      console.error("Erro ao deletar notificação:", error);
-    }
-  };
+  }, [open, currentUser?.email, loadNotifications]);
 
   const handleNotificationClick = async (notification) => {
     if (!notification.read) {
-      await handleMarkAsRead(notification.id);
+      await markAsRead(notification.id);
     }
     
     if (notification.related_item_id && notification.related_item_type) {
       onNotificationClick(notification);
     }
   };
-
-  const filteredNotifications = filter === "unread" 
-    ? notifications.filter(n => !n.read)
-    : notifications;
-
-  const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
     <Sheet open={open} onOpenChange={onClose}>
