@@ -167,8 +167,8 @@ export default function ConversationView({
 
   return (
     <div className="flex flex-col h-full min-h-0 bg-muted/30 overflow-hidden">
-      {/* Header - sempre visível, fixo no topo */}
-      <div className="sticky top-0 z-20 flex items-center gap-2 md:gap-3 px-2 md:px-3 py-2 md:py-3 bg-card border-b border-border shrink-0">
+      {/* Header - fixo no topo, nunca rola */}
+      <div className="flex items-center gap-2 md:gap-3 px-2 md:px-3 py-2 md:py-3 bg-card border-b border-border shrink-0 z-20">
         <Button variant="ghost" size="icon" className="md:hidden shrink-0 h-10 w-10" onClick={onBack}>
           <ArrowLeft className="w-5 h-5" />
         </Button>
