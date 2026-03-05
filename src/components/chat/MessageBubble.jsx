@@ -14,7 +14,8 @@ import {
   Pencil,
   Trash2,
   Smile,
-  Pin
+  Pin,
+  ListChecks
 } from "lucide-react";
 import { format } from "date-fns";
 import {
@@ -72,7 +73,9 @@ export default function MessageBubble({
   onReaction,
   onImageClick,
   onPin,
-  onScrollToMessage
+  onScrollToMessage,
+  onApproveTaskRequest,
+  isAdmin = false
 }) {
   const [showActions, setShowActions] = React.useState(false);
   const [menuOpen, setMenuOpen] = React.useState(false);
@@ -80,6 +83,16 @@ export default function MessageBubble({
   
   // Mantém ações visíveis enquanto menu ou emoji estiver aberto
   const keepActionsVisible = menuOpen || emojiOpen;
+
+  // Detecta se a mensagem contém uma solicitação de tarefas
+  const extractTaskRequestId = (content) => {
+    if (!content) return null;
+    const match = content.match(/`ID: ([a-zA-Z0-9_-]+)`/);
+    return match ? match[1] : null;
+  };
+
+  const taskRequestId = extractTaskRequestId(message.content);
+  const isTaskRequest = message.content?.includes("📝 **Solicitação de Criação de Tarefas/Serviços**");
   
   if (message.is_deleted) {
     return (
@@ -205,6 +218,18 @@ export default function MessageBubble({
         </p>
         {/* Link preview para o primeiro link */}
         {urls.length > 0 && <LinkPreview url={urls[0]} isOwn={isOwn} />}
+        
+        {/* Botão de aprovar para admins em solicitações de tarefas */}
+        {isTaskRequest && isAdmin && !isOwn && taskRequestId && (
+          <Button
+            onClick={() => onApproveTaskRequest?.(taskRequestId)}
+            className="mt-3 w-full gap-2 bg-green-600 hover:bg-green-700 text-white"
+            size="sm"
+          >
+            <ListChecks className="w-4 h-4" />
+            Revisar Solicitação
+          </Button>
+        )}
       </>
     );
   };
