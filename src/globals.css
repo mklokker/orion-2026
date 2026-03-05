@@ -244,3 +244,35 @@ svg,
 .dark .animate-pulse {
   opacity: 0.6;
 }
+
+/* ========================================
+   CONTRAST & ACCESSIBILITY FIXES
+   ======================================== */
+
+/* Light mode token overrides for contrast */
+:root:not(.dark) {
+  --muted: 0 0% 91%;
+  --muted-foreground: 0 0% 40%;
+  --accent: 0 0% 92%;
+  --accent-foreground: 0 0% 3.9%;
+}
+
+/* Disabled buttons always visible */
+button:disabled,
+[disabled] {
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
+}
+
+/* Ensure text is never transparent */
+button, [role="button"] {
+  color: inherit;
+}
+
+/* Active/selected states with good contrast */
+.dark .hover\:bg-gray-50:hover,
+.dark .hover\:bg-gray-100:hover,
+.dark .hover\:bg-accent:hover {
+  background-color: hsl(var(--accent)) !important;
+  color: hsl(var(--accent-foreground)) !important;
+}
