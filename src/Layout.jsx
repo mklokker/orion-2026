@@ -537,7 +537,10 @@ export default function Layout({ children, currentPageName }) {
 
   const isGestaoRIActive = gestaoRIItems.some(i => location.pathname === i.url);
 
-  React.useEffect(() => { loadInitialData(); }, []);
+  React.useEffect(() => { 
+    loadInitialData(); 
+    restoreSoundPreference();
+  }, [restoreSoundPreference]);
 
   const loadInitialData = async () => {
     try {
@@ -551,18 +554,7 @@ export default function Layout({ children, currentPageName }) {
       } catch (e) {
         if (e?.response?.status !== 429) console.error("Settings error:", e);
       }
-      await loadUnreadCount();
     } catch (e) { console.error("Init error:", e); }
-  };
-
-  const loadUnreadCount = async () => {
-    try {
-      if (!user?.email) return;
-      const notifs = await NotificationEntity.filter({ user_email: user.email, read: false });
-      setUnreadCount(notifs.length);
-    } catch (e) {
-      if (e?.response?.status !== 429) console.error("Notification error:", e);
-    }
   };
 
   const handleNotificationClick = async (notification) => {
