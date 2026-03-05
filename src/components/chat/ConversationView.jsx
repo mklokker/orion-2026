@@ -106,6 +106,7 @@ export default function ConversationView({
   const isGroup = conversation?.type === "group";
   
   const getDisplayInfo = () => {
+    if (!conversation) return { name: "Conversa", avatar: null, subtitle: "", otherEmail: null, status: null };
     if (isGroup) {
       return {
         name: conversation.name || "Grupo",
