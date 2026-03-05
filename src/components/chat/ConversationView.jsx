@@ -155,6 +155,17 @@ export default function ConversationView({
     setReplyingTo(null);
   };
 
+  if (!conversation) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-muted/30">
+        <div className="text-center text-muted-foreground">
+          <Users className="w-16 h-16 mx-auto mb-4 opacity-30" />
+          <p>Selecione uma conversa para começar</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col bg-muted/30 w-full min-w-0" style={{ height: '100dvh', overflow: 'hidden' }}>
       {/* Header - sticky no topo, fundo opaco, nunca some */}
