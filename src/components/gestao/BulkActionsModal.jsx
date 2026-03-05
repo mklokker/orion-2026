@@ -169,6 +169,7 @@ export default function BulkActionsModal({ open, onClose, selectedCount, users, 
             onClick={handleConfirm}
             disabled={!action || (action !== "delete" && !value)}
             variant={action === "delete" ? "destructive" : "default"}
+            className={action === "delete" ? "" : "bg-primary text-primary-foreground hover:bg-primary/90"}
           >
             Confirmar
           </Button>
