@@ -108,7 +108,7 @@ export default function ChatList({
   });
 
   return (
-    <div className="flex flex-col h-full bg-card overflow-hidden">
+    <div className="flex flex-col h-full min-h-0 bg-card overflow-hidden">
       {/* Header */}
       <div className="p-3 md:p-4 border-b border-border shrink-0">
         <div className="flex items-center justify-between mb-3">
