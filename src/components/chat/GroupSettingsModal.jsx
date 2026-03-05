@@ -1,9 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -29,15 +28,11 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-
-const getInitials = (name) => {
-  if (!name) return "?";
-  const parts = name.split(" ");
-  if (parts.length >= 2) {
-    return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
-  }
-  return name.substring(0, 2).toUpperCase();
-};
+import {
+  filterAndSortUsersBySearch,
+  getUserDisplayName,
+  getInitials
+} from "./userSearchUtils";
 
 export default function GroupSettingsModal({
   open,
@@ -107,14 +102,14 @@ export default function GroupSettingsModal({
   };
 
   // Users not in the group yet
-  const usersNotInGroup = allUsers?.filter(u => 
+  const usersNotInGroup = useMemo(() => allUsers?.filter(u => 
     !participants.includes(u.email) && 
     u.email !== currentUser?.email
-  ) || [];
+  ) || [], [allUsers, participants, currentUser?.email]);
 
-  const filteredUsersToAdd = usersNotInGroup.filter(u =>
-    u.full_name?.toLowerCase().includes(searchAdd.toLowerCase()) ||
-    u.email?.toLowerCase().includes(searchAdd.toLowerCase())
+  const filteredUsersToAdd = useMemo(() => 
+    filterAndSortUsersBySearch(usersNotInGroup, searchAdd),
+    [usersNotInGroup, searchAdd]
   );
 
   // For direct chats
@@ -203,15 +198,15 @@ export default function GroupSettingsModal({
                             <Avatar className="w-10 h-10">
                               <AvatarImage src={user?.profile_picture} />
                               <AvatarFallback className="bg-blue-100 text-blue-700">
-                                {getInitials(user?.full_name || email)}
+                                {getInitials(getUserDisplayName(user) || email)}
                               </AvatarFallback>
                             </Avatar>
                             <div className="flex-1 min-w-0">
-                              <p className="font-medium truncate">
-                                {user?.display_name || user?.full_name || email}
+                              <p className="font-medium truncate text-foreground">
+                                {getUserDisplayName(user)}
                                 {isMe && " (você)"}
                               </p>
-                              <p className="text-xs text-gray-500 truncate">{email}</p>
+                              <p className="text-xs text-muted-foreground truncate">{email}</p>
                             </div>
                             {isParticipantAdmin && (
                               <Badge variant="secondary" className="gap-1">
@@ -282,12 +277,12 @@ export default function GroupSettingsModal({
                               <Avatar className="w-8 h-8">
                                 <AvatarImage src={user.profile_picture} />
                                 <AvatarFallback className="bg-blue-100 text-blue-700 text-xs">
-                                  {getInitials(user.full_name)}
+                                  {getInitials(getUserDisplayName(user))}
                                 </AvatarFallback>
                               </Avatar>
                               <div className="flex-1 min-w-0">
-                                <p className="font-medium text-sm truncate">{user.display_name || user.full_name}</p>
-                                <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                                <p className="font-medium text-sm truncate text-foreground">{getUserDisplayName(user)}</p>
+                                <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                               </div>
                             </div>
                           );
