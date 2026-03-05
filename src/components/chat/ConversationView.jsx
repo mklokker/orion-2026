@@ -166,9 +166,9 @@ export default function ConversationView({
   };
 
   return (
-    <div className="flex flex-col h-full bg-muted/30">
+    <div className="flex flex-col h-full min-h-0 bg-muted/30 overflow-hidden">
       {/* Header */}
-      <div className="flex items-center gap-2 md:gap-3 px-2 md:px-3 py-2 md:py-3 bg-card border-b border-border">
+      <div className="flex items-center gap-2 md:gap-3 px-2 md:px-3 py-2 md:py-3 bg-card border-b border-border shrink-0">
         <Button variant="ghost" size="icon" className="md:hidden shrink-0 h-10 w-10" onClick={onBack}>
           <ArrowLeft className="w-5 h-5" />
         </Button>
@@ -244,7 +244,7 @@ export default function ConversationView({
       />
 
       {/* Messages */}
-      <ScrollArea className="flex-1 px-2 md:px-4 py-2 md:py-4 relative" ref={scrollRef} onScrollCapture={handleScroll}>
+      <ScrollArea className="flex-1 min-h-0 px-2 md:px-4 py-2 md:py-4 relative" ref={scrollRef} onScrollCapture={handleScroll}>
         {Object.entries(groupedMessages).map(([date, msgs]) => (
           <div key={date}>
             {/* Date separator */}
@@ -314,7 +314,7 @@ export default function ConversationView({
         </Button>
       )}
 
-      {/* Input */}
+      {/* Input - fixo no rodapé */}
       <ChatInput
         onSend={handleSend}
         onTyping={onTyping}

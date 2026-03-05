@@ -843,7 +843,7 @@ export default function Chat() {
         </div>
       </div>
 
-      {/* Modals */}
+      {/* Modals - fora dos containers mobile/desktop */}
       <NewChatModal
         open={showNewChat}
         onClose={() => setShowNewChat(false)}
