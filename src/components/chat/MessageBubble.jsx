@@ -240,17 +240,17 @@ export default function MessageBubble({
 
   return (
     <div 
-      className={`flex ${isOwn ? "justify-end" : "justify-start"} mb-3 group`}
+      className={`flex w-full min-w-0 ${isOwn ? "justify-end" : "justify-start"} mb-3 group px-1`}
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => !keepActionsVisible && setShowActions(false)}
     >
-      {/* Avatar for others - em grupos sempre mostra, em 1:1 só quando muda o remetente */}
+      {/* Avatar for others */}
       {!isOwn && (
-        <div className="w-12 mr-3 flex-shrink-0">
+        <div className="w-8 md:w-12 mr-1 md:mr-3 flex-shrink-0 self-end">
           {(isGroupChat || showAvatar) && (
-            <Avatar className="w-12 h-12 border-2 border-white shadow-md">
+            <Avatar className="w-8 h-8 md:w-12 md:h-12 border-2 border-white shadow-md">
               <AvatarImage src={senderAvatar} />
-              <AvatarFallback className="text-base font-semibold bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
+              <AvatarFallback className="text-xs md:text-base font-semibold bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
                 {getInitials(message.sender_name)}
               </AvatarFallback>
             </Avatar>
@@ -258,7 +258,7 @@ export default function MessageBubble({
         </div>
       )}
 
-      <div className={`relative max-w-[70%] ${isOwn ? "order-1" : ""}`}>
+      <div className={`relative min-w-0 max-w-[75%] md:max-w-[70%] ${isOwn ? "order-1" : ""}`}>
         {/* Sender name with badge style - em grupos sempre mostra, em 1:1 só quando muda */}
         {!isOwn && (isGroupChat || showAvatar) && (
           <div className="mb-1">
