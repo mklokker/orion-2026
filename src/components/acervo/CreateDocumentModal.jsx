@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -298,7 +297,7 @@ export default function CreateDocumentModal({ open, onClose, categories, onCreat
           <Button variant="outline" onClick={onClose} disabled={isUploading}>
             Cancelar
           </Button>
-          <Button onClick={handleSubmit} disabled={isUploading} className="gap-2">
+          <Button onClick={handleSubmit} disabled={isUploading} className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
             {isUploading ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />

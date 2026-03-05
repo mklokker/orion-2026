@@ -428,7 +428,7 @@ export default function CreateTasksModal({ open, onClose, users, departments, on
             <Button 
               onClick={handleCreate}
               disabled={isCreating}
-              className="bg-gray-900 hover:bg-gray-800"
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
             >
               {isCreating ? "Criando..." : "Criar Tarefas em Lote"}
             </Button>
