@@ -52,6 +52,8 @@ import MobileBottomNav from "./components/mobile/MobileBottomNav";
 import MobileMoreMenu from "./components/mobile/MobileMoreMenu";
 import { useChatNotifications, useGlobalUnreadCount, setGlobalUnread } from "./components/chat/useChatNotifications";
 import { UserPresence } from "@/entities/UserPresence";
+import { useNotificationStore } from "./components/notifications/NotificationStore";
+import { useNotificationSync } from "./components/notifications/useNotificationSync";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { refetchOnWindowFocus: false, retry: 1 } },
