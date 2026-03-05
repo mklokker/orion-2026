@@ -115,7 +115,7 @@ export default function Chat() {
     };
   }, [currentUser]);
 
-  // Real-time subscriptions for messages - recreate when selected conversation changes
+  // Real-time subscriptions for messages
   useEffect(() => {
     if (!currentUser) return;
 
@@ -130,7 +130,7 @@ export default function Chat() {
       const msgConversationId = event.data?.conversation_id;
 
       if (event.type === 'create') {
-        // If message is for the selected conversation, add it immediately
+        // If message is for the selected conversation, add it
         if (selectedConv && msgConversationId === selectedConv.id) {
           setMessages(prev => {
             if (prev.some(m => m.id === event.data.id)) return prev;
@@ -176,7 +176,6 @@ export default function Chat() {
           }
         }
       } else if (event.type === 'update') {
-        // Always update if it's for the current conversation
         if (selectedConv && msgConversationId === selectedConv.id) {
           setMessages(prev => prev.map(m => m.id === event.id ? event.data : m));
         }
@@ -190,7 +189,7 @@ export default function Chat() {
     return () => {
       unsubscribeMessages();
     };
-  }, [currentUser, selectedConversation?.id]);
+  }, [currentUser]);
 
   // Load messages when conversation changes
   useEffect(() => {
