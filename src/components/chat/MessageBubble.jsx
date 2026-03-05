@@ -31,6 +31,46 @@ import {
 } from "@/components/ui/popover";
 import LinkPreview from "./LinkPreview";
 
+// GIF inline com fallback e responsividade mobile
+function GifMessage({ src, isOwn }) {
+  const [failed, setFailed] = React.useState(false);
+  const [expanded, setExpanded] = React.useState(false);
+
+  if (failed) {
+    return (
+      <a
+        href={src}
+        target="_blank"
+        rel="noopener noreferrer"
+        className={`text-sm underline ${isOwn ? "text-green-100" : "text-blue-500"}`}
+      >
+        🎞 Abrir GIF
+      </a>
+    );
+  }
+
+  return (
+    <div
+      className="max-w-full overflow-hidden rounded-lg cursor-pointer"
+      onClick={() => setExpanded(e => !e)}
+      title={expanded ? "Clique para reduzir" : "Clique para expandir"}
+    >
+      <img
+        src={src}
+        alt="GIF"
+        loading="lazy"
+        onError={() => setFailed(true)}
+        className="block rounded-lg object-contain w-auto"
+        style={{
+          maxWidth: "100%",
+          maxHeight: expanded ? "480px" : "240px",
+          transition: "max-height 0.2s ease"
+        }}
+      />
+    </div>
+  );
+}
+
 // Lista de emojis para reações rápidas
 const REACTION_EMOJIS = [
   "👍", "👎", "❤️", "😂", "😮", "😢", "😡", "🎉", "🔥", "👏", 
