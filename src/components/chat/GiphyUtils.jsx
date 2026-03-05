@@ -1,76 +1,122 @@
 /**
- * Normaliza URLs do Giphy para URL direta do GIF
- * Suporta:
+ * Utilitários para detecção e renderização de GIFs do Giphy.
+ *
+ * Suporta todos os formatos:
  *   https://giphy.com/gifs/slug-ID
  *   https://media.giphy.com/media/ID/giphy.gif
- *   https://media0.giphy.com/media/ID/giphy.gif
+ *   https://media0.giphy.com/media/v1.TOKEN/ID/giphy.gif
+ *   https://media4.giphy.com/media/v1.Y2lkPTc5.../ID/giphy.gif
  *   https://i.giphy.com/media/ID/giphy.gif
  *   https://i.giphy.com/ID.gif
  */
 
-const GIPHY_DOMAINS = ["giphy.com", "media.giphy.com", "i.giphy.com"];
-
+/**
+ * Verifica se a URL pertence ao domínio giphy.com.
+ */
 function isGiphyUrl(url) {
   try {
-    const u = new URL(url);
-    return GIPHY_DOMAINS.some(d => u.hostname === d || u.hostname.endsWith("." + d));
+    const { hostname } = new URL(url);
+    // Aceita: giphy.com, media.giphy.com, media1..media9.giphy.com, i.giphy.com
+    return hostname === "giphy.com" || hostname.endsWith(".giphy.com");
   } catch {
     return false;
   }
 }
 
-function extractGiphyId(url) {
+/**
+ * Verifica se a URL é um link direto para um GIF do Giphy.
+ * Aceita qualquer URL de giphy.com cujo path contenha /media/ e termine em .gif
+ * OU o formato i.giphy.com/<id>.gif
+ */
+function isDirectGiphyGif(url) {
   try {
-    const u = new URL(url);
+    const { hostname, pathname } = new URL(url);
+    if (!hostname.endsWith(".giphy.com") && hostname !== "giphy.com") return false;
 
-    // https://i.giphy.com/ABCDEFG.gif  or  /media/ABCDEFG/giphy.gif
-    // https://media0.giphy.com/media/ABCDEFG/giphy.gif
-    const pathParts = u.pathname.split("/").filter(Boolean);
+    const lower = pathname.toLowerCase();
+    // Termina em /giphy.gif, /200.gif, etc. com /media/ no path
+    if (lower.includes("/media/") && lower.endsWith(".gif")) return true;
+    // i.giphy.com/<id>.gif
+    if (hostname === "i.giphy.com" && lower.endsWith(".gif")) return true;
 
-    // /media/<id>/giphy.gif  or  /media/<id>/200.gif  etc.
-    const mediaIdx = pathParts.indexOf("media");
-    if (mediaIdx !== -1 && pathParts[mediaIdx + 1]) {
-      return pathParts[mediaIdx + 1];
+    return false;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Extrai o GIF ID de uma URL do Giphy.
+ * Para o formato v1: /.../media/v1.TOKEN/GIF_ID/giphy.gif → GIF_ID
+ * Para formato simples: /media/GIF_ID/giphy.gif → GIF_ID
+ */
+export function extractGiphyId(url) {
+  try {
+    const { hostname, pathname } = new URL(url);
+    const parts = pathname.split("/").filter(Boolean);
+
+    const mediaIdx = parts.indexOf("media");
+    if (mediaIdx !== -1) {
+      // Coletar segmentos após "media"
+      const afterMedia = parts.slice(mediaIdx + 1);
+
+      // Remove o último segmento se for um arquivo .gif (ex: giphy.gif)
+      const filtered = afterMedia.filter(p => !p.toLowerCase().endsWith(".gif"));
+
+      // O ID real é o último segmento não-gif
+      // Para formato v1: ["v1.TOKEN", "GIF_ID"] → GIF_ID
+      // Para formato simples: ["GIF_ID"] → GIF_ID
+      if (filtered.length > 0) {
+        return filtered[filtered.length - 1];
+      }
     }
 
-    // /gifs/some-slug-ABCDEFG  — ID is the last segment after last dash
-    const gifsIdx = pathParts.indexOf("gifs");
-    if (gifsIdx !== -1 && pathParts[gifsIdx + 1]) {
-      const slug = pathParts[gifsIdx + 1];
-      const parts = slug.split("-");
-      return parts[parts.length - 1];
+    // /gifs/some-slug-ID → último segmento após último hífen
+    const gifsIdx = parts.indexOf("gifs");
+    if (gifsIdx !== -1 && parts[gifsIdx + 1]) {
+      const slugParts = parts[gifsIdx + 1].split("-");
+      return slugParts[slugParts.length - 1];
     }
 
-    // i.giphy.com/ABCDEFG.gif
-    const last = pathParts[pathParts.length - 1];
-    if (last && last.endsWith(".gif")) {
-      return last.replace(".gif", "");
+    // i.giphy.com/<id>.gif
+    const last = parts[parts.length - 1];
+    if (last && last.toLowerCase().endsWith(".gif")) {
+      return last.replace(/\.gif$/i, "");
     }
   } catch {}
   return null;
 }
 
 /**
- * Returns normalized direct GIF URL or null if not a Giphy link.
+ * Retorna a URL direta do GIF para renderização.
+ * Prioriza usar a URL original se já for um link direto (.gif).
+ * Caso contrário, tenta construir a URL via ID.
  */
-export function normalizeGiphyUrl(urlString) {
+export function resolveGiphyGifUrl(urlString) {
   const trimmed = urlString.trim();
   if (!isGiphyUrl(trimmed)) return null;
+
+  // Se já é uma URL direta de GIF, use-a sem modificar
+  if (isDirectGiphyGif(trimmed)) return trimmed;
+
+  // Caso seja uma página de GIF (giphy.com/gifs/...), extrai o ID e constrói URL
   const id = extractGiphyId(trimmed);
-  if (!id) return null;
-  return `https://i.giphy.com/media/${id}/giphy.gif`;
+  if (id) return `https://i.giphy.com/media/${id}/giphy.gif`;
+
+  return null;
 }
 
 /**
- * Given the full text typed by the user:
- * - If the text is ONLY a Giphy URL (trimmed), return the normalized GIF URL.
- * - Otherwise return null (treat as plain text).
+ * Analisa o texto digitado pelo usuário:
+ * - Se o texto (após trim) for APENAS uma URL do Giphy que resolve para um GIF → retorna a gifUrl
+ * - Caso contrário, retorna null
  */
 export function detectGiphyMessage(text) {
   const trimmed = text.trim();
-  // Only a URL (no spaces = pure link)
-  if (!trimmed.includes(" ") && isGiphyUrl(trimmed)) {
-    return normalizeGiphyUrl(trimmed);
-  }
-  return null;
+  // Sem espaços = link puro
+  if (!trimmed || trimmed.includes(" ")) return null;
+  return resolveGiphyGifUrl(trimmed);
 }
+
+// Alias retrocompatível
+export const normalizeGiphyUrl = resolveGiphyGifUrl;
