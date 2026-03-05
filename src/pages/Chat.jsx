@@ -376,103 +376,22 @@ export default function Chat() {
     }
   };
 
-  const checkForNewMessages = async () => {
-    if (!currentUser) return;
-    
-    try {
-      const allConvs = await ChatConversation.filter({});
-      const myConvs = allConvs.filter(c => c.participants?.includes(currentUser.email));
-      
-      for (const conv of myConvs.slice(0, 5)) { // Limit to avoid rate limit
-        const msgs = await ChatMessage.filter({ conversation_id: conv.id });
-        const newMsgs = msgs.filter(m => 
-          m.sender_email !== currentUser.email && 
-          !m.read_by?.includes(currentUser.email) &&
-          !notifiedMessagesRef.current.has(m.id)
-        );
-        
-        for (const msg of newMsgs) {
-          // Mark as notified
-          notifiedMessagesRef.current.add(msg.id);
-          
-          // Check notification preferences (default to true if no presence)
-          const isGroup = conv.type === "group";
-          const isMention = msg.content?.includes(`@${currentUser.full_name}`) || 
-                           msg.content?.includes(`@${currentUser.email}`);
-          
-          let shouldNotify = false;
-          
-          if (isMention && myPresence?.notify_mentions !== false) {
-            shouldNotify = true;
-          } else if (isGroup && myPresence?.notify_group_messages !== false) {
-            shouldNotify = true;
-          } else if (!isGroup && myPresence?.notify_new_messages !== false) {
-            shouldNotify = true;
-          }
-          
-          if (shouldNotify) {
-            console.log("[Chat] Nova mensagem detectada de:", msg.sender_email);
-            const senderName = msg.sender_name || msg.sender_email;
-            const title = isGroup ? `${senderName} em ${conv.name || "Grupo"}` : senderName;
-            const body = msg.type === "text" ? msg.content : "📎 Enviou um arquivo";
-            sendNotification(title, body, msg.sender_email, conv.id);
-          }
-        }
-      }
-    } catch (e) {
-      // Ignore rate limit errors
-      console.log("[Chat] Erro ao verificar novas mensagens:", e);
-    }
-  };
-
-  const startPolling = () => {
-    stopPolling();
-    pollingRef.current = setInterval(async () => {
-      if (currentUser) {
-        // Reload conversations list (skip unread count to avoid rate limit)
-        await loadConversations(currentUser.email, true);
-        
-        // Check for new messages and notify
-        await checkForNewMessages();
-        
-        // Reload messages for selected conversation
-        if (selectedConversation?.id) {
-          await loadMessages(selectedConversation.id);
-          
-          // Also reload the conversation object to get updated typing_users
-          try {
-            const updatedConvs = await ChatConversation.filter({ id: selectedConversation.id });
-            if (updatedConvs.length > 0) {
-              setSelectedConversation(updatedConvs[0]);
-            }
-          } catch (e) {
-            // Ignore rate limit errors
-          }
-        }
-      }
-    }, 2500); // 2.5 seconds for balance between speed and rate limit
-  };
-
-  const stopPolling = () => {
-    if (pollingRef.current) {
-      clearInterval(pollingRef.current);
-      pollingRef.current = null;
-    }
-  };
-
   const markAsRead = async (conversationId) => {
+    if (!currentUser) return;
     try {
-      const msgs = await ChatMessage.filter({ conversation_id: conversationId });
+      const response = await getChatMessages({ conversation_id: conversationId });
+      const msgs = response?.data?.messages || [];
       const unreadMsgs = msgs.filter(m => 
-        m.sender_email !== currentUser?.email && 
-        !m.read_by?.includes(currentUser?.email)
+        m.sender_email !== currentUser.email && 
+        !m.read_by?.includes(currentUser.email)
       );
       
-      for (const msg of unreadMsgs) {
-        await ChatMessage.update(msg.id, {
+      // Batch update - mark all as read
+      await Promise.all(unreadMsgs.map(msg =>
+        ChatMessage.update(msg.id, {
           read_by: [...(msg.read_by || []), currentUser.email]
-        });
-      }
+        })
+      ));
       
       setUnreadCounts(prev => {
         const updated = { ...prev };
