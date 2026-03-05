@@ -735,9 +735,9 @@ export default function Chat() {
   };
 
   return (
-    <div className="h-[calc(100vh-64px)] md:h-screen flex bg-gray-100 dark:bg-slate-900">
+    <div className="h-[calc(100vh-64px)] md:h-screen flex bg-gray-100 dark:bg-slate-900 p-2 md:p-3 gap-2 md:gap-3">
       {/* Sidebar - Chat List */}
-      <div className={`${isMobileView && showConversation ? "hidden" : "flex"} w-full md:w-[350px] lg:w-[400px] border-r dark:border-slate-700 flex-col`}>
+      <div className={`${isMobileView && showConversation ? "hidden" : "flex"} w-full md:w-[350px] lg:w-[400px] flex-col bg-card rounded-2xl border border-border shadow-sm overflow-hidden`}>
         <ChatList
             conversations={conversations}
             users={users}
@@ -756,7 +756,7 @@ export default function Chat() {
       </div>
 
       {/* Main - Conversation View */}
-      <div className={`${isMobileView && !showConversation ? "hidden" : "flex"} flex-1 flex-col`}>
+      <div className={`${isMobileView && !showConversation ? "hidden" : "flex"} flex-1 flex-col bg-card rounded-2xl border border-border shadow-sm overflow-hidden`}>
         <ConversationView
           conversation={selectedConversation}
           messages={messages}
