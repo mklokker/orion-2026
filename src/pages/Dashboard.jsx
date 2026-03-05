@@ -310,10 +310,10 @@ export default function Dashboard() {
 
   return (
     <PullToRefresh onRefresh={handlePullRefresh} className="min-h-screen">
-    <div className="p-4 md:p-8 min-h-screen bg-gray-50 dark:bg-slate-900">
+    <div className="p-3 md:p-8 min-h-screen bg-background">
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white">
+          <h1 className="text-2xl md:text-4xl font-bold text-foreground">
             Painel Principal
           </h1>
           
@@ -324,7 +324,7 @@ export default function Dashboard() {
                 checked={!sortOldestFirst}
                 onCheckedChange={(checked) => setSortOldestFirst(!checked)}
               />
-              <Label htmlFor="sort-order" className="text-sm cursor-pointer flex items-center gap-1 dark:text-gray-300">
+              <Label htmlFor="sort-order" className="text-sm cursor-pointer flex items-center gap-1 text-muted-foreground">
                 <ArrowUpDown className="w-4 h-4" />
                 Mais novas primeiro
               </Label>
@@ -332,7 +332,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
           <Card className="bg-primary text-white border-0 shadow-md">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium opacity-90 flex items-center gap-2">
@@ -391,30 +391,30 @@ export default function Dashboard() {
               setSearchQuery(e.target.value);
               setCurrentPage(1);
             }}
-            className="pl-12 h-12 text-base bg-white dark:bg-slate-800 dark:text-white dark:border-slate-600 dark:placeholder:text-slate-400 border-2 focus:border-blue-400"
+            className="pl-12 h-12 text-base bg-card border-2 border-border focus:border-primary"
           />
         </div>
         
-        <Card className="dark:bg-slate-800 dark:border-slate-700">
-          <CardContent className="pt-6 flex flex-wrap items-center gap-4">
+        <Card>
+          <CardContent className="pt-4 md:pt-6 flex flex-wrap items-center gap-2 md:gap-4">
             <div className="flex items-center gap-2">
               <Button
                 variant={filterPeriod === 'hoje' ? 'default' : 'outline'}
                 onClick={() => { setFilterPeriod('hoje'); setCustomStartDate(''); setCustomEndDate(''); setCurrentPage(1); }}
-                className={filterPeriod === 'hoje' ? 'bg-primary text-white' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50 dark:bg-slate-700 dark:text-white dark:border-slate-600 dark:hover:bg-slate-600'}
+                className={filterPeriod === 'hoje' ? 'bg-primary text-primary-foreground' : ''}
               >
                 Hoje
               </Button>
               <Button
                 variant={filterPeriod === 'ontem' ? 'default' : 'outline'}
                 onClick={() => { setFilterPeriod('ontem'); setCustomStartDate(''); setCustomEndDate(''); setCurrentPage(1); }}
-                className={filterPeriod === 'ontem' ? 'bg-primary text-white' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50 dark:bg-slate-700 dark:text-white dark:border-slate-600 dark:hover:bg-slate-600'}
+                className={filterPeriod === 'ontem' ? 'bg-primary text-primary-foreground' : ''}
               >
                 Ontem
               </Button>
             </div>
             <div className="flex items-center gap-2 flex-wrap">
-              <Label htmlFor="start-date" className="dark:text-gray-300">De:</Label>
+              <Label htmlFor="start-date" className="text-muted-foreground">De:</Label>
               <Input
                 id="start-date"
                 type="date"
@@ -428,9 +428,9 @@ export default function Dashboard() {
                   }
                   setCurrentPage(1);
                 }}
-                className="w-auto bg-white border-gray-300 text-gray-700 dark:bg-slate-900 dark:text-white dark:border-slate-600"
+                className="w-auto"
               />
-              <Label htmlFor="end-date" className="dark:text-gray-300">Até:</Label>
+              <Label htmlFor="end-date" className="text-muted-foreground">Até:</Label>
               <Input
                 id="end-date"
                 type="date"
@@ -444,7 +444,7 @@ export default function Dashboard() {
                   }
                   setCurrentPage(1);
                 }}
-                className="w-auto bg-white border-gray-300 text-gray-700 dark:bg-slate-900 dark:text-white dark:border-slate-600"
+                className="w-auto"
               />
             </div>
             {(filterPeriod !== 'all' || customStartDate || customEndDate) && (
@@ -464,9 +464,9 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 md:gap-4">
           <div>
-            <Label htmlFor="user-filter" className="text-sm font-medium dark:text-gray-300">Responsável</Label>
+            <Label htmlFor="user-filter" className="text-sm font-medium text-muted-foreground">Responsável</Label>
             <Select 
               value={userFilter} 
               onValueChange={(value) => {
@@ -474,7 +474,7 @@ export default function Dashboard() {
                 setCurrentPage(1);
               }}
             >
-              <SelectTrigger id="user-filter" className="bg-white border-gray-300 text-gray-700 dark:bg-slate-800 dark:text-white dark:border-slate-600 mt-1">
+              <SelectTrigger id="user-filter" className="mt-1">
                 <SelectValue placeholder="Todos" />
               </SelectTrigger>
               <SelectContent>
@@ -489,7 +489,7 @@ export default function Dashboard() {
           </div>
 
           <div>
-            <Label htmlFor="priority-filter" className="text-sm font-medium dark:text-gray-300">Prioridade</Label>
+            <Label htmlFor="priority-filter" className="text-sm font-medium text-muted-foreground">Prioridade</Label>
             <Select 
               value={selectedPriority} 
               onValueChange={(value) => {
@@ -497,7 +497,7 @@ export default function Dashboard() {
                 setCurrentPage(1);
               }}
             >
-              <SelectTrigger id="priority-filter" className="bg-white border-gray-300 text-gray-700 dark:bg-slate-800 dark:text-white dark:border-slate-600 mt-1">
+              <SelectTrigger id="priority-filter" className="mt-1">
                 <SelectValue placeholder="Todas" />
               </SelectTrigger>
               <SelectContent>
@@ -511,7 +511,7 @@ export default function Dashboard() {
             </Select>
           </div>
 
-          <div className="flex items-center space-x-2 pt-6">
+          <div className="flex items-center space-x-2 pt-2 sm:pt-6">
             <Switch
               id="my-items-only"
               checked={showOnlyMyItems}
@@ -520,7 +520,7 @@ export default function Dashboard() {
                 setCurrentPage(1);
               }}
             />
-            <Label htmlFor="my-items-only" className="text-sm cursor-pointer text-gray-700 dark:text-gray-300">
+            <Label htmlFor="my-items-only" className="text-sm cursor-pointer text-muted-foreground">
               Ver apenas meus itens
             </Label>
           </div>
@@ -529,36 +529,36 @@ export default function Dashboard() {
         <div className="flex gap-2">
           <button
             onClick={() => { setActiveTab("ativas"); setCurrentPage(1); }}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+            className={`px-4 py-2.5 rounded-full text-sm font-medium transition-all min-h-[44px] ${
               activeTab === "ativas"
-                ? "bg-white dark:bg-slate-700 text-gray-900 dark:text-white shadow-sm"
-                : "bg-transparent text-gray-600 dark:text-gray-400 hover:bg-white/50 dark:hover:bg-slate-700/50"
+                ? "bg-card text-foreground shadow-sm"
+                : "bg-transparent text-muted-foreground hover:bg-card/50"
             }`}
           >
             Ativas
-            <Badge className="ml-2 bg-gray-900 dark:bg-slate-600 text-white border-0">
+            <Badge className="ml-2 bg-primary text-primary-foreground border-0">
               {stats.ativas}
             </Badge>
           </button>
           <button
             onClick={() => { setActiveTab("concluidas"); setCurrentPage(1); }}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
+            className={`px-4 py-2.5 rounded-full text-sm font-medium transition-all min-h-[44px] ${
               activeTab === "concluidas"
-                ? "bg-white dark:bg-slate-700 text-gray-900 dark:text-white shadow-sm"
-                : "bg-transparent text-gray-600 dark:text-gray-400 hover:bg-white/50 dark:hover:bg-slate-700/50"
+                ? "bg-card text-foreground shadow-sm"
+                : "bg-transparent text-muted-foreground hover:bg-card/50"
             }`}
           >
             Concluídas
-            <Badge className="ml-2 bg-gray-900 dark:bg-slate-600 text-white border-0">
+            <Badge className="ml-2 bg-primary text-primary-foreground border-0">
               {stats.concluidas}
             </Badge>
           </button>
         </div>
 
         {paginatedItems.length === 0 ? (
-          <Card className="p-12 text-center dark:bg-slate-800 dark:border-slate-700">
-            <FileText className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
-            <p className="text-gray-500 dark:text-gray-400 font-medium">
+          <Card className="p-8 md:p-12 text-center">
+            <FileText className="w-12 h-12 md:w-16 md:h-16 mx-auto text-muted-foreground/30 mb-4" />
+            <p className="text-muted-foreground font-medium">
               {searchQuery 
                 ? "Nenhum item encontrado para sua busca"
                 : (userFilter === "all" ? "Nenhum item encontrado" : "Nenhum item encontrado para o usuário selecionado")}
@@ -566,7 +566,7 @@ export default function Dashboard() {
           </Card>
         ) : (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
               {paginatedItems.map((item) => (
                 <TaskCard
                   key={item.id} 
@@ -588,7 +588,7 @@ export default function Dashboard() {
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </Button>
-                <span className="text-sm text-gray-600 dark:text-gray-400">
+                <span className="text-sm text-muted-foreground">
                   Página {currentPage} de {totalPages} ({sortedItems.length} itens)
                 </span>
                 <Button
