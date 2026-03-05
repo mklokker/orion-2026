@@ -488,19 +488,22 @@ export default function Layout({ children, currentPageName }) {
     });
   }, [toast]);
 
-  // Global notification hook (active on ALL pages)
+  // Global notification hook — only active when NOT on Chat page
+  // (the Chat page manages its own unread state and calls setGlobalUnread directly)
+  const isOnChatPage = location.pathname.toLowerCase().includes("chat");
   useChatNotifications({
-    currentUser: user,
+    currentUser: isOnChatPage ? null : user,  // disable when on Chat page
     presence: myPresenceGlobal,
-    currentConversationId: null, // Layout doesn't know which conv is open; Chat page handles its own marking
+    currentConversationId: null,
     onToast: handleChatToast,
     onUnreadDelta: useCallback((delta) => {
+      if (isOnChatPage) return; // Chat page manages its own counts
       setChatUnreadCounts(prev => {
         const next = { ...prev };
         Object.entries(delta).forEach(([k, v]) => { next[k] = (next[k] || 0) + v; });
         return next;
       });
-    }, []),
+    }, [isOnChatPage]),
   });
 
   const totalChatUnread = globalUnreadBadge || Object.values(chatUnreadCounts).reduce((a, b) => a + b, 0);
