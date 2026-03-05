@@ -414,6 +414,7 @@ export default function Chat() {
       await loadConversations(currentUser.email, false);
       if (selectedConversation?.id) {
         await loadMessages(selectedConversation.id);
+        await markAsRead(selectedConversation.id);
       }
       toast({
         title: "Atualizado",
