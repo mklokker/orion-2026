@@ -197,13 +197,19 @@ export default function Chat() {
     };
   }, [currentUser]);
 
-  // Load messages when conversation changes
+  // Load messages when conversation changes + reset global unread for this conv
   useEffect(() => {
     if (selectedConversation) {
       loadMessages(selectedConversation.id);
       markAsRead(selectedConversation.id);
     }
   }, [selectedConversation?.id]);
+
+  // Keep global unread badge in sync with local unreadCounts
+  useEffect(() => {
+    const total = Object.values(unreadCounts).reduce((a, b) => a + b, 0);
+    setGlobalUnread(total);
+  }, [unreadCounts]);
 
   const loadInitialData = async () => {
     try {
