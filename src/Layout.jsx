@@ -591,8 +591,9 @@ export default function Layout({ children, currentPageName }) {
   };
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider delayDuration={300}>
+    <NotificationProvider>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider delayDuration={300}>
         {appSettings && (
           <style>{`
             :root {
@@ -729,5 +730,6 @@ export default function Layout({ children, currentPageName }) {
         <Toaster />
       </TooltipProvider>
     </QueryClientProvider>
+    </NotificationProvider>
   );
 }
