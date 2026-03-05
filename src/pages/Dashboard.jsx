@@ -24,18 +24,13 @@ import TaskCard from "../components/dashboard/TaskCard";
 import TaskViewEditModal from "../components/tasks/TaskViewEditModal";
 import ServiceViewEditModal from "../components/services/ServiceViewEditModal";
 import { startOfMonth, endOfMonth, isWithinInterval, isSameDay, subDays, startOfDay, endOfDay } from "date-fns";
+import { parseDateAsLocal, getTodayBR, isSameDayBR } from "@/components/utils/dateUtils";
 
 const ITEMS_PER_PAGE = 100;
 
 const normalizeString = (str) => {
   if (!str) return "";
   return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-};
-
-const parseDateAsLocal = (dateString) => {
-  if (!dateString) return null;
-  const [year, month, day] = dateString.split('-').map(Number);
-  return new Date(year, month - 1, day);
 };
 
 // Função auxiliar para gerar um nome amigável a partir do email
@@ -176,9 +171,11 @@ export default function Dashboard() {
 
     let dateMatch = true;
     if (filterPeriod === 'hoje') {
-      dateMatch = isSameDay(effectiveDate, new Date());
+      dateMatch = isSameDayBR(effectiveDate, getTodayBR());
     } else if (filterPeriod === 'ontem') {
-      dateMatch = isSameDay(effectiveDate, subDays(new Date(), 1));
+      const yesterday = new Date(getTodayBR());
+      yesterday.setDate(yesterday.getDate() - 1);
+      dateMatch = isSameDayBR(effectiveDate, yesterday);
     } else if (filterPeriod === 'personalizado' && customStartDate && customEndDate) {
       const start = startOfDay(parseDateAsLocal(customStartDate));
       const end = endOfDay(parseDateAsLocal(customEndDate));
@@ -249,9 +246,11 @@ export default function Dashboard() {
 
       let dateMatch = true;
       if (filterPeriod === 'hoje') {
-        dateMatch = isSameDay(effectiveDate, new Date());
+        dateMatch = isSameDayBR(effectiveDate, getTodayBR());
       } else if (filterPeriod === 'ontem') {
-        dateMatch = isSameDay(effectiveDate, subDays(new Date(), 1));
+        const yesterday = new Date(getTodayBR());
+        yesterday.setDate(yesterday.getDate() - 1);
+        dateMatch = isSameDayBR(effectiveDate, yesterday);
       } else if (filterPeriod === 'personalizado' && customStartDate && customEndDate) {
         const start = startOfDay(parseDateAsLocal(customStartDate));
         const end = endOfDay(parseDateAsLocal(customEndDate));

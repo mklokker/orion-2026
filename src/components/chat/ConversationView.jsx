@@ -19,7 +19,7 @@ import TypingIndicator from "./TypingIndicator";
 import PinnedMessages from "./PinnedMessages";
 import ConversationFilesModal from "./ConversationFilesModal";
 import TaskRequestModal from "./TaskRequestModal";
-import { groupMessagesByDateBR, isSameDayBR, getDateLabelBR } from "@/lib/dateUtils";
+import { groupMessagesByDateBR, getDateLabelBR } from "@/components/utils/dateUtils";
 import {
   DropdownMenu,
   DropdownMenuContent,

@@ -9,8 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Bell, Check, CheckCheck, Trash2, X } from "lucide-react";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { formatDateBR } from "@/components/utils/dateUtils";
 
 const getNotificationIcon = (type) => {
   const icons = {
@@ -164,7 +163,7 @@ export default function NotificationCenter({ open, onClose, currentUser, onNotif
                         </p>
                       )}
                       <p className="text-xs text-gray-400 mt-2">
-                        {format(new Date(notification.created_date), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                        {formatDateBR(notification.created_date, "dd/MM/yyyy HH:mm")}
                       </p>
                     </div>
                   </div>
