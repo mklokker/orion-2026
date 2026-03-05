@@ -125,6 +125,8 @@ export function useChatNotifications({
   useEffect(() => {
     if (!currentUser) return;
 
+    console.log(`[useChatNotifications] Starting subscription for ${currentUser.email}`);
+
     const unsub = ChatMessage.subscribe(async (event) => {
       if (event.type !== "create") return;
       const msg = event.data;
@@ -151,7 +153,16 @@ export function useChatNotifications({
         const convs = await ChatConversation.filter({ id: msg.conversation_id });
         const conv = convs[0];
         if (!conv) return;
-        if (!conv.participants?.includes(currentUser.email)) return;
+
+        // FILTRO DEFENSIVO: validar se o usuário atual é participante
+        if (!conv.participants?.includes(currentUser.email)) {
+          console.warn(
+            `[useChatNotifications] SECURITY: Ignored message ${msg.id} from ${msg.sender_email} - ` +
+            `current user ${currentUser.email} is not a participant of conversation ${msg.conversation_id}`
+          );
+          return;
+        }
+
         if (conv.muted_by?.includes(currentUser.email)) return;
 
         const isMention = msg.content?.includes(`@${currentUser.full_name}`) ||
@@ -162,9 +173,12 @@ export function useChatNotifications({
           shouldNotify = false;
         }
         if (shouldNotify) {
+          console.log(`[useChatNotifications] Notifying for message ${msg.id} in conversation ${msg.conversation_id}`);
           schedule(msg.conversation_id, msg, conv.name || "Conversa", conv.type === "group");
         }
-      } catch (_) {}
+      } catch (error) {
+        console.error('[useChatNotifications] Error processing message:', error);
+      }
     });
 
     return () => unsub();
