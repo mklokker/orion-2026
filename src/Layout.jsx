@@ -591,6 +591,8 @@ function LayoutContent({ children, currentPageName }) {
   };
 
   return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider delayDuration={300}>
         {appSettings && (
           <style>{`
             :root {
@@ -736,11 +738,7 @@ function LayoutContent({ children, currentPageName }) {
 export default function Layout({ children, currentPageName }) {
   return (
     <NotificationProvider>
-      <QueryClientProvider client={queryClient}>
-        <TooltipProvider delayDuration={300}>
-          <LayoutContent children={children} currentPageName={currentPageName} />
-        </TooltipProvider>
-      </QueryClientProvider>
+      <LayoutContent children={children} currentPageName={currentPageName} />
     </NotificationProvider>
   );
 }
