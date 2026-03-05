@@ -174,12 +174,12 @@ export default function GroupSettingsModal({
               ) : (
                 <div className="text-center mt-3">
                   <h3 className="text-xl font-semibold">{otherUser?.display_name || otherUser?.full_name}</h3>
-                  <p className="text-sm text-gray-500">{otherUser?.email}</p>
+                  <p className="text-sm text-muted-foreground">{otherUser?.email}</p>
                 </div>
               )}
 
               {isGroup && (
-                <p className="text-sm text-gray-500">{participants.length} participantes</p>
+                <p className="text-sm text-muted-foreground">{participants.length} participantes</p>
               )}
             </div>
 
@@ -200,7 +200,7 @@ export default function GroupSettingsModal({
                         const isMe = email === currentUser?.email;
 
                         return (
-                          <div key={email} className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50">
+                          <div key={email} className="flex items-center gap-3 p-2 rounded-lg hover:bg-accent">
                             <Avatar className="w-10 h-10">
                               <AvatarImage src={user?.profile_picture} />
                               <AvatarFallback className="bg-blue-100 text-blue-700">
@@ -212,7 +212,7 @@ export default function GroupSettingsModal({
                                 {user?.display_name || user?.full_name || email}
                                 {isMe && " (você)"}
                               </p>
-                              <p className="text-xs text-gray-500 truncate">{email}</p>
+                              <p className="text-xs text-muted-foreground truncate">{email}</p>
                             </div>
                             {isParticipantAdmin && (
                               <Badge variant="secondary" className="gap-1">
@@ -257,7 +257,7 @@ export default function GroupSettingsModal({
 
                     {/* Search */}
                     <div className="relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                       <Input
                         placeholder="Buscar usuários..."
                         value={searchAdd}
@@ -275,8 +275,8 @@ export default function GroupSettingsModal({
                             <div
                               key={user.email}
                               onClick={() => toggleUserToAdd(user)}
-                              className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer hover:bg-gray-100 ${
-                                isSelected ? "bg-green-50" : ""
+                              className={`flex items-center gap-3 p-2 rounded-lg cursor-pointer hover:bg-accent ${
+                                isSelected ? "bg-accent/60" : ""
                               }`}
                             >
                               <Checkbox checked={!!isSelected} />
@@ -288,13 +288,13 @@ export default function GroupSettingsModal({
                               </Avatar>
                               <div className="flex-1 min-w-0">
                                 <p className="font-medium text-sm truncate">{user.display_name || user.full_name}</p>
-                                <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                                <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                               </div>
                             </div>
                           );
                         })}
                         {filteredUsersToAdd.length === 0 && (
-                          <p className="text-center text-gray-500 py-4 text-sm">
+                          <p className="text-center text-muted-foreground py-4 text-sm">
                             {usersNotInGroup.length === 0 
                               ? "Todos os usuários já estão no grupo" 
                               : "Nenhum usuário encontrado"}
