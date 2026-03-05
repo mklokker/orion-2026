@@ -17,7 +17,6 @@ import {
   Pin,
   ListChecks
 } from "lucide-react";
-import { format } from "date-fns";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -30,6 +29,8 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import LinkPreview from "./LinkPreview";
+import ReadReceipt from "./ReadReceipt";
+import ReadReceiptBadge from "./ReadReceiptBadge";
 
 // GIF inline com fallback e responsividade mobile
 function GifMessage({ src, isOwn }) {
@@ -156,7 +157,6 @@ export default function MessageBubble({
 
   const FileIcon = getFileIcon(message.file_type);
   const isImage = message.type === "image" || message.file_type?.includes("image");
-  const readStatus = message.read_by?.length > 1 ? "read" : "sent";
   
   // Formata hora subtraindo 3 horas do horário atual
   const formatTimeMinusThreeHours = (dateStr) => {
@@ -335,14 +335,20 @@ export default function MessageBubble({
             {message.is_pinned && <Pin className="w-3 h-3 text-amber-500" />}
             {message.is_edited && <span className="text-xs">editada</span>}
             <span className="text-xs">{formatTimeMinusThreeHours(message.created_date)}</span>
-            {isOwn && (
-              readStatus === "read" ? (
-                <CheckCheck className="w-4 h-4 text-blue-300" />
-              ) : (
-                <Check className="w-4 h-4" />
-              )
-            )}
           </div>
+
+          {/* Read receipts (only for own messages) */}
+          {isOwn && (
+            <div className="flex items-center justify-end gap-2 mt-1">
+              <ReadReceipt 
+                message={message}
+                currentUser={{ email: "current" }}
+                users={[]}
+                isGroup={isGroupChat}
+              />
+              {isGroupChat && <ReadReceiptBadge message={message} users={[]} isGroup={true} />}
+            </div>
+          )}
         </div>
 
         {/* Reactions */}
