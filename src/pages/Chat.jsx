@@ -19,6 +19,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { playNotificationSound } from "@/components/chat/NotificationSounds";
 import { Department } from "@/entities/Department";
 import { setGlobalUnread } from "@/components/chat/useChatNotifications";
+import { base44 } from "@/api/base44Client";
 
 export default function Chat() {
   const { toast } = useToast();
@@ -225,6 +226,13 @@ export default function Chat() {
     try {
       const userData = await User.me();
       setCurrentUser(userData);
+      
+      // Garantir que o usuário tem uma conversa "self" (Anotações)
+      try {
+        await base44.functions.invoke('ensureSelfConversation');
+      } catch (e) {
+        console.error("Erro ao garantir conversa self:", e);
+      }
       
       // Use backend function to get users (works for all roles)
       try {
