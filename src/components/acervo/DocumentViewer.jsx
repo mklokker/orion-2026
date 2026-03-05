@@ -319,12 +319,12 @@ export default function DocumentViewer({ open, onClose, document: doc, currentUs
                 Voltar para Versão Atual
               </Button>
             )}
-            <Button variant="outline" onClick={handleDownload} className="gap-2">
+            <Button onClick={handleDownload} className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
               <Download className="w-4 h-4" />
               Baixar
             </Button>
             {doc.document_type === 'file' && (
-              <Button variant="outline" onClick={() => window.open(doc.file_url, '_blank')} className="gap-2">
+              <Button onClick={() => window.open(doc.file_url, '_blank')} className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
                 <ExternalLink className="w-4 h-4" />
                 Abrir em Nova Aba
               </Button>
@@ -375,11 +375,12 @@ export default function DocumentViewer({ open, onClose, document: doc, currentUs
                         </Button>
                         {isAdmin && (
                           <Button
-                            size="sm"
-                            onClick={() => handleRestoreVersion(version)}
-                          >
-                            Restaurar
-                          </Button>
+                             size="sm"
+                             onClick={() => handleRestoreVersion(version)}
+                             className="bg-primary text-primary-foreground hover:bg-primary/90"
+                           >
+                             Restaurar
+                           </Button>
                         )}
                       </div>
                     </div>
@@ -424,7 +425,7 @@ export default function DocumentViewer({ open, onClose, document: doc, currentUs
             <Button variant="outline" onClick={() => setShowNewVersionDialog(false)}>
               Cancelar
             </Button>
-            <Button onClick={handleNewVersion} disabled={isUploading}>
+            <Button onClick={handleNewVersion} disabled={isUploading} className="bg-primary text-primary-foreground hover:bg-primary/90">
               {isUploading ? "Enviando..." : "Criar Versão"}
             </Button>
           </div>
