@@ -33,12 +33,23 @@ export function NotificationProvider({ children }) {
   const loadNotifications = useCallback(async (userEmail) => {
     setIsLoading(true);
     try {
+      // Backend deve filtrar por user_email, mas frontend valida defensivamente
       const notifs = await Notification.filter(
         { user_email: userEmail },
         '-created_date'
       );
-      setNotifications(notifs);
-      console.log(`[Notifications] Loaded ${notifs.length} notifications`);
+      
+      // Filtro defensivo: apenas notificações para o usuário logado
+      const validNotifs = notifs.filter(n => {
+        if (n.user_email !== userEmail) {
+          console.warn(`[Notifications] SECURITY: Ignored notification ${n.id} - not intended for ${userEmail}`);
+          return false;
+        }
+        return true;
+      });
+      
+      setNotifications(validNotifs);
+      console.log(`[Notifications] Loaded ${validNotifs.length}/${notifs.length} valid notifications`);
     } catch (error) {
       console.error('[Notifications] Error loading:', error);
     }
@@ -80,7 +91,15 @@ export function NotificationProvider({ children }) {
     }
   }, []);
 
-  const addNotification = useCallback((notification) => {
+  const addNotification = useCallback((notification, currentUserEmail) => {
+    // Filtro defensivo: validar que a notificação é para o usuário atual
+    if (currentUserEmail && notification.user_email !== currentUserEmail) {
+      console.warn(
+        `[Notifications] SECURITY: Ignored incoming notification ${notification.id} - ` +
+        `intended for ${notification.user_email}, current user is ${currentUserEmail}`
+      );
+      return;
+    }
     setNotifications(prev => [notification, ...prev]);
     console.log('[Notifications] Added:', notification.id);
   }, []);
