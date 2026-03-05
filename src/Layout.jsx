@@ -689,7 +689,7 @@ export default function Layout({ children, currentPageName }) {
           </main>
 
           {/* Mobile bottom nav */}
-          <MobileBottomNav onMoreClick={() => setShowMobileMore(true)} unreadChatCount={0} />
+          <MobileBottomNav onMoreClick={() => setShowMobileMore(true)} unreadChatCount={totalChatUnread} />
           <MobileMoreMenu open={showMobileMore} onClose={() => setShowMobileMore(false)} isAdmin={isAdmin} />
         </div>
 
