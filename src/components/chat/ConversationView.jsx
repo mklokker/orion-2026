@@ -244,8 +244,11 @@ export default function ConversationView({
       />
 
       {/* Messages - área com scroll próprio */}
-      <ScrollArea className="flex-1 min-h-0 overflow-hidden relative w-full" ref={scrollRef} onScrollCapture={handleScroll}>
-        <div className="px-2 md:px-4 py-2 md:py-4 w-full min-w-0 overflow-x-hidden">
+      <div
+        ref={scrollRef}
+        onScroll={handleScroll}
+        className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden w-full relative px-2 md:px-4 py-2 md:py-4"
+      >
         {Object.entries(groupedMessages).map(([date, msgs]) => (
           <div key={date}>
             {/* Date separator */}
@@ -261,14 +264,13 @@ export default function ConversationView({
             {msgs.map((msg, idx) => {
               const isOwn = msg.sender_email === currentUser?.email;
               const prevMsg = msgs[idx - 1];
-              // Em grupos, sempre mostra avatar/nome. Em 1:1, só quando muda o remetente
-              const showAvatar = isGroup 
+              const showAvatar = isGroup
                 ? (!prevMsg || prevMsg.sender_email !== msg.sender_email)
                 : (!prevMsg || prevMsg.sender_email !== msg.sender_email);
 
               return (
-                <div 
-                  key={msg.id} 
+                <div
+                  key={msg.id}
                   ref={el => messageRefs.current[msg.id] = el}
                   className="transition-colors duration-500 rounded-lg"
                 >
@@ -293,16 +295,15 @@ export default function ConversationView({
             })}
           </div>
         ))}
-        
-        {/* Typing Indicator - Proeminente */}
+
+        {/* Typing Indicator */}
         {typingUsers?.length > 0 && (
           <TypingIndicator typingUsers={typingUsers} users={users} />
         )}
-        
+
         {/* Âncora para scroll automático */}
         <div ref={bottomRef} />
-        </div>
-      </ScrollArea>
+      </div>
 
       {/* Botão scroll para baixo */}
       {showScrollButton && (
