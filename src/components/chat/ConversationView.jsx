@@ -10,7 +10,8 @@ import {
   Video,
   Search,
   FolderOpen,
-  ArrowDown
+  ArrowDown,
+  ListPlus
 } from "lucide-react";
 import { format, isSameDay } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -20,6 +21,7 @@ import PresenceIndicator, { statusConfig } from "./PresenceIndicator";
 import TypingIndicator from "./TypingIndicator";
 import PinnedMessages from "./PinnedMessages";
 import ConversationFilesModal from "./ConversationFilesModal";
+import TaskRequestModal from "./TaskRequestModal";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -56,6 +58,7 @@ export default function ConversationView({
   const scrollRef = useRef(null);
   const [replyingTo, setReplyingTo] = useState(null);
   const [showFilesModal, setShowFilesModal] = useState(false);
+  const [showTaskRequestModal, setShowTaskRequestModal] = useState(false);
   const messageRefs = useRef({});
   const bottomRef = useRef(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
@@ -199,6 +202,10 @@ export default function ConversationView({
           <FolderOpen className="w-5 h-5" />
         </Button>
 
+        <Button variant="ghost" size="icon" onClick={() => setShowTaskRequestModal(true)} title="Solicitar Tarefas">
+          <ListPlus className="w-5 h-5" />
+        </Button>
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon">
@@ -311,6 +318,15 @@ export default function ConversationView({
         onClose={() => setShowFilesModal(false)}
         conversation={conversation}
         users={users}
+      />
+
+      {/* Task Request Modal */}
+      <TaskRequestModal
+        open={showTaskRequestModal}
+        onClose={() => setShowTaskRequestModal(false)}
+        currentUser={currentUser}
+        conversationId={conversation?.id}
+        onSendMessage={handleSend}
       />
     </div>
   );
