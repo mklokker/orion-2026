@@ -302,7 +302,7 @@ export default function ChatInput({
 
   return (
     <div 
-      className={`border-t border-border bg-card p-2 md:p-3 transition-colors relative ${isDragging ? "bg-blue-50 border-blue-300 border-2 border-dashed" : ""}`}
+      className={`border-t border-border bg-card p-2 md:p-3 transition-colors relative ${isDragging ? "bg-accent border-primary/40 border-2 border-dashed" : ""}`}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}

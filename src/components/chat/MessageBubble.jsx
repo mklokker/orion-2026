@@ -44,7 +44,7 @@ function GifMessage({ src, isOwn }) {
         href={src}
         target="_blank"
         rel="noopener noreferrer"
-        className={`text-sm underline ${isOwn ? "text-green-100" : "text-blue-500"}`}
+        className={`text-sm underline ${isOwn ? "text-primary-foreground/90" : "text-primary"}`}
       >
         🎞 Abrir GIF
       </a>
