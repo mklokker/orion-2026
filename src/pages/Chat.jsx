@@ -141,12 +141,15 @@ export default function Chat() {
       const msgConversationId = event.data?.conversation_id;
 
       if (event.type === 'create') {
+        // Normalize message conversation_id
+        const normalizedMsgConvId = msgConversationId ?? event.data?.conversation_id;
+
         // If message is for the selected conversation, add it
-        if (selectedConv && msgConversationId === selectedConv.id) {
+        if (selectedConv && normalizedMsgConvId === selectedConv.id) {
           // Validar se é realmente a conversa atual (previne race condition)
           const stateConversationId = conversationState.currentConversationId;
-          if (stateConversationId === msgConversationId) {
-            conversationState.addMessage(msgConversationId, event.data);
+          if (stateConversationId === normalizedMsgConvId) {
+            conversationState.addMessage(normalizedMsgConvId, event.data);
             // Mark as read immediately if from someone else
             if (event.data.sender_email !== user.email) {
               const readByArray = event.data.read_by || [];
@@ -169,7 +172,7 @@ export default function Chat() {
            if (isUnread) {
              setUnreadCounts(prev => ({
                ...prev,
-               [msgConversationId]: (prev[msgConversationId] || 0) + 1
+               [normalizedMsgConvId]: (prev[normalizedMsgConvId] || 0) + 1
              }));
 
             // Send notification if not already notified
@@ -198,17 +201,19 @@ export default function Chat() {
           }
         }
       } else if (event.type === 'update') {
-        if (selectedConv && msgConversationId === selectedConv.id) {
+        const normalizedMsgConvId = msgConversationId ?? event.data?.conversation_id;
+        if (selectedConv && normalizedMsgConvId === selectedConv.id) {
           // Validar se é a conversa atual
-          if (conversationState.currentConversationId === msgConversationId) {
-            conversationState.updateMessage(msgConversationId, event.id, event.data);
+          if (conversationState.currentConversationId === normalizedMsgConvId) {
+            conversationState.updateMessage(normalizedMsgConvId, event.id, event.data);
           }
         }
       } else if (event.type === 'delete') {
-        if (selectedConv && msgConversationId === selectedConv.id) {
+        const normalizedMsgConvId = msgConversationId ?? event.data?.conversation_id;
+        if (selectedConv && normalizedMsgConvId === selectedConv.id) {
           // Validar se é a conversa atual
-          if (conversationState.currentConversationId === msgConversationId) {
-            conversationState.removeMessage(msgConversationId, event.id);
+          if (conversationState.currentConversationId === normalizedMsgConvId) {
+            conversationState.removeMessage(normalizedMsgConvId, event.id);
           }
         }
       }
@@ -222,6 +227,9 @@ export default function Chat() {
   // Load messages when conversation changes + reset global unread for this conv
   useEffect(() => {
     if (selectedConversation) {
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Chat] Loading messages for:', { conversationId: selectedConversation.id });
+      }
       // Usar novo sistema de estado com cache + validação stale
       conversationState.loadMessages(selectedConversation.id, async (conversationId, signal) => {
         const response = await getChatMessages({ conversation_id: conversationId });
@@ -348,7 +356,18 @@ export default function Chat() {
     try {
       // Use backend function to get conversations (works for all users)
       const response = await getChatConversations();
-      const myConvs = response?.data?.conversations || [];
+      let myConvs = response?.data?.conversations || [];
+      
+      // Normalize conversation IDs - ensure every conversation has a normalized .id field
+      myConvs = myConvs.map(conv => ({
+        ...conv,
+        id: conv.id ?? conv._id ?? conv.conversation_id
+      }));
+      
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Chat] Conversations loaded and normalized:', myConvs.map(c => ({ id: c.id, type: c.type })));
+      }
+      
       setConversations(myConvs);
       
       // Calculate unread counts only on initial load to avoid rate limit
@@ -357,10 +376,11 @@ export default function Chat() {
         for (const conv of myConvs.slice(0, 10)) { // Limit to 10 to avoid rate limit
           try {
             const msgs = await ChatMessage.filter({ conversation_id: conv.id });
-            const unread = msgs.filter(m => 
-              m.sender_email !== userEmail && 
-              !m.read_by?.includes(userEmail)
-            ).length;
+            const unread = msgs.filter(m => {
+              if (m.sender_email === userEmail) return false;
+              const readByArray = m.read_by || [];
+              return !readByArray.some(r => r.email === userEmail);
+            }).length;
             if (unread > 0) counts[conv.id] = unread;
           } catch (e) {
             // Skip on rate limit
@@ -461,6 +481,9 @@ export default function Chat() {
   };
 
   const handleSelectConversation = (conv) => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[Chat] Selected conversation:', { id: conv.id, type: conv.type, name: conv.name });
+    }
     setSelectedConversation(conv);
     if (isMobileView) setShowConversation(true);
   };
