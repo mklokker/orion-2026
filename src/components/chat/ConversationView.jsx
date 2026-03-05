@@ -53,7 +53,9 @@ export default function ConversationView({
   onImageClick,
   onPinMessage,
   typingUsers,
-  presenceMap = {}
+  presenceMap = {},
+  isAdmin = false,
+  onApproveTaskRequest
 }) {
   const scrollRef = useRef(null);
   const [replyingTo, setReplyingTo] = useState(null);
@@ -276,6 +278,8 @@ export default function ConversationView({
                     onImageClick={onImageClick}
                     onPin={onPinMessage}
                     onScrollToMessage={scrollToMessage}
+                    isAdmin={isAdmin}
+                    onApproveTaskRequest={onApproveTaskRequest}
                   />
                 </div>
               );
