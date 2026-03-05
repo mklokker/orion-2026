@@ -734,11 +734,23 @@ export default function Chat() {
     setShowTaskApprovalModal(true);
   };
 
+  // Mobile: mostrar lista ou conversa (nunca os dois)
+  // Desktop: split view lado a lado
+  const showList = !isMobileView || !showConversation;
+  const showDetail = !isMobileView || showConversation;
+
+  const handleBack = () => {
+    setShowConversation(false);
+    setSelectedConversation(null);
+  };
+
   return (
-    <div className="h-[calc(100vh-120px)] md:h-screen flex bg-background p-0 md:p-3 gap-0 md:gap-3 overflow-hidden">
-      {/* Sidebar - Chat List */}
-      <div className={`${isMobileView && showConversation ? "hidden" : "flex"} w-full md:w-[350px] lg:w-[400px] flex-col bg-card md:rounded-2xl md:border md:border-border md:shadow-sm overflow-hidden`}>
-        <ChatList
+    <div className="relative flex bg-background overflow-hidden" style={{ height: 'calc(100dvh - 56px)' }}>
+      {/* Desktop: padding e gap normais */}
+      <div className="hidden md:flex w-full h-full p-3 gap-3">
+        {/* Lista - Desktop */}
+        <div className="w-[350px] lg:w-[400px] flex flex-col bg-card rounded-2xl border border-border shadow-sm overflow-hidden shrink-0">
+          <ChatList
             conversations={conversations}
             users={users}
             currentUser={currentUser}
@@ -752,30 +764,83 @@ export default function Chat() {
             onPinConversation={handlePinConversation}
             onRefresh={handleRefresh}
             isRefreshing={isRefreshing}
-            />
+          />
+        </div>
+        {/* Conversa - Desktop */}
+        <div className="flex-1 flex flex-col bg-card rounded-2xl border border-border shadow-sm overflow-hidden min-w-0">
+          <ConversationView
+            conversation={selectedConversation}
+            messages={messages}
+            currentUser={currentUser}
+            users={users}
+            onSend={handleSendMessage}
+            onTyping={handleTyping}
+            onBack={handleBack}
+            onOpenSettings={() => setShowSettings(true)}
+            onEditMessage={handleEditMessage}
+            onDeleteMessage={handleDeleteMessage}
+            onReaction={handleReaction}
+            onImageClick={setViewingImage}
+            onPinMessage={handlePinMessage}
+            typingUsers={typingUsers}
+            presenceMap={presenceMap}
+            isAdmin={isAdmin}
+            onApproveTaskRequest={handleApproveTaskRequest}
+          />
+        </div>
       </div>
 
-      {/* Main - Conversation View */}
-      <div className={`${isMobileView && !showConversation ? "hidden" : "flex"} flex-1 flex-col bg-card md:rounded-2xl md:border md:border-border md:shadow-sm overflow-hidden`}>
-        <ConversationView
-          conversation={selectedConversation}
-          messages={messages}
-          currentUser={currentUser}
-          users={users}
-          onSend={handleSendMessage}
-          onTyping={handleTyping}
-          onBack={() => setShowConversation(false)}
-          onOpenSettings={() => setShowSettings(true)}
-          onEditMessage={handleEditMessage}
-          onDeleteMessage={handleDeleteMessage}
-          onReaction={handleReaction}
-          onImageClick={setViewingImage}
-          onPinMessage={handlePinMessage}
-          typingUsers={typingUsers}
-          presenceMap={presenceMap}
-          isAdmin={isAdmin}
-          onApproveTaskRequest={handleApproveTaskRequest}
-        />
+      {/* Mobile: Master/Detail - apenas uma tela por vez */}
+      <div className="flex md:hidden w-full h-full relative overflow-hidden">
+        {/* Lista - Mobile (visível quando não há conversa selecionada) */}
+        <div
+          className={`absolute inset-0 flex flex-col bg-card transition-transform duration-300 ${
+            showConversation ? "-translate-x-full" : "translate-x-0"
+          }`}
+        >
+          <ChatList
+            conversations={conversations}
+            users={users}
+            currentUser={currentUser}
+            selectedId={selectedConversation?.id}
+            onSelect={handleSelectConversation}
+            onNewChat={() => { setIsGroupMode(false); setShowNewChat(true); }}
+            onNewGroup={() => { setIsGroupMode(true); setShowNewChat(true); }}
+            unreadCounts={unreadCounts}
+            presenceMap={presenceMap}
+            onOpenPresenceSettings={() => setShowPresenceSettings(true)}
+            onPinConversation={handlePinConversation}
+            onRefresh={handleRefresh}
+            isRefreshing={isRefreshing}
+          />
+        </div>
+
+        {/* Conversa - Mobile (visível quando há conversa selecionada) */}
+        <div
+          className={`absolute inset-0 flex flex-col bg-card transition-transform duration-300 ${
+            showConversation ? "translate-x-0" : "translate-x-full"
+          }`}
+        >
+          <ConversationView
+            conversation={selectedConversation}
+            messages={messages}
+            currentUser={currentUser}
+            users={users}
+            onSend={handleSendMessage}
+            onTyping={handleTyping}
+            onBack={handleBack}
+            onOpenSettings={() => setShowSettings(true)}
+            onEditMessage={handleEditMessage}
+            onDeleteMessage={handleDeleteMessage}
+            onReaction={handleReaction}
+            onImageClick={setViewingImage}
+            onPinMessage={handlePinMessage}
+            typingUsers={typingUsers}
+            presenceMap={presenceMap}
+            isAdmin={isAdmin}
+            onApproveTaskRequest={handleApproveTaskRequest}
+          />
+        </div>
       </div>
 
       {/* Modals */}
