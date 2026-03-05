@@ -696,7 +696,7 @@ export default function Layout({ children, currentPageName }) {
             <UserProfileModal open={showProfileModal} onClose={() => setShowProfileModal(false)} user={user} onUpdate={loadInitialData} />
             <NotificationCenter
               open={showNotifications}
-              onClose={() => { setShowNotifications(false); loadUnreadCount(); }}
+              onClose={() => setShowNotifications(false)}
               currentUser={user}
               onNotificationClick={handleNotificationClick}
             />
