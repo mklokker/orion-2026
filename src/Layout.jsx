@@ -395,14 +395,14 @@ export default function Layout({ children, currentPageName }) {
         `}</style>
       )}
       <div 
-        className="min-h-screen flex w-full bg-gradient-to-br from-gray-50 to-blue-50 dark:from-[#0a0a0a] dark:to-[#0a0a0a]"
+        className="min-h-screen flex w-full bg-background"
         style={{ 
           paddingTop: 'env(safe-area-inset-top, 0px)',
           paddingBottom: 'env(safe-area-inset-bottom, 0px)'
         }}
       >
-        <Sidebar className="border-r border-gray-200 dark:border-[#1a1a1a] bg-white dark:bg-[#0a0a0a]">
-          <SidebarHeader className="border-b border-gray-200 dark:border-[#1a1a1a] p-4">
+        <Sidebar className="border-r border-border bg-card">
+          <SidebarHeader className="border-b border-border p-4">
             <Link to={createPageUrl("Dashboard")} className="block">
               <div className="flex justify-center items-center h-24">
                 {appSettings?.logo_url ? (
@@ -418,7 +418,7 @@ export default function Layout({ children, currentPageName }) {
 
           <SidebarContent className="p-3">
             <SidebarGroup>
-              <SidebarGroupLabel className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider px-3 py-2">
+              <SidebarGroupLabel className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-3 py-2">
                 Menu Principal
               </SidebarGroupLabel>
               <SidebarGroupContent>
@@ -427,8 +427,8 @@ export default function Layout({ children, currentPageName }) {
                     <SidebarMenuItem key={item.title}>
                       <SidebarMenuButton
                         asChild
-                        className={`hover:bg-blue-50 dark:hover:bg-[#1a1a1a] hover:text-primary transition-all duration-200 rounded-lg mb-1 ${
-                          location.pathname === item.url ? 'bg-gradient-to-r from-primary to-primary-accent text-white hover:text-white' : 'dark:text-[#a1a1a1]'
+                        className={`hover:bg-accent hover:text-accent-foreground transition-all duration-200 rounded-lg mb-1 ${
+                          location.pathname === item.url ? 'bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground' : 'text-foreground'
                         }`}
                       >
                         <Link to={item.url} className="flex items-center gap-3 px-3 py-2.5">
@@ -450,8 +450,8 @@ export default function Layout({ children, currentPageName }) {
                       <SidebarMenuItem>
                         <CollapsibleTrigger asChild>
                           <SidebarMenuButton
-                            className={`hover:bg-blue-50 dark:hover:bg-[#1a1a1a] hover:text-primary transition-all duration-200 rounded-lg mb-1 w-full ${
-                              isGestaoRIActive ? 'bg-gradient-to-r from-primary to-primary-accent text-white hover:text-white' : 'dark:text-[#a1a1a1]'
+                            className={`hover:bg-accent hover:text-accent-foreground transition-all duration-200 rounded-lg mb-1 w-full ${
+                              isGestaoRIActive ? 'bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground' : 'text-foreground'
                             }`}
                           >
                             <Building2 className="w-5 h-5" />
@@ -465,8 +465,8 @@ export default function Layout({ children, currentPageName }) {
                               <SidebarMenuSubItem key={subItem.title}>
                                 <SidebarMenuSubButton
                                   asChild
-                                  className={`hover:bg-blue-50 dark:hover:bg-[#1a1a1a] hover:text-primary transition-all duration-200 rounded-lg ${
-                                    location.pathname === subItem.url ? 'bg-blue-100 dark:bg-[#1a1a1a] text-primary font-semibold' : 'dark:text-[#6b6b6b]'
+                                  className={`hover:bg-accent hover:text-accent-foreground transition-all duration-200 rounded-lg ${
+                                    location.pathname === subItem.url ? 'bg-accent text-primary font-semibold' : 'text-muted-foreground'
                                   }`}
                                 >
                                   <Link to={subItem.url} className="flex items-center gap-2">
@@ -486,7 +486,7 @@ export default function Layout({ children, currentPageName }) {
             </SidebarGroup>
           </SidebarContent>
 
-          <SidebarFooter className="border-t border-gray-200 dark:border-[#1a1a1a] p-4">
+          <SidebarFooter className="border-t border-border p-4">
             {user && (
               <div className="space-y-3">
                 <Button
@@ -535,17 +535,17 @@ export default function Layout({ children, currentPageName }) {
 
                 <button
                   onClick={() => setShowProfileModal(true)}
-                  className="w-full flex items-center gap-3 px-2 hover:bg-gray-50 dark:hover:bg-[#1a1a1a] rounded-lg p-2 transition-colors"
+                  className="w-full flex items-center gap-3 px-2 hover:bg-accent rounded-lg p-2 transition-colors"
                 >
-                  <Avatar className="w-10 h-10 border-2 border-gray-200 dark:border-slate-600">
+                  <Avatar className="w-10 h-10 border-2 border-border">
                     <AvatarImage src={user.profile_picture} alt={getUserDisplayName(user)} />
                     <AvatarFallback className="bg-gradient-to-br from-blue-600 to-indigo-600 text-white font-semibold">
                       {getInitials(getUserDisplayName(user))}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0 text-left">
-                    <p className="font-medium text-gray-900 dark:text-white text-sm truncate">{getUserDisplayName(user)}</p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
+                    <p className="font-medium text-foreground text-sm truncate">{getUserDisplayName(user)}</p>
+                    <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                     <p className="text-xs text-primary font-medium">
                       {user.role === 'admin' ? 'Administrador' : 'Usuário'}
                     </p>
@@ -553,7 +553,7 @@ export default function Layout({ children, currentPageName }) {
                 </button>
                 <button
                   onClick={handleLogout}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 dark:text-[#a1a1a1] hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-danger rounded-lg transition-colors duration-200"
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-destructive/10 hover:text-destructive rounded-lg transition-colors duration-200"
                 >
                   <LogOut className="w-4 h-4" />
                   Sair
@@ -565,7 +565,7 @@ export default function Layout({ children, currentPageName }) {
 
         <main className="flex-1 flex flex-col">
           <header 
-            className="bg-white/80 dark:bg-[#0a0a0a]/95 backdrop-blur-xl border-b border-gray-200/50 dark:border-[#1a1a1a] px-4 py-2 flex items-center justify-center md:hidden shadow-sm relative sticky top-0 z-40 select-none touch-none-select"
+            className="bg-background/80 backdrop-blur-xl border-b border-border px-4 py-2 flex items-center justify-center md:hidden shadow-sm relative sticky top-0 z-40 select-none touch-none-select"
             style={{ paddingTop: 'max(env(safe-area-inset-top, 0px), 8px)' }}
           >
             <div className="absolute left-4 top-1/2 -translate-y-1/2">
@@ -574,19 +574,19 @@ export default function Layout({ children, currentPageName }) {
                   variant="ghost"
                   size="icon"
                   onClick={() => navigate(-1)}
-                  className="hover:bg-gray-100 dark:hover:bg-[#1a1a1a] active:bg-gray-200 dark:active:bg-[#2a2a2a] p-2 rounded-lg transition-colors duration-200 touch-manipulation touch-none-select"
+                  className="hover:bg-accent active:bg-accent/80 p-2 rounded-lg transition-colors duration-200 touch-manipulation touch-none-select"
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </Button>
               ) : (
-                <SidebarTrigger className="hover:bg-gray-100 dark:hover:bg-[#1a1a1a] active:bg-gray-200 dark:active:bg-[#2a2a2a] p-2 rounded-lg transition-colors duration-200 touch-manipulation touch-none-select" />
+                <SidebarTrigger className="hover:bg-accent active:bg-accent/80 p-2 rounded-lg transition-colors duration-200 touch-manipulation touch-none-select" />
               )}
             </div>
             <div className="h-10">
                 {appSettings?.logo_url ? (
                     <img src={appSettings.logo_url} alt="Logo" className="h-full w-auto object-contain" />
                 ) : (
-                    <h1 className="text-xl font-bold text-gray-900 dark:text-white">Orion</h1>
+                    <h1 className="text-xl font-bold text-foreground">Orion</h1>
                 )}
             </div>
             <div className="absolute right-4 top-1/2 -translate-y-1/2">
