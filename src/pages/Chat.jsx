@@ -18,6 +18,7 @@ import TaskRequestApprovalModal from "@/components/chat/TaskRequestApprovalModal
 import { useToast } from "@/components/ui/use-toast";
 import { playNotificationSound } from "@/components/chat/NotificationSounds";
 import { Department } from "@/entities/Department";
+import { setGlobalUnread } from "@/components/chat/useChatNotifications";
 
 export default function Chat() {
   const { toast } = useToast();
