@@ -620,7 +620,29 @@ export default function Chat() {
     if (!confirm("Excluir esta mensagem?")) return;
     try {
       await ChatMessage.update(message.id, { is_deleted: true, content: "" });
-      // Real-time subscription will update messages
+      
+      // Update conversation preview if this was the last message
+      if (selectedConversation && selectedConversation.last_message) {
+        // Find the last non-deleted message
+        const nonDeletedMessages = messages.filter(m => !m.is_deleted && m.id !== message.id);
+        const lastMsg = nonDeletedMessages.length > 0 
+          ? nonDeletedMessages[nonDeletedMessages.length - 1] 
+          : null;
+        
+        if (lastMsg) {
+          await ChatConversation.update(selectedConversation.id, {
+            last_message: lastMsg.type === "text" ? lastMsg.content : `📎 ${lastMsg.file_name || "Arquivo"}`,
+            last_message_at: lastMsg.created_date,
+            last_message_by: lastMsg.sender_email
+          });
+        } else {
+          await ChatConversation.update(selectedConversation.id, {
+            last_message: "",
+            last_message_at: null,
+            last_message_by: null
+          });
+        }
+      }
     } catch (error) {
       console.error("Erro ao excluir:", error);
     }
