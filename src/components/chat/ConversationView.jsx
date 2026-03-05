@@ -12,8 +12,6 @@ import {
   ArrowDown,
   ListPlus
 } from "lucide-react";
-import { format, isSameDay } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import MessageBubble from "./MessageBubble";
 import ChatInput from "./ChatInput";
 import PresenceIndicator, { statusConfig } from "./PresenceIndicator";
@@ -21,6 +19,7 @@ import TypingIndicator from "./TypingIndicator";
 import PinnedMessages from "./PinnedMessages";
 import ConversationFilesModal from "./ConversationFilesModal";
 import TaskRequestModal from "./TaskRequestModal";
+import { groupMessagesByDateBR, isSameDayBR, getDateLabelBR } from "@/lib/dateUtils";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -136,13 +135,8 @@ export default function ConversationView({
     return user?.profile_picture;
   };
 
-  // Group messages by date
-  const groupedMessages = (messages || []).reduce((groups, msg) => {
-    const date = format(new Date(msg.created_date), "yyyy-MM-dd");
-    if (!groups[date]) groups[date] = [];
-    groups[date].push(msg);
-    return groups;
-  }, {});
+  // Group messages by date em timezone Brasil
+  const groupedMessages = groupMessagesByDateBR(messages || []);
 
   const handleSend = async (msgData) => {
     await onSend({
@@ -254,9 +248,7 @@ export default function ConversationView({
             {/* Date separator */}
             <div className="flex justify-center my-4">
               <span className="text-xs bg-card/90 text-muted-foreground px-3 py-1 rounded-full shadow-sm border border-border/50">
-                {isSameDay(new Date(date), new Date())
-                  ? "Hoje"
-                  : format(new Date(date), "dd 'de' MMMM", { locale: ptBR })}
+                {getDateLabelBR(date)}
               </span>
             </div>
 
