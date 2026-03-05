@@ -172,7 +172,7 @@ export default function Chat() {
               notifiedMessagesRef.current.add(event.data.id);
               
               const conv = allConversations.find(c => c.id === msgConversationId);
-              if (conv) {
+              if (conv && conv.type !== "self") {
                 const isGroup = conv.type === "group";
                 const isMention = event.data.content?.includes(`@${user.full_name}`) ||
                                   event.data.content?.includes(`@${user.email}`);
