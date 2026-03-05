@@ -138,7 +138,7 @@ export default function ConversationView({
   };
 
   // Group messages by date
-  const groupedMessages = messages.reduce((groups, msg) => {
+  const groupedMessages = (messages || []).reduce((groups, msg) => {
     const date = format(new Date(msg.created_date), "yyyy-MM-dd");
     if (!groups[date]) groups[date] = [];
     groups[date].push(msg);
