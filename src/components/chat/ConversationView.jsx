@@ -281,6 +281,7 @@ export default function ConversationView({
                     onScrollToMessage={scrollToMessage}
                     isAdmin={isAdmin}
                     onApproveTaskRequest={onApproveTaskRequest}
+                    users={users}
                   />
                 </div>
               );
@@ -315,6 +316,8 @@ export default function ConversationView({
         onTyping={onTyping}
         replyingTo={replyingTo}
         onCancelReply={() => setReplyingTo(null)}
+        participants={conversation?.participants || []}
+        allUsers={users}
       />
 
       {/* Files Modal */}
