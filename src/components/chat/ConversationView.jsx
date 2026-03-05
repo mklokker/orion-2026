@@ -20,6 +20,7 @@ import PinnedMessages from "./PinnedMessages";
 import ConversationFilesModal from "./ConversationFilesModal";
 import TaskRequestModal from "./TaskRequestModal";
 import MessageSearchModal from "./MessageSearchModal";
+import ChatBackground from "./ChatBackground";
 import { groupMessagesByDateBR, getDateLabelBR } from "@/components/utils/dateUtils";
 import {
   DropdownMenu,
@@ -256,8 +257,14 @@ export default function ConversationView({
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden w-full relative px-2 md:px-4 py-2 md:py-4"
+        className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden w-full relative"
+        style={{ isolation: "isolate" }}
       >
+        {/* Chat background layer */}
+        <ChatBackground conversation={conversation} />
+
+        {/* Messages layer */}
+        <div className="relative z-[2] px-2 md:px-4 py-2 md:py-4">
         {Object.entries(groupedMessages).map(([date, msgs]) => (
           <div key={date}>
             {/* Date separator */}
@@ -311,6 +318,7 @@ export default function ConversationView({
 
         {/* Âncora para scroll automático */}
         <div ref={bottomRef} />
+        </div>
       </div>
 
       {/* Botão scroll para baixo */}
