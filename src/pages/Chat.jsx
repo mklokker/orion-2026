@@ -446,21 +446,12 @@ export default function Chat() {
         typing_users: []
       });
 
-      // Update local state immediately for instant UI feedback
-      setMessages(prev => [...prev, newMsg]);
-      
-      // Update conversations list with the new timestamp
-      setConversations(prev => {
-        const updated = prev.map(c => 
-          c.id === selectedConversation.id 
-            ? { ...c, last_message: msgData.type === "text" ? msgData.content : `📎 ${msgData.file_name || "Arquivo"}`, last_message_at: now }
-            : c
-        );
-        return updated;
+      // Local state updates are now handled by real-time subscriptions
+      // But we do optimistic update for instant UI feedback
+      setMessages(prev => {
+        if (prev.some(m => m.id === newMsg.id)) return prev;
+        return [...prev, newMsg];
       });
-      
-      // Also update selectedConversation
-      setSelectedConversation(prev => prev ? { ...prev, last_message_at: now } : prev);
       
     } catch (error) {
       console.error("Erro ao enviar:", error);
