@@ -406,7 +406,7 @@ export default function CreateAtaModal({
             <Button type="button" variant="outline" onClick={onClose}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={loading}>
+            <Button type="submit" disabled={loading} className="bg-primary text-primary-foreground hover:bg-primary/90">
               {loading ? "Salvando..." : "Salvar"}
             </Button>
           </div>

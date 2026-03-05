@@ -529,15 +529,15 @@ export default function ServiceViewEditModal({ open, onClose, service, currentUs
                   <Button 
                     onClick={handleComplete} 
                     disabled={isCompleting}
-                    className="gap-2 bg-green-600 hover:bg-green-700"
+                    className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
                   >
                     <CheckCircle2 className="w-4 h-4" />
                     {isCompleting ? "Finalizando..." : "Finalizar Serviço"}
                   </Button>
                 )}
-                
+
                 {canEdit && (
-                  <Button onClick={() => setIsEditing(true)} className="gap-2">
+                  <Button onClick={() => setIsEditing(true)} className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
                     Editar
                   </Button>
                 )}
@@ -552,7 +552,7 @@ export default function ServiceViewEditModal({ open, onClose, service, currentUs
                 }}>
                   Cancelar
                 </Button>
-                <Button onClick={handleSave} disabled={isSaving} className="gap-2">
+                <Button onClick={handleSave} disabled={isSaving} className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90">
                   <Save className="w-4 h-4" />
                   {isSaving ? "Salvando..." : "Salvar Alterações"}
                 </Button>
@@ -611,7 +611,7 @@ export default function ServiceViewEditModal({ open, onClose, service, currentUs
             <Button 
               onClick={handleTransfer} 
               disabled={isTransferring || !transferToUser}
-              className="gap-2"
+              className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
             >
               <ArrowRight className="w-4 h-4" />
               {isTransferring ? "Confirmando..." : "Confirmar Transferência"}
