@@ -140,7 +140,7 @@ export default function MessageBubble({
   if (message.is_deleted) {
     return (
       <div className={`flex ${isOwn ? "justify-end" : "justify-start"} mb-1`}>
-        <div className="px-3 py-2 rounded-lg bg-gray-100 text-gray-400 italic text-sm">
+        <div className="px-3 py-2 rounded-lg bg-muted text-muted-foreground italic text-sm">
           Mensagem excluída
         </div>
       </div>
@@ -150,7 +150,7 @@ export default function MessageBubble({
   if (message.type === "system") {
     return (
       <div className="flex justify-center my-2">
-        <span className="text-xs text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
+        <span className="text-xs text-muted-foreground bg-muted px-3 py-1 rounded-full">
           {message.content}
         </span>
       </div>
@@ -185,7 +185,7 @@ export default function MessageBubble({
     // Reply preview - clicável para scroll até a mensagem original
     const replyPreview = message.reply_to_id && (
       <div 
-        className={`mb-1 p-2 rounded text-xs border-l-2 cursor-pointer hover:opacity-80 transition-opacity ${isOwn ? "bg-green-600/20 border-green-300" : "bg-gray-200 border-gray-400"}`}
+        className={`mb-1 p-2 rounded text-xs border-l-2 cursor-pointer hover:opacity-80 transition-opacity ${isOwn ? "bg-primary-foreground/10 border-primary-foreground/40" : "bg-muted border-muted-foreground/40"}`}
         onClick={() => onScrollToMessage?.(message.reply_to_id)}
       >
         <span className="font-semibold">{message.reply_to_sender}</span>
@@ -231,9 +231,9 @@ export default function MessageBubble({
               href={message.file_url}
               target="_blank"
               rel="noopener noreferrer"
-              className={`flex items-center gap-2 p-2 rounded-lg min-w-0 overflow-hidden transition-opacity hover:opacity-90 ${isOwn ? "bg-green-600/20" : "bg-gray-200"}`}
+              className={`flex items-center gap-2 p-2 rounded-lg min-w-0 overflow-hidden transition-opacity hover:opacity-90 ${isOwn ? "bg-primary-foreground/10" : "bg-muted"}`}
             >
-              <div className={`p-2 rounded shrink-0 ${isOwn ? "bg-green-500/30" : "bg-gray-300"}`}>
+              <div className={`p-2 rounded shrink-0 ${isOwn ? "bg-primary-foreground/20" : "bg-muted-foreground/20"}`}>
                 <FileIcon className="w-6 h-6" />
               </div>
               <div className="flex-1 min-w-0 overflow-hidden">
@@ -270,7 +270,7 @@ export default function MessageBubble({
                   href={part}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`underline hover:opacity-80 ${isOwn ? "text-green-100" : "text-blue-500"}`}
+                  className={`underline hover:opacity-80 ${isOwn ? "text-primary-foreground/90" : "text-primary"}`}
                 >
                   {part}
                 </a>
@@ -287,7 +287,7 @@ export default function MessageBubble({
         {isTaskRequest && isAdmin && !isOwn && taskRequestId && (
           <Button
             onClick={() => onApproveTaskRequest?.(taskRequestId)}
-            className="mt-3 w-full gap-2 bg-green-600 hover:bg-green-700 text-white"
+            className="mt-3 w-full gap-2"
             size="sm"
           >
             <ListChecks className="w-4 h-4" />
@@ -336,14 +336,14 @@ export default function MessageBubble({
         <div
           className={`relative px-3 md:px-4 py-2 md:py-3 rounded-2xl min-w-0 overflow-hidden ${
             isOwn
-              ? "bg-green-500 text-white rounded-tr-sm"
-              : "bg-white text-gray-900 rounded-tl-sm shadow-md"
+              ? "bg-primary text-primary-foreground rounded-tr-sm"
+              : "bg-card text-card-foreground rounded-tl-sm shadow-md border border-border/50"
           }`}
         >
           {renderContent()}
 
           {/* Time and read status */}
-          <div className={`flex items-center justify-end gap-1 mt-1 ${isOwn ? "text-green-100" : "text-gray-400"}`}>
+          <div className={`flex items-center justify-end gap-1 mt-1 ${isOwn ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
             {message.is_pinned && <Pin className="w-3 h-3 text-amber-500" />}
             {message.is_edited && <span className="text-xs">editada</span>}
             <span className="text-xs">{formatTimeMinusThreeHours(message.created_date)}</span>
@@ -370,9 +370,9 @@ export default function MessageBubble({
               <button
                 key={emoji}
                 onClick={() => onReaction?.(message.id, emoji)}
-                className="flex items-center gap-1 px-2 py-0.5 bg-white rounded-full shadow-sm text-sm hover:bg-gray-100"
+                className="flex items-center gap-1 px-2 py-0.5 bg-card rounded-full shadow-sm text-sm hover:bg-accent border border-border/50"
               >
-                {emoji} <span className="text-xs text-gray-500">{users.length}</span>
+                {emoji} <span className="text-xs text-muted-foreground">{users.length}</span>
               </button>
             ))}
           </div>
@@ -381,7 +381,7 @@ export default function MessageBubble({
         {/* Actions */}
         {(showActions || keepActionsVisible) && (
           <div className={`absolute top-0 z-50 ${isOwn ? "left-0 -translate-x-full pr-1" : "right-0 translate-x-full pl-1"}`}>
-            <div className="flex items-center gap-0.5 bg-white rounded-lg shadow-md p-0.5">
+            <div className="flex items-center gap-0.5 bg-card rounded-lg shadow-md p-0.5 border border-border/50">
               {/* Emoji Picker para Reações */}
               <Popover open={emojiOpen} onOpenChange={setEmojiOpen}>
                 <PopoverTrigger asChild>
