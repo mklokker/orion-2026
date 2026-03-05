@@ -49,6 +49,8 @@ import { Toaster } from "./components/ui/toaster";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import MobileBottomNav from "./components/mobile/MobileBottomNav";
 import MobileMoreMenu from "./components/mobile/MobileMoreMenu";
+import { useChatNotifications, useGlobalUnreadCount, setGlobalUnread } from "./components/chat/useChatNotifications";
+import { UserPresence } from "@/entities/UserPresence";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { refetchOnWindowFocus: false, retry: 1 } },
