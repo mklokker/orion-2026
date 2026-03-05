@@ -408,10 +408,6 @@ export default function Layout({ children, currentPageName }) {
   const [appSettings, setAppSettings] = React.useState(null);
   const [showProfileModal, setShowProfileModal] = React.useState(false);
   const [showNotifications, setShowNotifications] = React.useState(false);
-  const [unreadCount, setUnreadCount] = React.useState(0);
-  const [notificationPermission, setNotificationPermission] = React.useState(
-    typeof Notification !== "undefined" ? Notification.permission : "denied"
-  );
   const [selectedItem, setSelectedItem] = React.useState(null);
   const [showTaskModal, setShowTaskModal] = React.useState(false);
   const [showServiceModal, setShowServiceModal] = React.useState(false);
@@ -421,6 +417,15 @@ export default function Layout({ children, currentPageName }) {
   const [chatUnreadCounts, setChatUnreadCounts] = React.useState({});
   const [myPresenceGlobal, setMyPresenceGlobal] = React.useState(null);
   const [globalUnreadBadge, setGlobalUnreadBadge] = React.useState(0);
+
+  // Notification Store (single source of truth)
+  const notificationUnreadCount = useNotificationStore(state => state.unreadCount());
+  const notificationPermission = useNotificationStore(state => state.notificationPermission);
+  const requestNotificationPermission = useNotificationStore(state => state.requestNotificationPermission);
+  const restoreSoundPreference = useNotificationStore(state => state.restoreSoundPreference);
+
+  // Sync notifications with real-time updates
+  useNotificationSync(user?.email, !!user);
 
   // Track global unread badge for mobile nav
   useGlobalUnreadCount(React.useCallback((n) => setGlobalUnreadBadge(n), []));
