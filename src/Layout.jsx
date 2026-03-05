@@ -460,6 +460,47 @@ export default function Layout({ children, currentPageName }) {
   const isAdmin = user?.role === "admin";
   const isDashboard = ["/Dashboard", "/", ""].includes(location.pathname);
 
+  // Load my presence for notification preferences
+  React.useEffect(() => {
+    if (!user?.email) return;
+    UserPresence.filter({ user_email: user.email }).then(res => {
+      if (res.length > 0) setMyPresenceGlobal(res[0]);
+    }).catch(() => {});
+  }, [user?.email]);
+
+  // Cross-section chat notification toast
+  const handleChatToast = useCallback((title, body, conversationId) => {
+    // Don't show toast if user is already on the Chat page
+    if (window.location.pathname.toLowerCase().includes("chat")) return;
+    toast({
+      title: `💬 ${title}`,
+      description: body,
+      action: (
+        <button
+          onClick={() => { window.location.href = createPageUrl("Chat"); }}
+          className="px-3 py-1.5 bg-primary text-primary-foreground rounded-md text-xs font-medium hover:bg-primary/90"
+        >
+          Abrir
+        </button>
+      ),
+    });
+  }, [toast]);
+
+  // Global notification hook (active on ALL pages)
+  useChatNotifications({
+    currentUser: user,
+    presence: myPresenceGlobal,
+    currentConversationId: null, // Layout doesn't know which conv is open; Chat page handles its own marking
+    onToast: handleChatToast,
+    onUnreadDelta: useCallback((delta) => {
+      setChatUnreadCounts(prev => {
+        const next = { ...prev };
+        Object.entries(delta).forEach(([k, v]) => { next[k] = (next[k] || 0) + v; });
+        return next;
+      });
+    }, []),
+  });
+
   const navigationItems = [
     { title: "Dashboard", url: createPageUrl("Dashboard"), icon: LayoutDashboard },
     { title: "Gestão de Tarefas", url: createPageUrl("GestaoTarefas"), icon: ClipboardList },
