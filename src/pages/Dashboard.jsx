@@ -333,7 +333,7 @@ export default function Dashboard() {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-          <Card className="bg-primary text-white border-0 shadow-md">
+          <Card className="border-0 shadow-md text-white" style={{ backgroundColor: "var(--primary, #4338CA)" }}>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium opacity-90 flex items-center gap-2">
                 <FileText className="w-4 h-4" />
@@ -345,7 +345,7 @@ export default function Dashboard() {
             </CardContent>
           </Card>
           
-          <Card className="bg-primary-accent text-white border-0 shadow-md">
+          <Card className="border-0 shadow-md text-white" style={{ backgroundColor: "var(--primary-accent, #3730A3)" }}>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium opacity-90 flex items-center gap-2">
                 <Clock className="w-4 h-4" />
@@ -357,7 +357,7 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          <Card className="bg-success text-white border-0 shadow-md">
+          <Card className="border-0 shadow-md text-white" style={{ backgroundColor: "var(--success, #10B981)" }}>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium opacity-90 flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4" />
@@ -369,7 +369,7 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          <Card className="bg-danger text-white border-0 shadow-md">
+          <Card className="border-0 shadow-md text-white" style={{ backgroundColor: "var(--danger, #EF4444)" }}>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium opacity-90 flex items-center gap-2">
                 <AlertCircle className="w-4 h-4" />
