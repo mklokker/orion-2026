@@ -301,6 +301,7 @@ export default function ConversationView({
         
         {/* Âncora para scroll automático */}
         <div ref={bottomRef} />
+        </div>
       </ScrollArea>
 
       {/* Botão scroll para baixo */}
