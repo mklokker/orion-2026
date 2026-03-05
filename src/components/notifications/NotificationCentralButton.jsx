@@ -2,14 +2,14 @@ import React from 'react';
 import { Bell } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useNotificationStore } from './NotificationStore';
+import { useNotifications } from './NotificationContext';
 
 /**
- * Botão sino com badge, consumindo NotificationStore.
+ * Botão sino com badge, consumindo NotificationContext.
  * Sempre sincronizado.
  */
 export default function NotificationCentralButton({ onClick }) {
-  const unreadCount = useNotificationStore(state => state.unreadCount());
+  const { unreadCount } = useNotifications();
 
   return (
     <Button

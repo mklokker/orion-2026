@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { useNotificationStore } from "./NotificationStore";
+import { useNotifications } from "./NotificationContext";
 import {
   Sheet,
   SheetContent,
@@ -23,17 +23,18 @@ const getNotificationIcon = (type) => {
 };
 
 export default function NotificationCenter({ open, onClose, currentUser, onNotificationClick }) {
-  const notifications = useNotificationStore(state => state.notifications);
-  const isLoading = useNotificationStore(state => state.isLoading);
-  const filter = useNotificationStore(state => state.filter);
-  const setFilter = useNotificationStore(state => state.setFilter);
-  const loadNotifications = useNotificationStore(state => state.loadNotifications);
-  const markAsRead = useNotificationStore(state => state.markAsRead);
-  const markAllAsRead = useNotificationStore(state => state.markAllAsRead);
-  const deleteNotification = useNotificationStore(state => state.deleteNotification);
-
-  const filteredNotifications = useNotificationStore(state => state.filteredNotifications());
-  const unreadCount = useNotificationStore(state => state.unreadCount());
+  const {
+    notifications,
+    isLoading,
+    filter,
+    setFilter,
+    loadNotifications,
+    markAsRead,
+    markAllAsRead,
+    deleteNotification,
+    filteredNotifications,
+    unreadCount
+  } = useNotifications();
 
   // Carrega notificações quando abre a central
   useEffect(() => {

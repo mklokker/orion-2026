@@ -52,7 +52,7 @@ import MobileBottomNav from "./components/mobile/MobileBottomNav";
 import MobileMoreMenu from "./components/mobile/MobileMoreMenu";
 import { useChatNotifications, useGlobalUnreadCount, setGlobalUnread } from "./components/chat/useChatNotifications";
 import { UserPresence } from "@/entities/UserPresence";
-import { useNotificationStore } from "./components/notifications/NotificationStore";
+import { NotificationProvider, useNotifications } from "./components/notifications/NotificationContext";
 import { useNotificationSync } from "./components/notifications/useNotificationSync";
 
 const queryClient = new QueryClient({
@@ -418,11 +418,13 @@ export default function Layout({ children, currentPageName }) {
   const [myPresenceGlobal, setMyPresenceGlobal] = React.useState(null);
   const [globalUnreadBadge, setGlobalUnreadBadge] = React.useState(0);
 
-  // Notification Store (single source of truth)
-  const notificationUnreadCount = useNotificationStore(state => state.unreadCount());
-  const notificationPermission = useNotificationStore(state => state.notificationPermission);
-  const requestNotificationPermission = useNotificationStore(state => state.requestNotificationPermission);
-  const restoreSoundPreference = useNotificationStore(state => state.restoreSoundPreference);
+  // Notification Context (single source of truth)
+  const {
+    unreadCount: notificationUnreadCount,
+    notificationPermission,
+    requestNotificationPermission,
+    restoreSoundPreference
+  } = useNotifications();
 
   // Sync notifications with real-time updates
   useNotificationSync(user?.email, !!user);
