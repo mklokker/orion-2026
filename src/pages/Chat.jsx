@@ -347,10 +347,12 @@ export default function Chat() {
         for (const conv of myConvs.slice(0, 10)) { // Limit to 10 to avoid rate limit
           try {
             const msgs = await ChatMessage.filter({ conversation_id: conv.id });
-            const unread = msgs.filter(m => 
-              m.sender_email !== userEmail && 
-              !m.read_by?.includes(userEmail)
-            ).length;
+            const unread = msgs.filter(m => {
+              const senderMatches = m.sender_email !== userEmail;
+              const readByArray = m.read_by || [];
+              const notReadYet = !readByArray.some(r => r.email === userEmail);
+              return senderMatches && notReadYet;
+            }).length;
             if (unread > 0) counts[conv.id] = unread;
           } catch (e) {
             // Skip on rate limit
@@ -433,32 +435,25 @@ export default function Chat() {
         const notReadByCurrentUser = !readByArray.some(r => r.email === currentUser.email);
         return senderMatches && notReadByCurrentUser;
       });
-      
-      // Batch update - mark all as read com timestamp
-      await Promise.all(unreadMsgs.map(msg => {
-        const readByArray = msg.read_by || [];
-        const newReadBy = [
-          ...readByArray,
-          { email: currentUser.email, read_at: now }
-        ];
-        return ChatMessage.update(msg.id, { read_by: newReadBy });
-      }));
-      
-      // Clear unread count e resetar global badge
+
+      // Zero counter immediately (optimistic UI)
       setUnreadCounts(prev => {
         const updated = { ...prev };
         delete updated[conversationId];
         return updated;
       });
       
-      // Recalculate and update global unread count
-      setTimeout(() => {
-        setUnreadCounts(prev => {
-          const total = Object.values(prev).reduce((a, b) => a + b, 0);
-          setGlobalUnread(total);
-          return prev;
-        });
-      }, 100);
+      // Batch update - mark all as read com timestamp
+      if (unreadMsgs.length > 0) {
+        await Promise.all(unreadMsgs.map(msg => {
+          const readByArray = msg.read_by || [];
+          const newReadBy = [
+            ...readByArray,
+            { email: currentUser.email, read_at: now }
+          ];
+          return ChatMessage.update(msg.id, { read_by: newReadBy });
+        }));
+      }
     } catch (error) {
       console.error("Erro ao marcar como lido:", error);
     }
@@ -470,6 +465,18 @@ export default function Chat() {
       if (isMobileView) setShowConversation(true);
       return;
     }
+    // Zero counter immediately (optimistic UI update)
+    setUnreadCounts(prev => {
+      const updated = { ...prev };
+      delete updated[conv.id];
+      return updated;
+    });
+    // Recalculate global unread
+    setUnreadCounts(prev => {
+      const total = Object.values(prev).reduce((a, b) => a + b, 0);
+      setGlobalUnread(total);
+      return prev;
+    });
     setSelectedConversation(conv);
     if (isMobileView) setShowConversation(true);
   };
