@@ -20,8 +20,11 @@ export default function ReadReceiptBadge({ message, users, isGroup = false }) {
   const readByNames = useMemo(() => {
     return otherReads.map(r => {
       const user = users?.find(u => u.email === r.email);
+      // Prioridade: display_name > full_name > email
+      const displayName = user?.display_name || user?.full_name || r.email;
       return {
-        name: user?.display_name || user?.full_name || r.email.split("@")[0],
+        name: displayName,
+        email: r.email,
         readAt: r.read_at
       };
     });
@@ -38,16 +41,19 @@ export default function ReadReceiptBadge({ message, users, isGroup = false }) {
       </Badge>
 
       <Dialog open={showModal} onOpenChange={setShowModal}>
-        <DialogContent className="sm:max-w-sm">
+        <DialogContent className="w-full max-w-md">
           <DialogHeader>
-            <DialogTitle>Visto por ({otherReads.length})</DialogTitle>
+            <DialogTitle className="text-lg">Visto por ({otherReads.length})</DialogTitle>
           </DialogHeader>
-          <div className="space-y-2 max-h-[50vh] overflow-y-auto">
+          <div className="space-y-2 max-h-[60vh] overflow-y-auto">
             {readByNames.map((r, idx) => (
               <div key={idx} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                <span className="font-medium text-sm">{r.name}</span>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm text-foreground truncate">{r.name}</p>
+                  <p className="text-xs text-muted-foreground truncate">{r.email}</p>
+                </div>
                 {r.readAt && (
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-xs text-muted-foreground shrink-0 ml-2 whitespace-nowrap">
                     {formatDateBR(r.readAt, "HH:mm")}
                   </span>
                 )}
