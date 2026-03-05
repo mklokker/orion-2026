@@ -4,6 +4,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, Plus, Users, Check, CheckCheck, Settings, Pin, PinOff, Globe, RefreshCw } from "lucide-react";
+
+// Inline scroll area to avoid react-router indirect import
+const ScrollArea = ({ children, className }) => (
+  <div className={`overflow-y-auto ${className || ""}`}>{children}</div>
+);
 import { useToast } from "@/components/ui/use-toast";
 import { format, isToday, isYesterday } from "date-fns";
 import { ptBR } from "date-fns/locale";
