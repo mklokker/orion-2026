@@ -3,7 +3,7 @@ export default function Removedor() {
     <div 
       className="w-full" 
       style={{ 
-        height: 'calc(100vh - 120px)',
+        height: 'calc(100vh - 64px)',
         WebkitOverflowScrolling: 'touch',
         overflow: 'auto'
       }}
