@@ -63,11 +63,28 @@ export default function ChatInput({
     return true;
   };
 
+  const gifPreview = detectGiphyMessage(message);
+
   const handleSend = async () => {
     if ((!message.trim() && files.length === 0) || uploading) return;
     // Prevent double-send if Enter is held
     if (isSendingRef.current) return;
     isSendingRef.current = true;
+
+    // GIF detected — send as gif type directly
+    const gifUrl = detectGiphyMessage(message);
+    if (gifUrl && files.length === 0) {
+      try {
+        await onSend({ content: gifUrl, type: "gif", gif_url: gifUrl, original_url: message.trim() });
+        setMessage("");
+        onCancelReply?.();
+        requestAnimationFrame(() => textareaRef.current?.focus());
+      } catch (error) {
+        console.error("Erro ao enviar GIF:", error);
+      }
+      isSendingRef.current = false;
+      return;
+    }
 
     setUploading(true);
     setUploadProgress(0);
