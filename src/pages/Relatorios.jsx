@@ -194,7 +194,7 @@ export default function Relatorios() {
 
   return (
     <>
-      <div className="p-4 md:p-8 min-h-screen no-print dark:bg-slate-900">
+      <div className="p-3 md:p-8 min-h-screen no-print bg-background">
         <div className="max-w-7xl mx-auto space-y-8">
           <div className="flex items-center justify-between">
             <div>

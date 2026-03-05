@@ -250,7 +250,7 @@ export default function Ranking() {
   };
 
   return (
-    <div className="p-4 md:p-8 min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-[#0a0a0a] dark:to-[#0a0a0a]">
+    <div className="p-3 md:p-8 min-h-screen bg-background">
       <div className="max-w-6xl mx-auto space-y-6">
         <div className="text-center space-y-2">
           <h1 className="text-2xl md:text-5xl font-bold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">

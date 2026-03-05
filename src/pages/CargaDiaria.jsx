@@ -414,18 +414,19 @@ export default function CargaDiaria() {
   return (
     <>
       <PullToRefresh onRefresh={handlePullRefresh} className="min-h-screen">
-      <div className="p-4 md:p-8 min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
+      <div className="p-3 md:p-8 min-h-screen bg-background">
         <div className="max-w-full mx-auto space-y-6">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 no-print">
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white">
+              <h1 className="text-2xl md:text-4xl font-bold text-foreground">
                 Carga Diária - Kanban
               </h1>
-              <p className="text-gray-600 dark:text-gray-400 mt-1">Arraste itens e colunas para reorganizar</p>
+              <p className="text-muted-foreground mt-1 text-sm">Arraste itens e colunas para reorganizar</p>
             </div>
             <Button
               onClick={handlePrint}
-              className="gap-2 bg-white dark:bg-slate-800 text-gray-900 dark:text-white border-2 border-gray-900 dark:border-slate-600 hover:bg-gray-900 hover:text-white dark:hover:bg-slate-700"
+              className="gap-2"
+              variant="outline"
             >
               <Printer className="w-4 h-4" />
               Imprimir
@@ -433,8 +434,8 @@ export default function CargaDiaria() {
           </div>
 
           {orderedUsers.length === 0 ? (
-            <Card className="p-12 text-center dark:bg-slate-800 dark:border-slate-700">
-              <p className="text-gray-500 dark:text-gray-400 font-medium">
+            <Card className="p-8 md:p-12 text-center">
+              <p className="text-muted-foreground font-medium">
                 Nenhum item pendente encontrado
               </p>
             </Card>

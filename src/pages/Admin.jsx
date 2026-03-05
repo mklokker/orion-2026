@@ -189,7 +189,7 @@ export default function Admin() {
   const isAdmin = currentUser?.role === 'admin';
 
   return (
-    <div className="p-4 md:p-8 min-h-screen dark:bg-[#0a0a0a]">
+    <div className="p-3 md:p-8 min-h-screen bg-background">
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <div>

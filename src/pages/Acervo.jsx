@@ -296,7 +296,7 @@ export default function Acervo() {
 
   return (
     <PullToRefresh onRefresh={handlePullRefresh} className="min-h-screen">
-    <div className="p-4 md:p-8 min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
+    <div className="p-3 md:p-8 min-h-screen bg-background">
       <div className="max-w-7xl mx-auto space-y-6">
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
