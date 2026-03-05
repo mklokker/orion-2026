@@ -19,6 +19,8 @@ import { useToast } from "@/components/ui/use-toast";
 import { playNotificationSound } from "@/components/chat/NotificationSounds";
 import { Department } from "@/entities/Department";
 import { setGlobalUnread } from "@/components/chat/useChatNotifications";
+import { useConversationState } from "@/components/chat/useConversationState";
+import ConversationLoadingSkeleton from "@/components/chat/ConversationLoadingSkeleton";
 import { base44 } from "@/api/base44Client";
 
 export default function Chat() {
@@ -27,7 +29,6 @@ export default function Chat() {
   const [users, setUsers] = useState([]);
   const [conversations, setConversations] = useState([]);
   const [selectedConversation, setSelectedConversation] = useState(null);
-  const [messages, setMessages] = useState([]);
   const [unreadCounts, setUnreadCounts] = useState({});
   const [showNewChat, setShowNewChat] = useState(false);
   const [isGroupMode, setIsGroupMode] = useState(false);
@@ -42,6 +43,9 @@ export default function Chat() {
   const [showTaskApprovalModal, setShowTaskApprovalModal] = useState(false);
   const [selectedTaskRequestId, setSelectedTaskRequestId] = useState(null);
   const [departments, setDepartments] = useState([]);
+
+  // Novo: gerenciar estado de conversa com cache e validação
+  const conversationState = useConversationState();
 
   const typingTimeoutRef = useRef(null);
   const notifiedMessagesRef = useRef(new Set());
@@ -139,21 +143,22 @@ export default function Chat() {
       if (event.type === 'create') {
         // If message is for the selected conversation, add it
         if (selectedConv && msgConversationId === selectedConv.id) {
-          setMessages(prev => {
-            if (prev.some(m => m.id === event.data.id)) return prev;
-            return [...prev, event.data];
-          });
-          // Mark as read immediately if from someone else
-          if (event.data.sender_email !== user.email) {
-            const readByArray = event.data.read_by || [];
-            const notReadYet = !readByArray.some(r => r.email === user.email);
-            if (notReadYet) {
-              ChatMessage.update(event.data.id, {
-                read_by: [
-                  ...readByArray,
-                  { email: user.email, read_at: new Date().toISOString() }
-                ]
-              }).catch(() => {});
+          // Validar se é realmente a conversa atual (previne race condition)
+          const stateConversationId = conversationState.currentConversationId;
+          if (stateConversationId === msgConversationId) {
+            conversationState.addMessage(msgConversationId, event.data);
+            // Mark as read immediately if from someone else
+            if (event.data.sender_email !== user.email) {
+              const readByArray = event.data.read_by || [];
+              const notReadYet = !readByArray.some(r => r.email === user.email);
+              if (notReadYet) {
+                ChatMessage.update(event.data.id, {
+                  read_by: [
+                    ...readByArray,
+                    { email: user.email, read_at: new Date().toISOString() }
+                  ]
+                }).catch(() => {});
+              }
             }
           }
         } else {
@@ -194,11 +199,17 @@ export default function Chat() {
         }
       } else if (event.type === 'update') {
         if (selectedConv && msgConversationId === selectedConv.id) {
-          setMessages(prev => prev.map(m => m.id === event.id ? event.data : m));
+          // Validar se é a conversa atual
+          if (conversationState.currentConversationId === msgConversationId) {
+            conversationState.updateMessage(msgConversationId, event.id, event.data);
+          }
         }
       } else if (event.type === 'delete') {
         if (selectedConv && msgConversationId === selectedConv.id) {
-          setMessages(prev => prev.filter(m => m.id !== event.id));
+          // Validar se é a conversa atual
+          if (conversationState.currentConversationId === msgConversationId) {
+            conversationState.removeMessage(msgConversationId, event.id);
+          }
         }
       }
     });
@@ -211,10 +222,15 @@ export default function Chat() {
   // Load messages when conversation changes + reset global unread for this conv
   useEffect(() => {
     if (selectedConversation) {
-      loadMessages(selectedConversation.id);
+      // Usar novo sistema de estado com cache + validação stale
+      conversationState.loadMessages(selectedConversation.id, async (conversationId, signal) => {
+        const response = await getChatMessages({ conversation_id: conversationId });
+        if (signal.aborted) throw new Error("Aborted");
+        return response?.data?.messages || [];
+      });
       markAsRead(selectedConversation.id);
     }
-  }, [selectedConversation?.id]);
+  }, [selectedConversation?.id, conversationState]);
 
   // Keep global unread badge in sync with local unreadCounts
   useEffect(() => {
@@ -360,16 +376,12 @@ export default function Chat() {
     }
   };
 
-  const loadMessages = async (conversationId) => {
-    try {
-      // Use backend function to get messages (works for all users)
-      const response = await getChatMessages({ conversation_id: conversationId });
-      const msgs = response?.data?.messages || [];
-      setMessages(msgs);
-    } catch (error) {
-      console.error("Erro ao carregar mensagens:", error);
-    }
-  };
+  // Função de fetch para usar com useConversationState
+  const fetchMessages = useCallback(async (conversationId, signal) => {
+    const response = await getChatMessages({ conversation_id: conversationId });
+    if (signal.aborted) throw new Error("Aborted");
+    return response?.data?.messages || [];
+  }, []);
 
   const sendNotification = (title, body, senderEmail, conversationId) => {
     // Don't notify if user is in DND mode
@@ -456,9 +468,11 @@ export default function Chat() {
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
+      // Limpar cache para forçar reload
+      conversationState.clearCache();
       await loadConversations(currentUser.email, false);
       if (selectedConversation?.id) {
-        await loadMessages(selectedConversation.id);
+        await conversationState.loadMessages(selectedConversation.id, fetchMessages);
         await markAsRead(selectedConversation.id);
       }
       toast({
@@ -492,12 +506,9 @@ export default function Chat() {
         typing_users: []
       });
 
-      // Local state updates are now handled by real-time subscriptions
-      // But we do optimistic update for instant UI feedback
-      setMessages(prev => {
-        if (prev.some(m => m.id === newMsg.id)) return prev;
-        return [...prev, newMsg];
-      });
+      // Local state updates são via real-time subscriptions
+      // Otimistic update via conversationState (validado com currentConversationId)
+      conversationState.addMessage(selectedConversation.id, newMsg);
       
     } catch (error) {
       console.error("Erro ao enviar:", error);
@@ -802,25 +813,29 @@ export default function Chat() {
         </div>
         {/* Conversa - Desktop */}
         <div className="flex-1 flex flex-col bg-card rounded-2xl border border-border shadow-sm overflow-hidden min-w-0">
-          <ConversationView
-            conversation={selectedConversation}
-            messages={messages}
-            currentUser={currentUser}
-            users={users}
-            onSend={handleSendMessage}
-            onTyping={handleTyping}
-            onBack={handleBack}
-            onOpenSettings={() => setShowSettings(true)}
-            onEditMessage={handleEditMessage}
-            onDeleteMessage={handleDeleteMessage}
-            onReaction={handleReaction}
-            onImageClick={setViewingImage}
-            onPinMessage={handlePinMessage}
-            typingUsers={typingUsers}
-            presenceMap={presenceMap}
-            isAdmin={isAdmin}
-            onApproveTaskRequest={handleApproveTaskRequest}
-          />
+          {conversationState.isLoading ? (
+            <ConversationLoadingSkeleton />
+          ) : (
+            <ConversationView
+              conversation={selectedConversation}
+              messages={conversationState.messages}
+              currentUser={currentUser}
+              users={users}
+              onSend={handleSendMessage}
+              onTyping={handleTyping}
+              onBack={handleBack}
+              onOpenSettings={() => setShowSettings(true)}
+              onEditMessage={handleEditMessage}
+              onDeleteMessage={handleDeleteMessage}
+              onReaction={handleReaction}
+              onImageClick={setViewingImage}
+              onPinMessage={handlePinMessage}
+              typingUsers={typingUsers}
+              presenceMap={presenceMap}
+              isAdmin={isAdmin}
+              onApproveTaskRequest={handleApproveTaskRequest}
+            />
+          )}
         </div>
       </div>
 
@@ -855,25 +870,29 @@ export default function Chat() {
             showConversation ? "translate-x-0" : "translate-x-full"
           }`}
         >
-          <ConversationView
-            conversation={selectedConversation}
-            messages={messages}
-            currentUser={currentUser}
-            users={users}
-            onSend={handleSendMessage}
-            onTyping={handleTyping}
-            onBack={handleBack}
-            onOpenSettings={() => setShowSettings(true)}
-            onEditMessage={handleEditMessage}
-            onDeleteMessage={handleDeleteMessage}
-            onReaction={handleReaction}
-            onImageClick={setViewingImage}
-            onPinMessage={handlePinMessage}
-            typingUsers={typingUsers}
-            presenceMap={presenceMap}
-            isAdmin={isAdmin}
-            onApproveTaskRequest={handleApproveTaskRequest}
-          />
+          {conversationState.isLoading ? (
+            <ConversationLoadingSkeleton />
+          ) : (
+            <ConversationView
+              conversation={selectedConversation}
+              messages={conversationState.messages}
+              currentUser={currentUser}
+              users={users}
+              onSend={handleSendMessage}
+              onTyping={handleTyping}
+              onBack={handleBack}
+              onOpenSettings={() => setShowSettings(true)}
+              onEditMessage={handleEditMessage}
+              onDeleteMessage={handleDeleteMessage}
+              onReaction={handleReaction}
+              onImageClick={setViewingImage}
+              onPinMessage={handlePinMessage}
+              typingUsers={typingUsers}
+              presenceMap={presenceMap}
+              isAdmin={isAdmin}
+              onApproveTaskRequest={handleApproveTaskRequest}
+            />
+          )}
         </div>
       </div>
 
