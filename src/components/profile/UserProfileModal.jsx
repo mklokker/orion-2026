@@ -160,7 +160,7 @@ export default function UserProfileModal({ open, onClose, user, onUpdate }) {
         <div className="space-y-6 py-4">
           <div className="flex flex-col items-center gap-4">
             <div className="relative">
-              <Avatar className="w-32 h-32 border-4 border-gray-200">
+              <Avatar className="w-32 h-32 border-4 border-border">
                 <AvatarImage src={editedUser.profile_picture} alt={displayName} />
                 <AvatarFallback className="text-3xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white">
                   {getInitials(displayName)}
@@ -168,7 +168,7 @@ export default function UserProfileModal({ open, onClose, user, onUpdate }) {
               </Avatar>
               <label
                 htmlFor="photo-upload"
-                className="absolute bottom-0 right-0 bg-blue-600 text-white p-2 rounded-full cursor-pointer hover:bg-blue-700 transition-colors shadow-lg"
+                className="absolute bottom-0 right-0 bg-primary text-primary-foreground p-2 rounded-full cursor-pointer hover:bg-primary/90 transition-colors shadow-lg"
               >
                 <Camera className="w-5 h-5" />
                 <input
@@ -182,7 +182,7 @@ export default function UserProfileModal({ open, onClose, user, onUpdate }) {
               </label>
             </div>
             {isUploadingPhoto && (
-              <p className="text-sm text-gray-500">Carregando foto...</p>
+              <p className="text-sm text-muted-foreground">Carregando foto...</p>
             )}
           </div>
 
@@ -222,9 +222,9 @@ export default function UserProfileModal({ open, onClose, user, onUpdate }) {
               id="email"
               value={user?.email || ""}
               disabled
-              className="bg-gray-50"
+              className="bg-muted"
             />
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-muted-foreground">
               O email não pode ser alterado.
             </p>
           </div>
@@ -235,12 +235,12 @@ export default function UserProfileModal({ open, onClose, user, onUpdate }) {
               id="role"
               value={user?.role === 'admin' ? 'Administrador' : 'Usuário'}
               disabled
-              className="bg-gray-50"
+              className="bg-muted"
             />
           </div>
 
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p className="text-sm text-blue-800">
+          <div className="bg-accent border border-border rounded-lg p-4">
+            <p className="text-sm text-accent-foreground">
               <strong>Alteração de senha:</strong> Para alterar sua senha, entre em contato com o administrador do sistema.
             </p>
           </div>
@@ -292,7 +292,7 @@ export default function UserProfileModal({ open, onClose, user, onUpdate }) {
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
-            <p className="text-xs text-gray-500 mt-2 text-center">
+            <p className="text-xs text-muted-foreground mt-2 text-center">
               Ao excluir sua conta, você perderá acesso a todos os dados.
             </p>
           </div>
@@ -305,7 +305,7 @@ export default function UserProfileModal({ open, onClose, user, onUpdate }) {
           <Button 
             onClick={handleSave} 
             disabled={isSaving || isUploadingPhoto}
-            className="gap-2 bg-gradient-to-r from-blue-600 to-indigo-600"
+            className="gap-2"
           >
             <Save className="w-4 h-4" />
             {isSaving ? "Salvando..." : "Salvar Alterações"}

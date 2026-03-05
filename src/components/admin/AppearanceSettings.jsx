@@ -186,9 +186,9 @@ export default function AppearanceSettings() {
   }
 
   return (
-    <Card className="shadow-lg border-0 col-span-1 lg:col-span-2 dark:bg-[#1a1a1a] dark:border-[#2e2e2e]">
-      <CardHeader className="border-b bg-gradient-to-r from-gray-50 to-blue-50 dark:from-[#121212] dark:to-[#121212] dark:border-[#2e2e2e]">
-        <CardTitle className="flex items-center gap-2 dark:text-white">
+    <Card className="shadow-lg border-0 col-span-1 lg:col-span-2 bg-card">
+      <CardHeader className="border-b border-border bg-muted/50">
+        <CardTitle className="flex items-center gap-2 text-foreground">
           <Palette className="w-5 h-5" />
           Personalização da Aparência
         </CardTitle>
@@ -196,7 +196,7 @@ export default function AppearanceSettings() {
       <CardContent className="pt-6 space-y-8">
         {/* Seção do Logo */}
         <div className="space-y-4">
-          <h3 className="font-semibold text-lg dark:text-white">Logo e Título</h3>
+          <h3 className="font-semibold text-lg text-foreground">Logo e Título</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
             <div className="space-y-2">
               <Label htmlFor="logo-subtitle">Subtítulo do Logo</Label>
@@ -209,11 +209,11 @@ export default function AppearanceSettings() {
             <div className="space-y-2">
               <Label>Logo</Label>
               <div className="flex items-center gap-4">
-                <div className="w-20 h-20 border dark:border-[#2e2e2e] rounded-lg flex items-center justify-center bg-gray-50 dark:bg-[#121212] overflow-hidden">
+                <div className="w-20 h-20 border border-border rounded-lg flex items-center justify-center bg-muted overflow-hidden">
                   {settings.logo_url ? (
                     <img src={settings.logo_url} alt="Prévia do Logo" className="w-full h-full object-contain" />
                   ) : (
-                    <ImageIcon className="w-8 h-8 text-gray-400 dark:text-[#6b6b6b]" />
+                    <ImageIcon className="w-8 h-8 text-muted-foreground" />
                   )}
                 </div>
                 <Button asChild variant="outline">
@@ -224,7 +224,7 @@ export default function AppearanceSettings() {
                   </label>
                 </Button>
               </div>
-              <p className="text-xs text-gray-500 dark:text-[#6b6b6b] pt-1">
+              <p className="text-xs text-muted-foreground pt-1">
                 Para melhor visualização, use uma imagem horizontal (aprox. 250x100 pixels) com fundo transparente.
               </p>
             </div>
@@ -233,7 +233,7 @@ export default function AppearanceSettings() {
 
         {/* Seção de Cores */}
         <div className="space-y-4">
-          <h3 className="font-semibold text-lg dark:text-white">Paleta de Cores</h3>
+          <h3 className="font-semibold text-lg text-foreground">Paleta de Cores</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             <div className="space-y-2">
               <Label htmlFor="primary-color">Cor Primária</Label>
@@ -256,7 +256,7 @@ export default function AppearanceSettings() {
 
         {/* Nova Seção de Notificações */}
         <div className="space-y-4">
-          <h3 className="font-semibold text-lg dark:text-white">Sons de Notificação</h3>
+          <h3 className="font-semibold text-lg text-foreground">Sons de Notificação</h3>
           <div className="space-y-2">
             <Label htmlFor="notification-sound">Som de Notificação Padrão</Label>
             <div className="flex items-center gap-4">
@@ -286,13 +286,13 @@ export default function AppearanceSettings() {
                 Testar Som
               </Button>
             </div>
-            <p className="text-xs text-gray-500 dark:text-[#6b6b6b]">
+            <p className="text-xs text-muted-foreground">
               Este som será usado para notificações de novas mensagens no chat e outras notificações do sistema.
             </p>
           </div>
         </div>
 
-        <div className="flex justify-end pt-4 border-t dark:border-[#2e2e2e]">
+        <div className="flex justify-end pt-4 border-t border-border">
           <Button onClick={handleSave} disabled={isSaving} className="gap-2">
             {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             {isUploading ? "Enviando logo..." : isSaving ? "Salvando..." : "Salvar Alterações"}

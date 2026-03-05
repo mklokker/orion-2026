@@ -115,12 +115,12 @@ export default function NotificationCenter({ open, onClose, currentUser, onNotif
           <div className="space-y-2 max-h-[60vh] overflow-y-auto">
             {isLoading ? (
               <div className="flex items-center justify-center py-12">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
               </div>
             ) : filteredNotifications.length === 0 ? (
               <div className="text-center py-12">
-                <Bell className="w-16 h-16 mx-auto text-gray-300 mb-4" />
-                <p className="text-sm text-gray-500">
+                <Bell className="w-16 h-16 mx-auto text-muted-foreground/30 mb-4" />
+                <p className="text-sm text-muted-foreground">
                   {filter === "unread" 
                     ? "Nenhuma notificação não lida"
                     : "Nenhuma notificação"}
@@ -132,8 +132,8 @@ export default function NotificationCenter({ open, onClose, currentUser, onNotif
                   key={notification.id}
                   className={`p-3 sm:p-4 rounded-lg border transition-all cursor-pointer hover:shadow-md ${
                     notification.read 
-                      ? "bg-white border-gray-200" 
-                      : "bg-blue-50 border-blue-200"
+                      ? "bg-card border-border" 
+                      : "bg-accent border-primary/30"
                   }`}
                   onClick={() => handleNotificationClick(notification)}
                 >
@@ -142,27 +142,27 @@ export default function NotificationCenter({ open, onClose, currentUser, onNotif
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
                         <h4 className={`font-semibold text-xs sm:text-sm break-words ${
-                          notification.read ? "text-gray-700" : "text-gray-900"
+                          notification.read ? "text-muted-foreground" : "text-foreground"
                         }`}>
                           {notification.title}
                         </h4>
                         {!notification.read && (
-                          <Badge variant="default" className="bg-blue-600 text-xs flex-shrink-0">
+                          <Badge variant="default" className="text-xs flex-shrink-0">
                             Nova
                           </Badge>
                         )}
                       </div>
                       <p className={`text-xs sm:text-sm mt-1 break-words ${
-                        notification.read ? "text-gray-500" : "text-gray-700"
+                        notification.read ? "text-muted-foreground" : "text-foreground/80"
                       }`}>
                         {notification.message}
                       </p>
                       {notification.action_by_name && (
-                        <p className="text-xs text-gray-500 mt-1 truncate">
+                        <p className="text-xs text-muted-foreground mt-1 truncate">
                           Por: {notification.action_by_name}
                         </p>
                       )}
-                      <p className="text-xs text-gray-400 mt-2">
+                      <p className="text-xs text-muted-foreground/70 mt-2">
                         {formatDateBR(notification.created_date, "dd/MM/yyyy HH:mm")}
                       </p>
                     </div>
@@ -190,7 +190,7 @@ export default function NotificationCenter({ open, onClose, currentUser, onNotif
                         e.stopPropagation();
                         deleteNotification(notification.id);
                       }}
-                      className="gap-1 h-8 text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
+                      className="gap-1 h-8 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
                     >
                       <Trash2 className="w-3 h-3" />
                       <span className="hidden sm:inline">Excluir</span>

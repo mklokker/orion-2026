@@ -317,27 +317,27 @@ export default function ChatInput({
       />
       {/* Upload progress */}
       {uploading && files.length > 0 && (
-        <div className="mb-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
+        <div className="mb-3 p-3 bg-accent rounded-lg border border-primary/30">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-sm font-medium text-blue-700">
+            <span className="text-sm font-medium text-foreground">
               Enviando arquivo...
             </span>
-            <span className="text-xs text-blue-600">{Math.round(uploadProgress)}%</span>
+            <span className="text-xs text-primary">{Math.round(uploadProgress)}%</span>
           </div>
           <Progress value={uploadProgress} className="h-2" />
           {currentUploadFile && (
-            <p className="text-xs text-blue-600 mt-1 truncate">{currentUploadFile}</p>
+            <p className="text-xs text-primary mt-1 truncate">{currentUploadFile}</p>
           )}
         </div>
       )}
 
       {/* Reply preview */}
       {replyingTo && (
-        <div className="flex items-center gap-2 mb-2 p-2 bg-gray-100 rounded-lg">
-          <div className="w-1 h-10 bg-green-500 rounded-full" />
+        <div className="flex items-center gap-2 mb-2 p-2 bg-muted rounded-lg">
+          <div className="w-1 h-10 bg-primary rounded-full" />
           <div className="flex-1 min-w-0">
-            <span className="text-xs font-semibold text-green-600">{replyingTo.sender_name}</span>
-            <p className="text-sm text-gray-600 truncate">{replyingTo.content}</p>
+            <span className="text-xs font-semibold text-primary">{replyingTo.sender_name}</span>
+            <p className="text-sm text-muted-foreground truncate">{replyingTo.content}</p>
           </div>
           <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onCancelReply}>
             <X className="w-4 h-4" />
@@ -371,8 +371,8 @@ export default function ChatInput({
               {f.preview ? (
                 <img src={f.preview} alt="" className="w-16 h-16 object-cover rounded-lg" />
               ) : (
-                <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
-                  <FileText className="w-6 h-6 text-gray-400" />
+                <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center">
+                  <FileText className="w-6 h-6 text-muted-foreground" />
                 </div>
               )}
               <button
@@ -456,7 +456,7 @@ export default function ChatInput({
         <Button
           onClick={handleSend}
           disabled={disabled || uploading || (!message.trim() && files.length === 0)}
-          className="shrink-0 bg-green-500 hover:bg-green-600 h-10 w-10"
+          className="shrink-0 h-10 w-10"
           size="icon"
         >
           {uploading ? (

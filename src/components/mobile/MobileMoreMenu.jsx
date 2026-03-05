@@ -51,18 +51,18 @@ export default function MobileMoreMenu({ open, onClose, isAdmin }) {
               key={item.title}
               to={item.url}
               onClick={onClose}
-              className="flex flex-col items-center gap-2 p-4 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors"
+              className="flex flex-col items-center gap-2 p-4 rounded-xl bg-muted hover:bg-accent transition-colors"
             >
-              <item.icon className="w-6 h-6 text-gray-600" />
-              <span className="text-xs font-medium text-gray-700 text-center">{item.title}</span>
+              <item.icon className="w-6 h-6 text-muted-foreground" />
+              <span className="text-xs font-medium text-foreground text-center">{item.title}</span>
             </Link>
           ))}
         </div>
 
         {isAdmin && (
           <>
-            <div className="border-t pt-4 pb-2">
-              <div className="flex items-center gap-2 text-sm font-semibold text-gray-500 mb-3">
+            <div className="border-t border-border pt-4 pb-2">
+              <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground mb-3">
                 <Building2 className="w-4 h-4" />
                 Gestão RI
               </div>
@@ -72,10 +72,10 @@ export default function MobileMoreMenu({ open, onClose, isAdmin }) {
                     key={item.title}
                     to={item.url}
                     onClick={onClose}
-                    className="flex flex-col items-center gap-2 p-4 rounded-xl bg-blue-50 hover:bg-blue-100 transition-colors"
+                    className="flex flex-col items-center gap-2 p-4 rounded-xl bg-accent hover:bg-accent/70 transition-colors"
                   >
-                    <item.icon className="w-6 h-6 text-blue-600" />
-                    <span className="text-xs font-medium text-blue-700 text-center">{item.title}</span>
+                    <item.icon className="w-6 h-6 text-primary" />
+                    <span className="text-xs font-medium text-accent-foreground text-center">{item.title}</span>
                   </Link>
                 ))}
               </div>

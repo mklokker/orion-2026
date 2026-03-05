@@ -302,7 +302,7 @@ export default function Dashboard() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );
   }
@@ -382,7 +382,7 @@ export default function Dashboard() {
         </div>
 
         <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
           <Input
             placeholder="Buscar por protocolo, título, responsável..."
             value={searchQuery}
@@ -455,7 +455,7 @@ export default function Dashboard() {
                   setCustomEndDate('');
                   setCurrentPage(1);
                 }}
-                className="text-sm text-blue-600"
+                className="text-sm text-primary"
               >
                 Limpar filtros de data
               </Button>

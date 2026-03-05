@@ -52,13 +52,13 @@ export default function TaskCard({ task, departments, users, onTaskClick }) {
 
   return (
     <Card 
-      className="hover:shadow-lg transition-all duration-200 border-2 hover:border-blue-300 dark:hover:border-blue-600 cursor-pointer dark:bg-slate-800 dark:border-slate-700"
+      className="hover:shadow-lg transition-all duration-200 border-2 border-border hover:border-primary/40 cursor-pointer bg-card"
       onClick={() => onTaskClick(task)}
     >
       <CardContent className="p-4 space-y-3">
         {/* Header com protocolo e prioridade */}
         <div className="flex items-start justify-between">
-          <h3 className="text-2xl font-bold text-gray-900 dark:text-white">{task.protocol}</h3>
+          <h3 className="text-2xl font-bold text-foreground">{task.protocol}</h3>
           <div className="flex items-center gap-2">
             <Badge className={`${priorityColors[task.priority]} border-0 font-semibold px-2 py-1`}>
               {task.priority}
@@ -79,31 +79,31 @@ export default function TaskCard({ task, departments, users, onTaskClick }) {
 
         {/* Data e Responsável */}
         <div className="space-y-2">
-          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Calendar className="w-4 h-4" />
             <span>{formattedEndDate}</span>
           </div>
-          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <User className="w-4 h-4" />
             <span>{assignedUserName}</span>
           </div>
         </div>
 
         {/* Protocolo repetido menor */}
-        <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">{task.protocol}</p>
+        <p className="text-sm text-muted-foreground font-medium">{task.protocol}</p>
 
         {/* Descrição da tarefa */}
         {task.description && (
-          <p className="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">
+          <p className="text-sm text-foreground/80 line-clamp-2">
             Tarefa {task.description}
           </p>
         )}
 
         {/* Departamento */}
         {department && (
-          <div className="pt-2 border-t dark:border-slate-600">
-            <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-              DEPARTAMENTO: <span className="font-semibold text-gray-700 dark:text-gray-300">{department.name}</span>
+          <div className="pt-2 border-t border-border">
+            <p className="text-xs text-muted-foreground uppercase tracking-wide">
+              DEPARTAMENTO: <span className="font-semibold text-foreground/80">{department.name}</span>
             </p>
           </div>
         )}
@@ -113,7 +113,7 @@ export default function TaskCard({ task, departments, users, onTaskClick }) {
           <Badge className={`${statusColors[task.status]} border-0 text-xs px-3 py-1`}>
             {task.status}
           </Badge>
-          <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+          <div className="flex items-center gap-1 text-xs text-muted-foreground">
             <Clock className="w-3 h-3" />
             <span>Início: {formattedStartDate}</span>
           </div>
