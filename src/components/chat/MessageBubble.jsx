@@ -200,7 +200,7 @@ export default function MessageBubble({
     return (
       <>
         {replyPreview}
-        <p className="text-sm whitespace-pre-wrap break-words">
+        <p className="text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere" style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}>
           {parts.map((part, i) =>
             urlRegex.test(part) ? (
               <a
