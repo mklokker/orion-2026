@@ -56,13 +56,13 @@ import Cursos from './pages/Cursos';
 import Dashboard from './pages/Dashboard';
 import GestaoTarefas from './pages/GestaoTarefas';
 import Home from './pages/Home';
+import ImprimirProva from './pages/ImprimirProva';
 import MapaFuncionarios from './pages/MapaFuncionarios';
 import PlanoAcao from './pages/PlanoAcao';
 import ProdutividadeGeral from './pages/ProdutividadeGeral';
 import Ranking from './pages/Ranking';
 import Relatorios from './pages/Relatorios';
 import Removedor from './pages/Removedor';
-import ImprimirProva from './pages/ImprimirProva';
 import __Layout from './Layout.jsx';
 
 
@@ -76,13 +76,13 @@ export const PAGES = {
     "Dashboard": Dashboard,
     "GestaoTarefas": GestaoTarefas,
     "Home": Home,
+    "ImprimirProva": ImprimirProva,
     "MapaFuncionarios": MapaFuncionarios,
     "PlanoAcao": PlanoAcao,
     "ProdutividadeGeral": ProdutividadeGeral,
     "Ranking": Ranking,
     "Relatorios": Relatorios,
     "Removedor": Removedor,
-    "ImprimirProva": ImprimirProva,
 }
 
 export const pagesConfig = {

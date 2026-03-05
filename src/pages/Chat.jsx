@@ -15,61 +15,179 @@ import ImageViewer from "@/components/chat/ImageViewer";
 import PresenceSettings from "@/components/chat/PresenceSettings";
 import AudioPermissionBanner from "@/components/chat/AudioPermissionBanner";
 import { useToast } from "@/components/ui/use-toast";
-import { playNotificationSound, unlockAudio, isAudioUnlocked } from "@/components/chat/NotificationSounds";
+import { playNotificationSound } from "@/components/chat/NotificationSounds";
 
 export default function Chat() {
-    const { toast } = useToast();
-    const [currentUser, setCurrentUser] = useState(null);
-    const [users, setUsers] = useState([]);
-    const [conversations, setConversations] = useState([]);
-    const [selectedConversation, setSelectedConversation] = useState(null);
-    const [messages, setMessages] = useState([]);
-    const [unreadCounts, setUnreadCounts] = useState({});
-    const [showNewChat, setShowNewChat] = useState(false);
-    const [isGroupMode, setIsGroupMode] = useState(false);
-    const [showSettings, setShowSettings] = useState(false);
-    const [viewingImage, setViewingImage] = useState(null);
-    const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768);
-    const [showConversation, setShowConversation] = useState(false);
-    const [presenceMap, setPresenceMap] = useState({});
-    const [myPresence, setMyPresence] = useState(null);
-    const [showPresenceSettings, setShowPresenceSettings] = useState(false);
-    const [isRefreshing, setIsRefreshing] = useState(false);
-  
-  const pollingRef = useRef(null);
+  const { toast } = useToast();
+  const [currentUser, setCurrentUser] = useState(null);
+  const [users, setUsers] = useState([]);
+  const [conversations, setConversations] = useState([]);
+  const [selectedConversation, setSelectedConversation] = useState(null);
+  const [messages, setMessages] = useState([]);
+  const [unreadCounts, setUnreadCounts] = useState({});
+  const [showNewChat, setShowNewChat] = useState(false);
+  const [isGroupMode, setIsGroupMode] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
+  const [viewingImage, setViewingImage] = useState(null);
+  const [isMobileView, setIsMobileView] = useState(window.innerWidth < 768);
+  const [showConversation, setShowConversation] = useState(false);
+  const [presenceMap, setPresenceMap] = useState({});
+  const [myPresence, setMyPresence] = useState(null);
+  const [showPresenceSettings, setShowPresenceSettings] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
   const typingTimeoutRef = useRef(null);
-  const presenceIntervalRef = useRef(null);
-  const lastMessageCountRef = useRef({});
   const notifiedMessagesRef = useRef(new Set());
-  const lastNotificationTimeRef = useRef({}); // cooldown per conversation
+  const lastNotificationTimeRef = useRef({});
+  const selectedConversationRef = useRef(null);
+  const currentUserRef = useRef(null);
+  const myPresenceRef = useRef(null);
+  const conversationsRef = useRef([]);
+
+  // Keep refs in sync with state
+  useEffect(() => {
+    selectedConversationRef.current = selectedConversation;
+  }, [selectedConversation]);
+
+  useEffect(() => {
+    currentUserRef.current = currentUser;
+  }, [currentUser]);
+
+  useEffect(() => {
+    myPresenceRef.current = myPresence;
+  }, [myPresence]);
+
+  useEffect(() => {
+    conversationsRef.current = conversations;
+  }, [conversations]);
 
   // Load initial data
   useEffect(() => {
     loadInitialData();
-    
     const handleResize = () => setIsMobileView(window.innerWidth < 768);
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  // Polling for real-time updates
+  // Real-time subscriptions for conversations
   useEffect(() => {
-    if (currentUser) {
-      startPolling();
+    if (!currentUser) return;
+
+    updateMyPresence();
+    loadPresenceData();
+
+    // Presence updates every 30 seconds
+    const presenceInterval = setInterval(() => {
       updateMyPresence();
       loadPresenceData();
-      
-      // Update presence every 30 seconds
-      presenceIntervalRef.current = setInterval(() => {
-        updateMyPresence();
-        loadPresenceData();
-      }, 30000);
-    }
-    return () => {
-      stopPolling();
-      if (presenceIntervalRef.current) {
-        clearInterval(presenceIntervalRef.current);
+    }, 30000);
+
+    // Subscribe to conversation changes (real-time)
+    const unsubscribeConversations = ChatConversation.subscribe((event) => {
+      const user = currentUserRef.current;
+      if (!user) return;
+
+      if (event.type === 'create') {
+        // Only add if user is a participant
+        if (event.data.participants?.includes(user.email)) {
+          setConversations(prev => {
+            if (prev.some(c => c.id === event.data.id)) return prev;
+            return [event.data, ...prev];
+          });
+        }
+      } else if (event.type === 'update') {
+        setConversations(prev => prev.map(c => c.id === event.id ? event.data : c));
+        // Update selected conversation if it's the one being updated
+        if (selectedConversationRef.current?.id === event.id) {
+          setSelectedConversation(event.data);
+        }
+      } else if (event.type === 'delete') {
+        setConversations(prev => prev.filter(c => c.id !== event.id));
+        if (selectedConversationRef.current?.id === event.id) {
+          setSelectedConversation(null);
+        }
       }
+    });
+
+    return () => {
+      clearInterval(presenceInterval);
+      unsubscribeConversations();
+    };
+  }, [currentUser]);
+
+  // Real-time subscriptions for messages
+  useEffect(() => {
+    if (!currentUser) return;
+
+    // Subscribe to message changes (real-time)
+    const unsubscribeMessages = ChatMessage.subscribe((event) => {
+      const user = currentUserRef.current;
+      const selectedConv = selectedConversationRef.current;
+      const presence = myPresenceRef.current;
+      const allConversations = conversationsRef.current;
+      if (!user) return;
+
+      const msgConversationId = event.data?.conversation_id;
+
+      if (event.type === 'create') {
+        // If message is for the selected conversation, add it
+        if (selectedConv && msgConversationId === selectedConv.id) {
+          setMessages(prev => {
+            if (prev.some(m => m.id === event.data.id)) return prev;
+            return [...prev, event.data];
+          });
+          // Mark as read immediately if from someone else
+          if (event.data.sender_email !== user.email && !event.data.read_by?.includes(user.email)) {
+            ChatMessage.update(event.data.id, {
+              read_by: [...(event.data.read_by || []), user.email]
+            }).catch(() => {});
+          }
+        } else {
+          // Message is for another conversation - update unread count
+          if (event.data.sender_email !== user.email && !event.data.read_by?.includes(user.email)) {
+            setUnreadCounts(prev => ({
+              ...prev,
+              [msgConversationId]: (prev[msgConversationId] || 0) + 1
+            }));
+
+            // Send notification if not already notified
+            if (!notifiedMessagesRef.current.has(event.data.id)) {
+              notifiedMessagesRef.current.add(event.data.id);
+              
+              const conv = allConversations.find(c => c.id === msgConversationId);
+              if (conv) {
+                const isGroup = conv.type === "group";
+                const isMention = event.data.content?.includes(`@${user.full_name}`) ||
+                                  event.data.content?.includes(`@${user.email}`);
+
+                let shouldNotify = false;
+                if (isMention && presence?.notify_mentions !== false) shouldNotify = true;
+                else if (isGroup && presence?.notify_group_messages !== false) shouldNotify = true;
+                else if (!isGroup && presence?.notify_new_messages !== false) shouldNotify = true;
+
+                if (shouldNotify) {
+                  const senderName = event.data.sender_name || event.data.sender_email;
+                  const title = isGroup ? `${senderName} em ${conv.name || "Grupo"}` : senderName;
+                  const body = event.data.type === "text" ? event.data.content : "📎 Enviou um arquivo";
+                  sendNotification(title, body, event.data.sender_email, conv.id);
+                }
+              }
+            }
+          }
+        }
+      } else if (event.type === 'update') {
+        if (selectedConv && msgConversationId === selectedConv.id) {
+          setMessages(prev => prev.map(m => m.id === event.id ? event.data : m));
+        }
+      } else if (event.type === 'delete') {
+        if (selectedConv && msgConversationId === selectedConv.id) {
+          setMessages(prev => prev.filter(m => m.id !== event.id));
+        }
+      }
+    });
+
+    return () => {
+      unsubscribeMessages();
     };
   }, [currentUser]);
 
