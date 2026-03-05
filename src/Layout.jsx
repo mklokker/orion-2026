@@ -660,9 +660,9 @@ export default function Layout({ children, currentPageName }) {
                 onClick={() => setShowNotifications(true)}
               >
                 <Bell className="w-5 h-5" />
-                {unreadCount > 0 && (
+                {notificationUnreadCount > 0 && (
                   <Badge variant="destructive" className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs">
-                    {unreadCount > 9 ? "9+" : unreadCount}
+                    {notificationUnreadCount > 9 ? "9+" : notificationUnreadCount}
                   </Badge>
                 )}
               </Button>
