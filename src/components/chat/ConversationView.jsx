@@ -58,7 +58,10 @@ export default function ConversationView({
   presenceMap = {},
   isAdmin = false,
   onApproveTaskRequest,
-  chatBgPrefs
+  chatBgPrefs,
+  onLoadMore,
+  hasMoreMessages = false,
+  isLoadingMore = false,
 }) {
   const scrollRef = useRef(null);
   const [replyingTo, setReplyingTo] = useState(null);
