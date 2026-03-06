@@ -469,38 +469,30 @@ export default function Chat() {
         return m;
       }));
 
-      // Batch update in chunks of 10 to avoid rate limits
-      const CHUNK_SIZE = 10;
-      let allFailed = 0;
-      for (let i = 0; i < unreadMsgs.length; i += CHUNK_SIZE) {
-        const chunk = unreadMsgs.slice(i, i + CHUNK_SIZE);
-        const results = await Promise.allSettled(chunk.map(msg => {
-          const readByArray = Array.isArray(msg.read_by) ? msg.read_by : [];
-          // Double-check not already in array (race condition protection)
-          if (readByArray.some(r => r && r.email === currentUser.email)) {
-            return Promise.resolve(); // Already marked
+      // Batch update sequentially (one at a time) to avoid rate limits
+      let failed = 0;
+      for (let i = 0; i < unreadMsgs.length; i++) {
+        const msg = unreadMsgs[i];
+        const readByArray = Array.isArray(msg.read_by) ? msg.read_by : [];
+        if (readByArray.some(r => r && r.email === currentUser.email)) continue;
+        const newReadBy = [...readByArray, { email: currentUser.email, read_at: now }];
+        try {
+          await ChatMessage.update(msg.id, { read_by: newReadBy });
+        } catch (e) {
+          failed++;
+          // If rate limited, wait longer and continue
+          if (e?.message?.includes("Rate limit")) {
+            await new Promise(resolve => setTimeout(resolve, 1500));
           }
-          const newReadBy = [
-            ...readByArray,
-            { email: currentUser.email, read_at: now }
-          ];
-          return ChatMessage.update(msg.id, { read_by: newReadBy });
-        }));
-        
-        allFailed += results.filter(r => r.status === "rejected").length;
-        
-        // Small delay between chunks to avoid rate limits
-        if (i + CHUNK_SIZE < unreadMsgs.length) {
-          await new Promise(resolve => setTimeout(resolve, 200));
+        }
+        // Small delay between each update
+        if (i < unreadMsgs.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 150));
         }
       }
       
-      if (allFailed > 0) {
-        console.warn(`[markAsRead] ${allFailed} de ${unreadMsgs.length} falharam ao marcar como lido`);
-        if (retryCount < 1) {
-          console.log("[markAsRead] Retentando falhas em 2s...");
-          setTimeout(() => markAsRead(conversationId, retryCount + 1), 2000);
-        }
+      if (failed > 0) {
+        console.warn(`[markAsRead] ${failed} de ${unreadMsgs.length} falharam ao marcar como lido`);
       } else {
         console.log(`[markAsRead] Todas ${unreadMsgs.length} mensagens marcadas com sucesso`);
       }
