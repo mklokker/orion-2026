@@ -105,10 +105,10 @@ export default function Chat() {
           });
         }
       } else if (event.type === 'update') {
-        setConversations(prev => prev.map(c => c.id === event.id ? event.data : c));
+        setConversations(prev => prev.map(c => c.id === event.id ? { ...c, ...event.data } : c));
         // Update selected conversation if it's the one being updated
         if (selectedConversationRef.current?.id === event.id) {
-          setSelectedConversation(event.data);
+          setSelectedConversation(prev => ({ ...prev, ...event.data }));
         }
       } else if (event.type === 'delete') {
         setConversations(prev => prev.filter(c => c.id !== event.id));
