@@ -44,6 +44,7 @@ export default function Chat() {
   const [showTaskApprovalModal, setShowTaskApprovalModal] = useState(false);
   const [selectedTaskRequestId, setSelectedTaskRequestId] = useState(null);
   const [departments, setDepartments] = useState([]);
+  const [chatBgPrefs, setChatBgPrefs] = useState(null);
 
   const typingTimeoutRef = useRef(null);
   const notifiedMessagesRef = useRef(new Set());
@@ -288,7 +289,6 @@ export default function Chat() {
       const now = new Date();
       
       presences.forEach(p => {
-        // Check if user was seen recently (within 2 minutes) or has manual status
         const lastSeen = p.last_seen ? new Date(p.last_seen) : null;
         const isRecent = lastSeen && (now - lastSeen) < 2 * 60 * 1000;
         
@@ -300,9 +300,16 @@ export default function Chat() {
           map[p.user_email] = "offline";
         }
         
-        // Store my presence
+        // Store my presence + global bg prefs
         if (p.user_email === currentUser?.email) {
           setMyPresence(p);
+          setChatBgPrefs({
+            chat_bg_type: p.chat_bg_type || "default",
+            chat_bg_value: p.chat_bg_value || "",
+            chat_bg_opacity: p.chat_bg_opacity ?? 0.15,
+            chat_bg_blur: p.chat_bg_blur ?? 0,
+            chat_bg_dim: p.chat_bg_dim ?? true,
+          });
         }
       });
       
@@ -996,6 +1003,9 @@ export default function Chat() {
         onUpdate={() => {
           loadPresenceData();
           updateMyPresence();
+        }}
+        onBgUpdate={(bgData) => {
+          setChatBgPrefs(prev => ({ ...prev, ...bgData }));
         }}
       />
 
