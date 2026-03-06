@@ -11,12 +11,16 @@ import { toast } from "sonner";
 
 const MAX_FILE_SIZE = 3 * 1024 * 1024; // 3MB
 
-export default function ChatBackgroundSettings({ conversation, onUpdate }) {
-  const [themeType, setThemeType] = useState(conversation?.theme_type || "default");
-  const [themeValue, setThemeValue] = useState(conversation?.theme_value || "");
-  const [themeOpacity, setThemeOpacity] = useState(conversation?.theme_opacity ?? 0.15);
-  const [themeBlur, setThemeBlur] = useState(conversation?.theme_blur ?? 0);
-  const [themeDim, setThemeDim] = useState(conversation?.theme_dim ?? true);
+/**
+ * ChatBackgroundSettings - GLOBAL background settings.
+ * Reads/writes to UserPresence fields: chat_bg_type, chat_bg_value, chat_bg_opacity, chat_bg_blur, chat_bg_dim.
+ */
+export default function ChatBackgroundSettings({ chatBgPrefs, onSave }) {
+  const [themeType, setThemeType] = useState(chatBgPrefs?.chat_bg_type || "default");
+  const [themeValue, setThemeValue] = useState(chatBgPrefs?.chat_bg_value || "");
+  const [themeOpacity, setThemeOpacity] = useState(chatBgPrefs?.chat_bg_opacity ?? 0.15);
+  const [themeBlur, setThemeBlur] = useState(chatBgPrefs?.chat_bg_blur ?? 0);
+  const [themeDim, setThemeDim] = useState(chatBgPrefs?.chat_bg_dim ?? true);
   const [imageUrl, setImageUrl] = useState("");
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -61,12 +65,12 @@ export default function ChatBackgroundSettings({ conversation, onUpdate }) {
 
   const handleRemove = async () => {
     setSaving(true);
-    await onUpdate({
-      theme_type: "default",
-      theme_value: "",
-      theme_opacity: 0.15,
-      theme_blur: 0,
-      theme_dim: true,
+    await onSave({
+      chat_bg_type: "default",
+      chat_bg_value: "",
+      chat_bg_opacity: 0.15,
+      chat_bg_blur: 0,
+      chat_bg_dim: true,
     });
     setThemeType("default");
     setThemeValue("");
@@ -79,30 +83,26 @@ export default function ChatBackgroundSettings({ conversation, onUpdate }) {
 
   const handleSave = async () => {
     setSaving(true);
-    await onUpdate({
-      theme_type: themeType,
-      theme_value: themeValue,
-      theme_opacity: themeOpacity,
-      theme_blur: themeBlur,
-      theme_dim: themeDim,
+    await onSave({
+      chat_bg_type: themeType,
+      chat_bg_value: themeValue,
+      chat_bg_opacity: themeOpacity,
+      chat_bg_blur: themeBlur,
+      chat_bg_dim: themeDim,
     });
     setSaving(false);
     toast.success("Fundo salvo!");
   };
 
-  const currentPreset = CHAT_BG_PRESETS.find(
-    (p) => p.type === themeType && p.value === themeValue
-  );
-
   return (
     <div className="space-y-4">
-      <Label className="text-sm font-semibold">Fundo da Conversa</Label>
+      <Label className="text-sm font-semibold">Fundo do Chat (Global)</Label>
+      <p className="text-xs text-muted-foreground">Esta configuração é aplicada em todas as conversas.</p>
 
       {/* Presets grid */}
       <div className="grid grid-cols-4 gap-2">
         {CHAT_BG_PRESETS.map((preset) => {
-          const isActive =
-            preset.type === themeType && preset.value === themeValue;
+          const isActive = preset.type === themeType && preset.value === themeValue;
           return (
             <button
               key={preset.id}
@@ -119,8 +119,6 @@ export default function ChatBackgroundSettings({ conversation, onUpdate }) {
                   background:
                     preset.type === "default"
                       ? "hsl(var(--muted))"
-                      : preset.type === "solid"
-                      ? preset.value
                       : preset.value,
                 }}
               />
@@ -195,10 +193,9 @@ export default function ChatBackgroundSettings({ conversation, onUpdate }) {
         )}
       </div>
 
-      {/* Controls - only show when not default */}
+      {/* Controls */}
       {themeType !== "default" && themeValue && (
         <div className="space-y-3 pt-2 border-t border-border">
-          {/* Opacity slider */}
           <div className="space-y-1">
             <div className="flex justify-between">
               <Label className="text-xs">Intensidade</Label>
@@ -215,7 +212,6 @@ export default function ChatBackgroundSettings({ conversation, onUpdate }) {
             />
           </div>
 
-          {/* Blur slider (images only) */}
           {themeType === "image" && (
             <div className="space-y-1">
               <div className="flex justify-between">
@@ -234,7 +230,6 @@ export default function ChatBackgroundSettings({ conversation, onUpdate }) {
             </div>
           )}
 
-          {/* Dim toggle */}
           <div className="flex items-center justify-between">
             <Label className="text-xs">Ajustar para leitura</Label>
             <Switch checked={themeDim} onCheckedChange={setThemeDim} />
@@ -251,7 +246,7 @@ export default function ChatBackgroundSettings({ conversation, onUpdate }) {
           size="sm"
         >
           {saving ? <Loader2 className="w-4 h-4 animate-spin mr-1" /> : null}
-          Salvar
+          Salvar Fundo
         </Button>
         {themeType !== "default" && (
           <Button

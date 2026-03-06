@@ -12,14 +12,18 @@ export const CHAT_BG_PRESETS = [
   { id: "oceano", label: "Oceano", type: "gradient", value: "linear-gradient(135deg, #0EA5E9 0%, #2563EB 50%, #7C3AED 100%)" },
 ];
 
-export default function ChatBackground({ conversation }) {
+/**
+ * ChatBackground - renders GLOBAL background based on user preferences (from UserPresence).
+ * No longer reads from conversation.theme_*.
+ */
+export default function ChatBackground({ chatBgPrefs }) {
   const [imgError, setImgError] = useState(false);
 
-  const themeType = conversation?.theme_type || "default";
-  const themeValue = conversation?.theme_value || "";
-  const themeOpacity = conversation?.theme_opacity ?? 0.15;
-  const themeBlur = conversation?.theme_blur ?? 0;
-  const themeDim = conversation?.theme_dim ?? true;
+  const themeType = chatBgPrefs?.chat_bg_type || "default";
+  const themeValue = chatBgPrefs?.chat_bg_value || "";
+  const themeOpacity = chatBgPrefs?.chat_bg_opacity ?? 0.15;
+  const themeBlur = chatBgPrefs?.chat_bg_blur ?? 0;
+  const themeDim = chatBgPrefs?.chat_bg_dim ?? true;
 
   const bgStyle = useMemo(() => {
     if (themeType === "default" || !themeValue) return null;
@@ -48,7 +52,6 @@ export default function ChatBackground({ conversation }) {
         backgroundRepeat: "no-repeat",
         opacity: themeOpacity,
         filter: themeBlur > 0 ? `blur(${themeBlur}px)` : undefined,
-        // Expand slightly to cover blur edges
         ...(themeBlur > 0 ? { inset: `-${themeBlur}px` } : {}),
       };
     }
@@ -60,9 +63,7 @@ export default function ChatBackground({ conversation }) {
 
   return (
     <>
-      {/* Background layer */}
       <div style={bgStyle}>
-        {/* Preload image to detect errors */}
         {themeType === "image" && !imgError && (
           <img
             src={themeValue}
@@ -73,7 +74,6 @@ export default function ChatBackground({ conversation }) {
         )}
       </div>
 
-      {/* Dim overlay for readability */}
       {themeDim && themeType !== "default" && themeValue && (
         <div
           className="absolute inset-0 pointer-events-none z-[1]"
