@@ -177,12 +177,9 @@ export const formatChatListTime = (dateStr) => {
 /**
  * Parseia uma string "YYYY-MM-DD" como data local (sem offset de timezone)
  * Usa para campos type="date" que retornam strings sem horário
- * @param {string} dateString - "2026-03-05"
- * @returns {Date}
  */
 export const parseDateAsLocal = (dateString) => {
   if (!dateString) return null;
   const [year, month, day] = dateString.split("-").map(Number);
-  // Criar em UTC para manter consistência
-  return new Date(Date.UTC(year, month - 1, day, 0, 0, 0));
+  return new Date(Date.UTC(year, month - 1, day, 12, 0, 0)); // meio-dia UTC evita saltar dia
 };
