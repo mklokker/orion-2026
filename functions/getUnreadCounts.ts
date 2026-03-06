@@ -37,8 +37,12 @@ Deno.serve(async (req) => {
           // Skip deleted messages
           if (msg.is_deleted) continue;
           // Check if read_by contains the user
-          const readByArray = msg.read_by || [];
-          const isRead = readByArray.some(r => r && r.email === userEmail);
+          const rawReadBy = msg.read_by || [];
+          // Handle corrupted data: some entries may be plain strings instead of objects
+          const isRead = rawReadBy.some(r => {
+            if (typeof r === 'string') return r === userEmail;
+            return r && r.email === userEmail;
+          });
           if (!isRead) {
             unread++;
           }
