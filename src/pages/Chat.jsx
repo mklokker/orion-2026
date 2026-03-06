@@ -419,15 +419,24 @@ export default function Chat() {
   const markAsRead = async (conversationId, retryCount = 0) => {
     if (!currentUser) return;
     try {
-      const response = await getChatMessages({ conversation_id: conversationId });
-      const msgs = response?.data?.messages || [];
+      // Use the messages already in state if they belong to this conversation,
+      // otherwise fetch fresh from server
+      let msgs;
+      const localMsgs = messages.filter(m => m.conversation_id === conversationId);
+      if (localMsgs.length > 0) {
+        msgs = localMsgs;
+      } else {
+        const response = await getChatMessages({ conversation_id: conversationId });
+        msgs = response?.data?.messages || [];
+      }
+      
       const now = new Date().toISOString();
       
       const unreadMsgs = msgs.filter(m => {
-        const senderMatches = m.sender_email !== currentUser.email;
+        if (m.sender_email === currentUser.email) return false;
+        if (m.is_deleted) return false;
         const readByArray = m.read_by || [];
-        const notReadByCurrentUser = !readByArray.some(r => r.email === currentUser.email);
-        return senderMatches && notReadByCurrentUser;
+        return !readByArray.some(r => r && r.email === currentUser.email);
       });
 
       // Zero counter immediately (optimistic UI)
@@ -437,11 +446,29 @@ export default function Chat() {
         return updated;
       });
       
-      // Batch update - mark all as read com timestamp
-      if (unreadMsgs.length > 0) {
-        console.log(`[markAsRead] Marcando ${unreadMsgs.length} mensagens como lidas na conversa ${conversationId}`);
-        const results = await Promise.allSettled(unreadMsgs.map(msg => {
-          const readByArray = msg.read_by || [];
+      if (unreadMsgs.length === 0) return;
+
+      console.log(`[markAsRead] Marcando ${unreadMsgs.length} mensagens como lidas na conversa ${conversationId}`);
+
+      // Update local messages state immediately (optimistic)
+      setMessages(prev => prev.map(m => {
+        if (m.sender_email !== currentUser.email && !(m.read_by || []).some(r => r && r.email === currentUser.email)) {
+          return { ...m, read_by: [...(m.read_by || []), { email: currentUser.email, read_at: now }] };
+        }
+        return m;
+      }));
+
+      // Batch update in chunks of 10 to avoid rate limits
+      const CHUNK_SIZE = 10;
+      let allFailed = 0;
+      for (let i = 0; i < unreadMsgs.length; i += CHUNK_SIZE) {
+        const chunk = unreadMsgs.slice(i, i + CHUNK_SIZE);
+        const results = await Promise.allSettled(chunk.map(msg => {
+          const readByArray = Array.isArray(msg.read_by) ? msg.read_by : [];
+          // Double-check not already in array (race condition protection)
+          if (readByArray.some(r => r && r.email === currentUser.email)) {
+            return Promise.resolve(); // Already marked
+          }
           const newReadBy = [
             ...readByArray,
             { email: currentUser.email, read_at: now }
@@ -449,31 +476,26 @@ export default function Chat() {
           return ChatMessage.update(msg.id, { read_by: newReadBy });
         }));
         
-        const failures = results.filter(r => r.status === "rejected");
-        if (failures.length > 0) {
-          console.warn(`[markAsRead] ${failures.length} de ${unreadMsgs.length} falharam ao marcar como lido`);
-          // Retry once on failure
-          if (retryCount < 1) {
-            console.log("[markAsRead] Retentando em 2s...");
-            setTimeout(() => markAsRead(conversationId, retryCount + 1), 2000);
-          }
-        } else {
-          console.log(`[markAsRead] Todas ${unreadMsgs.length} mensagens marcadas com sucesso`);
+        allFailed += results.filter(r => r.status === "rejected").length;
+        
+        // Small delay between chunks to avoid rate limits
+        if (i + CHUNK_SIZE < unreadMsgs.length) {
+          await new Promise(resolve => setTimeout(resolve, 200));
         }
-
-        // Also update local messages state so UI reflects read status immediately
-        setMessages(prev => prev.map(m => {
-          if (m.sender_email !== currentUser.email && !(m.read_by || []).some(r => r.email === currentUser.email)) {
-            return { ...m, read_by: [...(m.read_by || []), { email: currentUser.email, read_at: now }] };
-          }
-          return m;
-        }));
+      }
+      
+      if (allFailed > 0) {
+        console.warn(`[markAsRead] ${allFailed} de ${unreadMsgs.length} falharam ao marcar como lido`);
+        if (retryCount < 1) {
+          console.log("[markAsRead] Retentando falhas em 2s...");
+          setTimeout(() => markAsRead(conversationId, retryCount + 1), 2000);
+        }
+      } else {
+        console.log(`[markAsRead] Todas ${unreadMsgs.length} mensagens marcadas com sucesso`);
       }
     } catch (error) {
       console.error("Erro ao marcar como lido:", error);
-      // Retry on error (rate limit, network issues)
       if (retryCount < 1) {
-        console.log("[markAsRead] Retentando em 3s após erro...");
         setTimeout(() => markAsRead(conversationId, retryCount + 1), 3000);
       }
     }
