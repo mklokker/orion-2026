@@ -7,12 +7,13 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Circle, Moon, MinusCircle, Zap, Bell, Volume2, MessageSquare, AtSign, Users, Play, Clock, BellOff } from "lucide-react";
+import { Circle, Moon, MinusCircle, Zap, Bell, Volume2, MessageSquare, AtSign, Users, Play, Clock, BellOff, Palette } from "lucide-react";
 import { UserPresence } from "@/entities/UserPresence";
 import { useToast } from "@/components/ui/use-toast";
 import { playNotificationSound, SOUND_OPTIONS } from "./NotificationSounds";
 import { format, addHours, addMinutes, isPast } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import ChatBackgroundSettings from "./ChatBackgroundSettings";
 
 const statusOptions = [
   { value: "auto", label: "Automático", description: "Detectar automaticamente", icon: Zap, color: "text-blue-500" },
@@ -21,7 +22,7 @@ const statusOptions = [
   { value: "dnd", label: "Não Incomodar", description: "Silenciar notificações", icon: MinusCircle, color: "text-red-500" }
 ];
 
-export default function PresenceSettings({ open, onClose, currentUser, presence, onUpdate }) {
+export default function PresenceSettings({ open, onClose, currentUser, presence, onUpdate, onBgUpdate }) {
   const { toast } = useToast();
   const [manualStatus, setManualStatus] = useState(presence?.manual_status || "auto");
   const [statusMessage, setStatusMessage] = useState(presence?.status_message || "");
@@ -154,14 +155,18 @@ export default function PresenceSettings({ open, onClose, currentUser, presence,
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="status" className="gap-2">
-              <Circle className="w-4 h-4" />
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="status" className="gap-1 text-xs sm:text-sm">
+              <Circle className="w-3.5 h-3.5" />
               Status
             </TabsTrigger>
-            <TabsTrigger value="notifications" className="gap-2">
-              <Bell className="w-4 h-4" />
+            <TabsTrigger value="notifications" className="gap-1 text-xs sm:text-sm">
+              <Bell className="w-3.5 h-3.5" />
               Notificações
+            </TabsTrigger>
+            <TabsTrigger value="appearance" className="gap-1 text-xs sm:text-sm">
+              <Palette className="w-3.5 h-3.5" />
+              Aparência
             </TabsTrigger>
           </TabsList>
 
@@ -381,6 +386,19 @@ export default function PresenceSettings({ open, onClose, currentUser, presence,
                 </p>
               </div>
             )}
+          </TabsContent>
+
+          <TabsContent value="appearance" className="space-y-4 py-4">
+            <ChatBackgroundSettings
+              chatBgPrefs={presence}
+              onSave={async (bgData) => {
+                if (presence?.id) {
+                  await UserPresence.update(presence.id, bgData);
+                  onBgUpdate?.(bgData);
+                  onUpdate?.();
+                }
+              }}
+            />
           </TabsContent>
         </Tabs>
 
