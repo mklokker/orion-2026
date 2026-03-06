@@ -263,6 +263,13 @@ export default function ConversationView({
         onScrollToMessage={scrollToMessage}
       />
 
+      {/* Status Tag Filter */}
+      {conversation && (
+        <div className="flex items-center px-2 md:px-3 py-1.5 border-b border-border bg-card/80 backdrop-blur-sm shrink-0">
+          <StatusTagFilter value={statusFilter} onChange={setStatusFilter} messages={messages} />
+        </div>
+      )}
+
       {/* Messages - área com scroll próprio */}
       <div
         ref={scrollRef}
@@ -310,6 +317,7 @@ export default function ConversationView({
                     onReaction={onReaction}
                     onImageClick={onImageClick}
                     onPin={onPinMessage}
+                    onStatusTag={onStatusTag}
                     onScrollToMessage={scrollToMessage}
                     isAdmin={isAdmin}
                     onApproveTaskRequest={onApproveTaskRequest}
