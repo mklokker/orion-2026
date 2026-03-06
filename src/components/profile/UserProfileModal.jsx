@@ -309,6 +309,14 @@ export default function UserProfileModal({ open, onClose, user, onUpdate }) {
           </div>
         </div>
 
+        {/* Image Crop Modal */}
+        <ImageCropModal
+          open={showCropModal}
+          onClose={() => { setShowCropModal(false); setCropFile(null); }}
+          imageFile={cropFile}
+          onCropComplete={handleCropComplete}
+        />
+
         <DialogFooter className="gap-3">
           <Button variant="outline" onClick={onClose}>
             Cancelar
