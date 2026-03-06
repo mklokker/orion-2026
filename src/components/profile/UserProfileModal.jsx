@@ -186,7 +186,7 @@ export default function UserProfileModal({ open, onClose, user, onUpdate }) {
                   id="photo-upload"
                   type="file"
                   accept="image/*"
-                  onChange={handlePhotoUpload}
+                  onChange={handlePhotoSelect}
                   className="hidden"
                   disabled={isUploadingPhoto}
                 />
