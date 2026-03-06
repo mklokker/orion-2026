@@ -7,6 +7,7 @@ import { User } from "@/entities/User";
 import { UploadFile } from "@/integrations/Core";
 import { Camera, Save, X, Trash2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import ImageCropModal from "./ImageCropModal";
 import {
   AlertDialog,
   AlertDialogAction,
