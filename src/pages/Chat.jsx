@@ -649,20 +649,24 @@ export default function Chat() {
 
   const handleDeleteGroup = async () => {
     if (!selectedConversation) return;
+    const isGroup = selectedConversation.type === "group";
     try {
       await deleteGroup({ conversation_id: selectedConversation.id });
       setSelectedConversation(null);
       setShowSettings(false);
-      // Real-time subscription will handle removal
+      setShowConversation(false);
+      setMessages([]);
+      // Remove from local conversations list immediately
+      setConversations(prev => prev.filter(c => c.id !== selectedConversation.id));
       toast({
-        title: "Grupo excluído",
-        description: "O grupo foi excluído com sucesso"
+        title: isGroup ? "Grupo excluído" : "Conversa excluída",
+        description: isGroup ? "O grupo foi excluído com sucesso" : "A conversa foi excluída com sucesso"
       });
     } catch (error) {
       console.error("Erro ao excluir:", error);
       toast({
-        title: "Erro ao excluir grupo",
-        description: "Não foi possível excluir o grupo",
+        title: isGroup ? "Erro ao excluir grupo" : "Erro ao excluir conversa",
+        description: "Não foi possível excluir",
         variant: "destructive"
       });
     }
