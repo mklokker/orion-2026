@@ -15,8 +15,13 @@ import {
   Trash2,
   Smile,
   Pin,
-  ListChecks
+  ListChecks,
+  CheckCircle2,
+  CircleCheck,
+  FileCheck,
+  XCircle
 } from "lucide-react";
+import StatusTagBadge from "./StatusTagBadge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -117,6 +122,7 @@ export default function MessageBubble({
   onPin,
   onScrollToMessage,
   onApproveTaskRequest,
+  onStatusTag,
   isAdmin = false,
   users = []
 }) {
@@ -342,6 +348,18 @@ export default function MessageBubble({
         >
           {renderContent()}
 
+          {/* Status tag badge */}
+          {message.status_tag && message.status_tag !== "none" && (
+            <div className="mt-1.5">
+              <StatusTagBadge
+                tag={message.status_tag}
+                tagBy={message.status_tag_by}
+                tagAt={message.status_tag_at}
+                users={users}
+              />
+            </div>
+          )}
+
           {/* Time and read status */}
           <div className={`flex items-center justify-end gap-1 mt-1 ${isOwn ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
             {message.is_pinned && <Pin className="w-3 h-3 text-amber-500" />}
@@ -425,6 +443,30 @@ export default function MessageBubble({
                   <DropdownMenuItem onClick={() => { onReply?.(message); setMenuOpen(false); }}>
                     <Reply className="w-4 h-4 mr-2" /> Responder
                   </DropdownMenuItem>
+                  {message.type !== "system" && (
+                    <>
+                      {message.status_tag !== "feito" && (
+                        <DropdownMenuItem onClick={() => { onStatusTag?.(message, "feito"); setMenuOpen(false); }}>
+                          <CheckCircle2 className="w-4 h-4 mr-2 text-blue-600" /> Marcar como Feito
+                        </DropdownMenuItem>
+                      )}
+                      {message.status_tag !== "realizado" && (
+                        <DropdownMenuItem onClick={() => { onStatusTag?.(message, "realizado"); setMenuOpen(false); }}>
+                          <CircleCheck className="w-4 h-4 mr-2 text-green-600" /> Marcar como Realizado
+                        </DropdownMenuItem>
+                      )}
+                      {message.status_tag !== "conciliado" && (
+                        <DropdownMenuItem onClick={() => { onStatusTag?.(message, "conciliado"); setMenuOpen(false); }}>
+                          <FileCheck className="w-4 h-4 mr-2 text-amber-600" /> Marcar como Conciliado
+                        </DropdownMenuItem>
+                      )}
+                      {message.status_tag && message.status_tag !== "none" && (
+                        <DropdownMenuItem onClick={() => { onStatusTag?.(message, "none"); setMenuOpen(false); }}>
+                          <XCircle className="w-4 h-4 mr-2 text-muted-foreground" /> Remover marcação
+                        </DropdownMenuItem>
+                      )}
+                    </>
+                  )}
                   {isOwn && (
                     <DropdownMenuItem onClick={() => { onEdit?.(message); setMenuOpen(false); }}>
                       <Pencil className="w-4 h-4 mr-2" /> Editar
