@@ -110,6 +110,7 @@ export default function Chat() {
             if (prev.some(c => c.id === event.data.id)) return prev;
             return [event.data, ...prev];
           });
+          updateCachedConversation(event.data);
         }
       } else if (event.type === 'update') {
         setConversations(prev => prev.map(c => c.id === event.id ? { ...c, ...event.data } : c));
@@ -117,11 +118,13 @@ export default function Chat() {
         if (selectedConversationRef.current?.id === event.id) {
           setSelectedConversation(prev => ({ ...prev, ...event.data }));
         }
+        updateCachedConversation({ id: event.id, ...event.data });
       } else if (event.type === 'delete') {
         setConversations(prev => prev.filter(c => c.id !== event.id));
         if (selectedConversationRef.current?.id === event.id) {
           setSelectedConversation(null);
         }
+        removeCachedConversation(event.id);
       }
     });
 
