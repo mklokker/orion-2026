@@ -149,6 +149,9 @@ export default function Chat() {
       const msgConversationId = event.data?.conversation_id;
 
       if (event.type === 'create') {
+        // Cache the new message
+        addCachedMessage(event.data);
+        
         // If message is for the selected conversation, add it
         if (selectedConv && msgConversationId === selectedConv.id) {
           setMessages(prev => {
