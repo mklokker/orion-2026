@@ -13,17 +13,7 @@ const getInitials = (name) => {
   return name.substring(0, 2).toUpperCase();
 };
 
-// Formata hora no timezone de São Paulo (GMT-3)
-const formatSaoPauloTime = (dateStr) => {
-  if (!dateStr) return "";
-  const date = new Date(dateStr);
-  const utcTime = date.getTime();
-  const saoPauloOffset = -3 * 60 * 60 * 1000;
-  const saoPauloTime = new Date(utcTime + saoPauloOffset + (date.getTimezoneOffset() * 60 * 1000));
-  const hours = String(saoPauloTime.getHours()).padStart(2, "0");
-  const minutes = String(saoPauloTime.getMinutes()).padStart(2, "0");
-  return `${hours}:${minutes}`;
-};
+
 
 export default function PinnedMessages({ 
   pinnedMessages, 
