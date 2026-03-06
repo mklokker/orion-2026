@@ -955,6 +955,7 @@ export default function Chat() {
             onReaction={handleReaction}
             onImageClick={setViewingImage}
             onPinMessage={handlePinMessage}
+            onStatusTag={handleStatusTag}
             typingUsers={typingUsers}
             presenceMap={presenceMap}
             isAdmin={isAdmin}
@@ -1008,6 +1009,7 @@ export default function Chat() {
             onReaction={handleReaction}
             onImageClick={setViewingImage}
             onPinMessage={handlePinMessage}
+            onStatusTag={handleStatusTag}
             typingUsers={typingUsers}
             presenceMap={presenceMap}
             isAdmin={isAdmin}
