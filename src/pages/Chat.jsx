@@ -344,25 +344,16 @@ export default function Chat() {
       const myConvs = response?.data?.conversations || [];
       setConversations(myConvs);
       
-      // Calculate unread counts only on initial load to avoid rate limit
+      // Use backend function for unread counts (server-side, no rate limits, all conversations)
       if (!skipUnreadCount) {
-        const counts = {};
-        for (const conv of myConvs.slice(0, 10)) { // Limit to 10 to avoid rate limit
-          try {
-            const msgs = await ChatMessage.filter({ conversation_id: conv.id });
-            const unread = msgs.filter(m => {
-              const senderMatches = m.sender_email !== userEmail;
-              const readByArray = m.read_by || [];
-              const notReadYet = !readByArray.some(r => r.email === userEmail);
-              return senderMatches && notReadYet;
-            }).length;
-            if (unread > 0) counts[conv.id] = unread;
-          } catch (e) {
-            // Skip on rate limit
-            if (e?.response?.status === 429) break;
-          }
+        try {
+          const unreadResponse = await getUnreadCounts();
+          const counts = unreadResponse?.data?.counts || {};
+          console.log("[loadConversations] Unread counts from server:", counts);
+          setUnreadCounts(counts);
+        } catch (e) {
+          console.error("Erro ao carregar contadores de não lidas:", e);
         }
-        setUnreadCounts(counts);
       }
     } catch (error) {
       if (error?.response?.status !== 429) {
