@@ -276,9 +276,8 @@ export default function ConversationView({
         ref={scrollRef}
         onScroll={handleScroll}
         className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden w-full relative"
-        style={{ isolation: "isolate" }}
       >
-        {/* Chat background layer - GLOBAL prefs from UserPresence */}
+        {/* Chat background layer - GLOBAL prefs, fixed to viewport of scroll area */}
         <ChatBackground chatBgPrefs={chatBgPrefs} />
 
         {/* Messages layer */}

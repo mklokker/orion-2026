@@ -14,7 +14,8 @@ export const CHAT_BG_PRESETS = [
 
 /**
  * ChatBackground - renders GLOBAL background based on user preferences (from UserPresence).
- * No longer reads from conversation.theme_*.
+ * Uses position:sticky so it stays fixed in the viewport of the scroll container,
+ * covering the entire visible area regardless of scroll position or message count.
  */
 export default function ChatBackground({ chatBgPrefs }) {
   const [imgError, setImgError] = useState(false);
@@ -29,10 +30,14 @@ export default function ChatBackground({ chatBgPrefs }) {
     if (themeType === "default" || !themeValue) return null;
 
     const base = {
-      position: "absolute",
-      inset: 0,
+      position: "sticky",
+      top: 0,
+      left: 0,
+      width: "100%",
+      height: "100%",
       pointerEvents: "none",
       zIndex: 0,
+      marginBottom: "-100%", // collapse so it doesn't push content down
     };
 
     if (themeType === "solid") {
@@ -52,7 +57,6 @@ export default function ChatBackground({ chatBgPrefs }) {
         backgroundRepeat: "no-repeat",
         opacity: themeOpacity,
         filter: themeBlur > 0 ? `blur(${themeBlur}px)` : undefined,
-        ...(themeBlur > 0 ? { inset: `-${themeBlur}px` } : {}),
       };
     }
 
@@ -63,6 +67,7 @@ export default function ChatBackground({ chatBgPrefs }) {
 
   return (
     <>
+      {/* Background layer - sticky to always fill the visible scroll area */}
       <div style={bgStyle}>
         {themeType === "image" && !imgError && (
           <img
@@ -74,10 +79,18 @@ export default function ChatBackground({ chatBgPrefs }) {
         )}
       </div>
 
+      {/* Dim overlay for readability - also sticky */}
       {themeDim && themeType !== "default" && themeValue && (
         <div
-          className="absolute inset-0 pointer-events-none z-[1]"
           style={{
+            position: "sticky",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            pointerEvents: "none",
+            zIndex: 1,
+            marginBottom: "-100%",
             backgroundColor: "hsl(var(--background))",
             opacity: themeType === "image" ? 0.5 : 0.3,
           }}
