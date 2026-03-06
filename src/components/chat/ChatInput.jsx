@@ -443,17 +443,29 @@ export default function ChatInput({
         />
 
         {/* Text input */}
-        <Textarea
-          ref={textareaRef}
-          placeholder={isDragging ? "Solte o arquivo aqui..." : "Digite uma mensagem..."}
-          value={message}
-          onChange={handleChange}
-          onKeyDown={handleKeyDown}
-          onPaste={handlePaste}
-          disabled={disabled || uploading}
-          className="min-h-[44px] max-h-32 resize-none flex-1 text-base md:text-sm"
-          rows={1}
-        />
+        <div className="flex-1 relative">
+          <Textarea
+            ref={textareaRef}
+            placeholder={isDragging ? "Solte o arquivo aqui..." : "Digite uma mensagem..."}
+            value={message}
+            onChange={handleChange}
+            onKeyDown={handleKeyDown}
+            onPaste={handlePaste}
+            disabled={disabled || uploading}
+            className={`resize-none w-full text-base md:text-sm transition-all duration-200 pr-9 ${
+              expanded ? "min-h-[140px] max-h-[50vh]" : "min-h-[44px] max-h-32"
+            }`}
+            rows={expanded ? 6 : 1}
+          />
+          <button
+            type="button"
+            onClick={() => setExpanded(e => !e)}
+            className="absolute top-1.5 right-1.5 p-1 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+            title={expanded ? "Reduzir campo" : "Expandir campo"}
+          >
+            {expanded ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
+          </button>
+        </div>
 
         {/* Send button */}
         <Button
