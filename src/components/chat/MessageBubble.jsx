@@ -372,11 +372,11 @@ export default function MessageBubble({
             <div className="flex items-center justify-end gap-2 mt-1">
               <ReadReceipt 
                 message={message}
-                currentUser={{ email: "current" }}
-                users={[]}
+                currentUser={message._currentUser}
+                users={users}
                 isGroup={isGroupChat}
               />
-              {isGroupChat && <ReadReceiptBadge message={message} users={[]} isGroup={true} />}
+              {isGroupChat && <ReadReceiptBadge message={message} users={users} isGroup={true} />}
             </div>
           )}
         </div>
