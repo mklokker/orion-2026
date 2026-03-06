@@ -22,6 +22,18 @@ Deno.serve(async (req) => {
     const userEmail = user.email;
     const now = new Date().toISOString();
 
+    // SECURITY: Verify user is a participant of this conversation
+    const convs = await base44.asServiceRole.entities.ChatConversation.filter({ id: conversation_id });
+    if (convs.length === 0) {
+      return Response.json({ error: 'Conversation not found' }, { status: 404 });
+    }
+    const conv = convs[0];
+    const hasAccess = conv.participants?.includes(userEmail) || 
+                      (conv.type === "group" && conv.is_public === true);
+    if (!hasAccess) {
+      return Response.json({ error: 'Access denied' }, { status: 403 });
+    }
+
     // Get all messages in the conversation
     const messages = await base44.asServiceRole.entities.ChatMessage.filter(
       { conversation_id },
