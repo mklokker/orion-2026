@@ -127,38 +127,50 @@ export const groupMessagesByDateBR = (messages) => {
 };
 
 /**
- * Formata label amigável para separador de data em chat
- * @param {string} dateStr - "2026-03-05"
+ * Gera rótulo amigável para separador de data no chat
+ * @param {string} dateKey - "2026-03-05" (chave YYYY-MM-DD gerada por getLocalDayKey)
  * @returns {string} - "Hoje", "Ontem", ou "05 de Março"
  */
-export const getDateLabelBR = (dateStr) => {
-  if (!dateStr) return "";
-  
+export const getDateLabelBR = (dateKey) => {
+  if (!dateKey) return "";
   try {
-    const [year, month, day] = dateStr.split("-").map(Number);
-    const date = new Date(Date.UTC(year, month - 1, day));
-    
-    const today = getTodayBR();
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-    
-    if (isSameDayBR(date, today)) {
-      return "Hoje";
-    }
-    if (isSameDayBR(date, yesterday)) {
-      return "Ontem";
-    }
-    
-    // Formatar "05 de Março"
+    const todayKey = getTodayKeyBR();
+    if (dateKey === todayKey) return "Hoje";
+
+    // Calcular "ontem" no tz local: subtrair 1 dia do instante atual
+    const yesterdayDate = new Date(Date.now() - 86400000);
+    const yesterdayKey = getLocalDayKey(yesterdayDate);
+    if (dateKey === yesterdayKey) return "Ontem";
+
+    const [, month, day] = dateKey.split("-").map(Number);
     const monthNames = [
       "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
       "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
     ];
-    
     return `${day} de ${monthNames[month - 1]}`;
-  } catch (error) {
-    console.error("[dateUtils] Erro ao formatar label:", dateStr, error);
-    return dateStr;
+  } catch {
+    return dateKey;
+  }
+};
+
+/**
+ * Formata a hora de um chat list item (Hoje → HH:mm, Ontem → "Ontem", senão dd/MM/yy)
+ * Usa tz do usuário.
+ */
+export const formatChatListTime = (dateStr) => {
+  if (!dateStr) return "";
+  try {
+    const dateKey = getLocalDayKey(dateStr);
+    const todayKey = getTodayKeyBR();
+    if (dateKey === todayKey) return formatChatTime(dateStr);
+
+    const yesterdayDate = new Date(Date.now() - 86400000);
+    const yesterdayKey = getLocalDayKey(yesterdayDate);
+    if (dateKey === yesterdayKey) return "Ontem";
+
+    return formatDateBR(dateStr, "dd/MM/yy");
+  } catch {
+    return "";
   }
 };
 
