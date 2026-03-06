@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { Pin, ChevronDown, ChevronUp, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { formatChatTime } from "@/components/utils/dateUtils";
 
 const getInitials = (name) => {
   if (!name) return "?";
@@ -13,7 +12,17 @@ const getInitials = (name) => {
   return name.substring(0, 2).toUpperCase();
 };
 
-
+// Formata hora no timezone de São Paulo (GMT-3)
+const formatSaoPauloTime = (dateStr) => {
+  if (!dateStr) return "";
+  const date = new Date(dateStr);
+  const utcTime = date.getTime();
+  const saoPauloOffset = -3 * 60 * 60 * 1000;
+  const saoPauloTime = new Date(utcTime + saoPauloOffset + (date.getTimezoneOffset() * 60 * 1000));
+  const hours = String(saoPauloTime.getHours()).padStart(2, "0");
+  const minutes = String(saoPauloTime.getMinutes()).padStart(2, "0");
+  return `${hours}:${minutes}`;
+};
 
 export default function PinnedMessages({ 
   pinnedMessages, 
@@ -84,7 +93,7 @@ export default function PinnedMessages({
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-semibold text-amber-900">{msg.sender_name}</span>
-                <span className="text-xs text-amber-600">{formatChatTime(msg.created_date)}</span>
+                <span className="text-xs text-amber-600">{formatSaoPauloTime(msg.created_date)}</span>
               </div>
               <p className="text-sm text-amber-800 truncate">{msg.content}</p>
             </div>

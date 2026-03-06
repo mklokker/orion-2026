@@ -28,8 +28,9 @@ import {
   CheckSquare,
   Square
 } from "lucide-react";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { ChatMessage } from "@/entities/ChatMessage";
-import { getLocalDayKey, getDateLabelBR, formatChatTime } from "@/components/utils/dateUtils";
 
 const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB
 const MAX_FILE_SIZE_LABEL = "25MB";
@@ -187,10 +188,9 @@ export default function ConversationFilesModal({
     return user?.display_name || user?.full_name || email;
   };
 
-  // Group files by date (local tz)
+  // Group files by date
   const groupedFiles = filteredFiles.reduce((groups, file) => {
-    const date = getLocalDayKey(file.created_date);
-    if (!date) return groups;
+    const date = format(new Date(file.created_date), "yyyy-MM-dd");
     if (!groups[date]) groups[date] = [];
     groups[date].push(file);
     return groups;
@@ -291,7 +291,7 @@ export default function ConversationFilesModal({
               {sortedDates.map(date => (
                 <div key={date}>
                   <h3 className="text-sm font-medium text-gray-500 mb-3 sticky top-0 bg-white py-1">
-                   {getDateLabelBR(date)}
+                    {format(new Date(date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
                   </h3>
                   
                   <div className="grid gap-2">
@@ -333,7 +333,7 @@ export default function ConversationFilesModal({
                               <span>•</span>
                               <span>{formatFileSize(file.file_size)}</span>
                               <span>•</span>
-                              <span>{formatChatTime(file.created_date)}</span>
+                              <span>{format(new Date(file.created_date), "HH:mm")}</span>
                             </div>
                           </div>
 

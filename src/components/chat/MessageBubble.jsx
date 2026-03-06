@@ -37,7 +37,6 @@ import LinkPreview from "./LinkPreview";
 import ReadReceipt from "./ReadReceipt";
 import ReadReceiptBadge from "./ReadReceiptBadge";
 import MentionRenderer from "./MentionRenderer";
-import { formatChatTime } from "@/components/utils/dateUtils";
 
 // GIF inline com fallback e responsividade mobile
 function GifMessage({ src, isOwn }) {
@@ -166,6 +165,18 @@ export default function MessageBubble({
 
   const FileIcon = getFileIcon(message.file_type);
   const isImage = message.type === "image" || message.file_type?.includes("image");
+  
+  // Formata hora subtraindo 3 horas do horário atual
+  const formatTimeMinusThreeHours = (dateStr) => {
+    if (!dateStr) return "";
+    
+    const date = new Date(dateStr);
+    // Subtrai 3 horas (em milissegundos)
+    const adjustedDate = new Date(date.getTime() - (3 * 60 * 60 * 1000));
+    const hours = String(adjustedDate.getHours()).padStart(2, "0");
+    const minutes = String(adjustedDate.getMinutes()).padStart(2, "0");
+    return `${hours}:${minutes}`;
+  };
   
   // Detecta URLs no texto
   const extractUrls = (text) => {
@@ -353,7 +364,7 @@ export default function MessageBubble({
           <div className={`flex items-center justify-end gap-1 mt-1 ${isOwn ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
             {message.is_pinned && <Pin className="w-3 h-3 text-amber-500" />}
             {message.is_edited && <span className="text-xs">editada</span>}
-            <span className="text-xs">{formatChatTime(message.created_date)}</span>
+            <span className="text-xs">{formatTimeMinusThreeHours(message.created_date)}</span>
           </div>
 
           {/* Read receipts (only for own messages) */}

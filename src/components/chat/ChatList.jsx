@@ -10,7 +10,8 @@ const ScrollArea = ({ children, className }) => (
   <div className={`overflow-y-auto ${className || ""}`}>{children}</div>
 );
 import { useToast } from "@/components/ui/use-toast";
-import { formatChatListTime } from "@/components/utils/dateUtils";
+import { format, isToday, isYesterday } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import PresenceIndicator from "./PresenceIndicator";
 
 const getInitials = (name) => {
@@ -22,7 +23,13 @@ const getInitials = (name) => {
   return name.substring(0, 2).toUpperCase();
 };
 
-const formatMessageTime = (dateStr) => formatChatListTime(dateStr);
+const formatMessageTime = (dateStr) => {
+  if (!dateStr) return "";
+  const date = new Date(dateStr);
+  if (isToday(date)) return format(date, "HH:mm");
+  if (isYesterday(date)) return "Ontem";
+  return format(date, "dd/MM/yy");
+};
 
 export default function ChatList({
   conversations,
