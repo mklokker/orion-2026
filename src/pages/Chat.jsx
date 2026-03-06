@@ -206,6 +206,7 @@ export default function Chat() {
         if (selectedConv && msgConversationId === selectedConv.id) {
           setMessages(prev => prev.map(m => m.id === event.id ? event.data : m));
         }
+        updateCachedMessage(event.data);
       } else if (event.type === 'delete') {
         if (selectedConv && msgConversationId === selectedConv.id) {
           setMessages(prev => prev.filter(m => m.id !== event.id));
