@@ -1,6 +1,7 @@
 import React from "react";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import { CheckCircle2, CircleCheck, FileCheck } from "lucide-react";
+import { formatDateBR } from "@/components/utils/dateUtils";
 
 const STATUS_CONFIG = {
   feito: {
