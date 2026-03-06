@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { base44 } from "@/api/base44Client";
+import { formatChatListTime } from "@/components/utils/dateUtils";
 
 const FILTER_OPTIONS = {
   all: "Todas as mensagens",
