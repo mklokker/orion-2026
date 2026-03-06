@@ -169,6 +169,12 @@ export default function Chat() {
       const belongsToConv = allConversations.find(c => c.id === msgConversationId);
       if (!belongsToConv) {
         // Not a conversation this user is part of — ignore completely
+        console.warn(`[Chat] SECURITY: Ignored message event for unknown conversation ${msgConversationId}`);
+        return;
+      }
+      // Double-check: explicit participant validation
+      if (!belongsToConv.participants?.includes(user.email)) {
+        console.warn(`[Chat] SECURITY: Ignored message event - user ${user.email} not in participants of ${msgConversationId}`);
         return;
       }
 
