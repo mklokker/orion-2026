@@ -115,6 +115,20 @@ export default function Chat() {
           updateCachedConversation(event.data);
         }
       } else if (event.type === 'update') {
+        // Only process updates for conversations the user is part of
+        const existsLocally = conversationsRef.current.some(c => c.id === event.id);
+        if (!existsLocally) return;
+
+        // If user was removed from participants, remove the conversation locally
+        if (event.data.participants && !event.data.participants.includes(user.email)) {
+          setConversations(prev => prev.filter(c => c.id !== event.id));
+          if (selectedConversationRef.current?.id === event.id) {
+            setSelectedConversation(null);
+          }
+          removeCachedConversation(event.id);
+          return;
+        }
+
         setConversations(prev => prev.map(c => c.id === event.id ? { ...c, ...event.data } : c));
         // Update selected conversation if it's the one being updated
         if (selectedConversationRef.current?.id === event.id) {
