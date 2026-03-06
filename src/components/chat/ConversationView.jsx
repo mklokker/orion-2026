@@ -62,7 +62,8 @@ export default function ConversationView({
   onLoadMore,
   hasMoreMessages = false,
   isLoadingMore = false,
-}) {
+  autoFocusTrigger,
+  }) {
   const scrollRef = useRef(null);
   const [replyingTo, setReplyingTo] = useState(null);
   const [showFilesModal, setShowFilesModal] = useState(false);
