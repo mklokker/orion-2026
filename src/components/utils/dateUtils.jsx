@@ -1,10 +1,22 @@
 /**
- * Utilitários de data/hora para timezone America/Sao_Paulo (Brasil)
+ * Utilitários de data/hora — timezone local do usuário (fallback America/Sao_Paulo)
  * Regra: Sempre salvar em UTC (ISO 8601 com Z), converter ao exibir
  */
 
 /**
- * Formata data com timezone do Brasil
+ * Detecta o timezone do navegador do usuário com fallback seguro
+ */
+export const getUserTimeZone = () => {
+  try {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    return tz || "America/Sao_Paulo";
+  } catch {
+    return "America/Sao_Paulo";
+  }
+};
+
+/**
+ * Formata data no timezone local do usuário
  * @param {Date|string} date - Data em ISO (UTC) ou Date object
  * @param {string} format - Padrão: "dd/MM/yyyy HH:mm"
  * @returns {string}
@@ -14,10 +26,11 @@ export const formatDateBR = (date, format = "dd/MM/yyyy HH:mm") => {
   
   try {
     const dateObj = typeof date === "string" ? new Date(date) : date;
+    if (isNaN(dateObj.getTime())) return "";
     
-    // Usar Intl.DateTimeFormat para garantir timezone Brasil
+    const tz = getUserTimeZone();
     const formatter = new Intl.DateTimeFormat("pt-BR", {
-      timeZone: "America/Sao_Paulo",
+      timeZone: tz,
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
@@ -28,27 +41,24 @@ export const formatDateBR = (date, format = "dd/MM/yyyy HH:mm") => {
     });
     
     const parts = formatter.formatToParts(dateObj);
-    const formattedObj = {};
-    parts.forEach(({ type, value }) => {
-      formattedObj[type] = value;
-    });
+    const p = {};
+    parts.forEach(({ type, value }) => { p[type] = value; });
     
-    // Parse conforme o formato solicitado
-    if (format === "dd/MM/yyyy") {
-      return `${formattedObj.day}/${formattedObj.month}/${formattedObj.year}`;
-    } else if (format === "dd/MM/yyyy HH:mm") {
-      return `${formattedObj.day}/${formattedObj.month}/${formattedObj.year} ${formattedObj.hour}:${formattedObj.minute}`;
-    } else if (format === "HH:mm") {
-      return `${formattedObj.hour}:${formattedObj.minute}`;
-    }
-    
-    // Default
-    return `${formattedObj.day}/${formattedObj.month}/${formattedObj.year} ${formattedObj.hour}:${formattedObj.minute}`;
+    if (format === "dd/MM/yyyy") return `${p.day}/${p.month}/${p.year}`;
+    if (format === "HH:mm") return `${p.hour}:${p.minute}`;
+    if (format === "dd/MM/yy") return `${p.day}/${p.month}/${p.year.slice(-2)}`;
+    if (format === "dd/MM HH:mm") return `${p.day}/${p.month} ${p.hour}:${p.minute}`;
+    return `${p.day}/${p.month}/${p.year} ${p.hour}:${p.minute}`;
   } catch (error) {
     console.error("[dateUtils] Erro ao formatar data:", date, error);
     return "";
   }
 };
+
+/**
+ * Alias conveniente — formata só a hora HH:mm no tz do usuário
+ */
+export const formatChatTime = (dateStr) => formatDateBR(dateStr, "HH:mm");
 
 /**
  * Obtém data "hoje" em timezone Brasil (sem horário)
