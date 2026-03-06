@@ -908,6 +908,7 @@ export default function Chat() {
             presenceMap={presenceMap}
             isAdmin={isAdmin}
             onApproveTaskRequest={handleApproveTaskRequest}
+            chatBgPrefs={chatBgPrefs}
           />
         </div>
       </div>
@@ -962,6 +963,7 @@ export default function Chat() {
             presenceMap={presenceMap}
             isAdmin={isAdmin}
             onApproveTaskRequest={handleApproveTaskRequest}
+            chatBgPrefs={chatBgPrefs}
           />
         </div>
       </div>
