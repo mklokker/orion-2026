@@ -9,7 +9,9 @@ import {
   Image as ImageIcon,
   FileText,
   Smile,
-  AlertCircle
+  AlertCircle,
+  Maximize2,
+  Minimize2
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { detectGiphyMessage } from "./GiphyUtils";
