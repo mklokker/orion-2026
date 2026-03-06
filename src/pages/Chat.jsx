@@ -368,8 +368,10 @@ export default function Chat() {
       const response = await getChatMessages({ conversation_id: conversationId });
       const msgs = response?.data?.messages || [];
       setMessages(msgs);
+      return msgs;
     } catch (error) {
       console.error("Erro ao carregar mensagens:", error);
+      return [];
     }
   };
 
