@@ -469,7 +469,9 @@ export default function Chat() {
       setGlobalUnread(total);
       return prev;
     });
-    setSelectedConversation(conv);
+    // Always use the freshest object from the conversations list to preserve all fields (theme_* etc)
+    const fresh = conversationsRef.current.find(c => c.id === conv.id) || conv;
+    setSelectedConversation(fresh);
     if (isMobileView) setShowConversation(true);
   };
 
