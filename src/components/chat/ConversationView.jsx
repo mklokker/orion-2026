@@ -375,6 +375,7 @@ export default function ConversationView({
         onCancelReply={() => setReplyingTo(null)}
         participants={conversation?.participants || []}
         allUsers={users}
+        autoFocusTrigger={autoFocusTrigger}
       />
 
       {/* Files Modal */}
