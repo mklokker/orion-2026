@@ -353,7 +353,7 @@ export default function MessageBubble({
           <div className={`flex items-center justify-end gap-1 mt-1 ${isOwn ? "text-primary-foreground/70" : "text-muted-foreground"}`}>
             {message.is_pinned && <Pin className="w-3 h-3 text-amber-500" />}
             {message.is_edited && <span className="text-xs">editada</span>}
-            <span className="text-xs">{formatTimeMinusThreeHours(message.created_date)}</span>
+            <span className="text-xs">{formatChatTime(message.created_date)}</span>
           </div>
 
           {/* Read receipts (only for own messages) */}
