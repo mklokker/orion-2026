@@ -428,80 +428,31 @@ export default function Chat() {
     }
   };
 
-  const markAsRead = async (conversationId, retryCount = 0) => {
+  const markAsRead = async (conversationId) => {
     if (!currentUser) return;
+    
+    // Zero counter immediately (optimistic UI)
+    setUnreadCounts(prev => {
+      const updated = { ...prev };
+      delete updated[conversationId];
+      return updated;
+    });
+
+    // Update local messages state immediately (optimistic)
+    const now = new Date().toISOString();
+    setMessages(prev => prev.map(m => {
+      if (m.sender_email !== currentUser.email && !(m.read_by || []).some(r => r && r.email === currentUser.email)) {
+        return { ...m, read_by: [...(m.read_by || []), { email: currentUser.email, read_at: now }] };
+      }
+      return m;
+    }));
+
+    // Use backend function to mark as read (server-side, no rate limits)
     try {
-      // Use the messages already in state if they belong to this conversation,
-      // otherwise fetch fresh from server
-      let msgs;
-      const localMsgs = messages.filter(m => m.conversation_id === conversationId);
-      if (localMsgs.length > 0) {
-        msgs = localMsgs;
-      } else {
-        const response = await getChatMessages({ conversation_id: conversationId });
-        msgs = response?.data?.messages || [];
-      }
-      
-      const now = new Date().toISOString();
-      
-      const unreadMsgs = msgs.filter(m => {
-        if (m.sender_email === currentUser.email) return false;
-        if (m.is_deleted) return false;
-        const readByArray = m.read_by || [];
-        return !readByArray.some(r => r && r.email === currentUser.email);
-      });
-
-      // Zero counter immediately (optimistic UI)
-      setUnreadCounts(prev => {
-        const updated = { ...prev };
-        delete updated[conversationId];
-        return updated;
-      });
-      
-      if (unreadMsgs.length === 0) return;
-
-      console.log(`[markAsRead] Marcando ${unreadMsgs.length} mensagens como lidas na conversa ${conversationId}`);
-
-      // Update local messages state immediately (optimistic)
-      setMessages(prev => prev.map(m => {
-        if (m.sender_email !== currentUser.email && !(m.read_by || []).some(r => r && r.email === currentUser.email)) {
-          return { ...m, read_by: [...(m.read_by || []), { email: currentUser.email, read_at: now }] };
-        }
-        return m;
-      }));
-
-      // Batch update sequentially (one at a time) to avoid rate limits
-      let failed = 0;
-      for (let i = 0; i < unreadMsgs.length; i++) {
-        const msg = unreadMsgs[i];
-        const readByArray = Array.isArray(msg.read_by) ? msg.read_by : [];
-        if (readByArray.some(r => r && r.email === currentUser.email)) continue;
-        const newReadBy = [...readByArray, { email: currentUser.email, read_at: now }];
-        try {
-          await ChatMessage.update(msg.id, { read_by: newReadBy });
-        } catch (e) {
-          failed++;
-          // If rate limited, wait longer and continue
-          if (e?.message?.includes("Rate limit")) {
-            await new Promise(resolve => setTimeout(resolve, 1500));
-          }
-        }
-        // Small delay between each update
-        if (i < unreadMsgs.length - 1) {
-          await new Promise(resolve => setTimeout(resolve, 150));
-        }
-      }
-      
-      if (failed > 0) {
-        console.warn(`[markAsRead] ${failed} de ${unreadMsgs.length} falharam ao marcar como lido`);
-      } else {
-        console.log(`[markAsRead] Todas ${unreadMsgs.length} mensagens marcadas com sucesso`);
-      }
+      const response = await markMessagesAsRead({ conversation_id: conversationId });
+      console.log(`[markAsRead] Server marked ${response?.data?.marked || 0} messages as read`);
     } catch (error) {
-      console.error("Erro ao marcar como lido:", error);
-      if (retryCount < 1) {
-        setTimeout(() => markAsRead(conversationId, retryCount + 1), 3000);
-      }
+      console.error("Erro ao marcar como lido no servidor:", error);
     }
   };
 
