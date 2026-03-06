@@ -478,6 +478,16 @@ export default function ChatInput({
 
         {/* Text input */}
         <div className="flex-1 relative">
+          {/* Drag handle */}
+          <div
+            ref={dragRef}
+            onMouseDown={handleDragStart}
+            onTouchStart={handleDragStart}
+            className="absolute -top-2 left-1/2 -translate-x-1/2 z-10 cursor-ns-resize px-4 py-1 group"
+            title="Arraste para redimensionar"
+          >
+            <div className="w-8 h-1 rounded-full bg-muted-foreground/30 group-hover:bg-muted-foreground/60 transition-colors" />
+          </div>
           <Textarea
             ref={textareaRef}
             placeholder={isDragging ? "Solte o arquivo aqui..." : "Digite uma mensagem..."}
@@ -486,18 +496,25 @@ export default function ChatInput({
             onKeyDown={handleKeyDown}
             onPaste={handlePaste}
             disabled={disabled || uploading}
+            style={expandLevel === -1 && customHeight ? { height: `${customHeight}px`, minHeight: '44px', maxHeight: `${getMaxHeight()}px` } : undefined}
             className={`resize-none w-full text-base md:text-sm transition-all duration-200 pr-9 ${
-              expanded ? "min-h-[140px] max-h-[50vh]" : "min-h-[44px] max-h-32"
+              expandLevel === 2 ? "max-h-[50vh]" :
+              expandLevel === 1 ? "min-h-[120px] max-h-[50vh]" :
+              expandLevel === -1 ? "" :
+              "min-h-[44px] max-h-32"
             }`}
-            rows={expanded ? 6 : 1}
+            rows={expandLevel === 2 ? 12 : expandLevel === 1 ? 5 : 1}
           />
           <button
             type="button"
-            onClick={() => setExpanded(e => !e)}
+            onClick={() => {
+              setCustomHeight(null);
+              setExpandLevel(l => l >= 2 ? 0 : (l === -1 ? 0 : l + 1));
+            }}
             className="absolute top-1.5 right-1.5 p-1 rounded hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
-            title={expanded ? "Reduzir campo" : "Expandir campo"}
+            title={expandLevel > 0 ? "Reduzir campo" : "Expandir campo"}
           >
-            {expanded ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
+            {expandLevel > 0 ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
           </button>
         </div>
 
