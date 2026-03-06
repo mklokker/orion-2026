@@ -57,7 +57,8 @@ export default function ConversationView({
   typingUsers,
   presenceMap = {},
   isAdmin = false,
-  onApproveTaskRequest
+  onApproveTaskRequest,
+  chatBgPrefs
 }) {
   const scrollRef = useRef(null);
   const [replyingTo, setReplyingTo] = useState(null);
@@ -277,8 +278,8 @@ export default function ConversationView({
         className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden w-full relative"
         style={{ isolation: "isolate" }}
       >
-        {/* Chat background layer */}
-        <ChatBackground conversation={conversation} />
+        {/* Chat background layer - GLOBAL prefs from UserPresence */}
+        <ChatBackground chatBgPrefs={chatBgPrefs} />
 
         {/* Messages layer */}
         <div className="relative z-[2] px-2 md:px-4 py-2 md:py-4">

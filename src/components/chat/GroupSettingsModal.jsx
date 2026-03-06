@@ -29,7 +29,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import ChatBackgroundSettings from "./ChatBackgroundSettings";
+// ChatBackgroundSettings moved to PresenceSettings (global config)
 
 const getInitials = (name) => {
   if (!name) return "?";
@@ -316,12 +316,6 @@ export default function GroupSettingsModal({
                 )}
               </Tabs>
             )}
-
-            {/* Background settings */}
-            <ChatBackgroundSettings
-              conversation={conversation}
-              onUpdate={onUpdate}
-            />
 
             {/* Actions */}
             <div className="space-y-2 pt-4 border-t">
