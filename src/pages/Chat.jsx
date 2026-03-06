@@ -794,7 +794,6 @@ export default function Chat() {
         pinned_by: newPinnedState ? currentUser.email : null,
         pinned_at: newPinnedState ? new Date().toISOString() : null
       });
-      // Real-time subscription will update messages
       toast({
         title: newPinnedState ? "Mensagem fixada" : "Mensagem desafixada",
         description: newPinnedState 
@@ -804,6 +803,64 @@ export default function Chat() {
     } catch (error) {
       console.error("Erro ao fixar:", error);
       toast({ title: "Erro ao fixar mensagem", variant: "destructive" });
+    }
+  };
+
+  const handleStatusTag = async (message, tag) => {
+    if (!currentUser) return;
+    try {
+      const isRemoving = tag === "none";
+      const now = new Date().toISOString();
+
+      await ChatMessage.update(message.id, {
+        status_tag: tag,
+        status_tag_by: isRemoving ? null : currentUser.email,
+        status_tag_at: isRemoving ? null : now,
+      });
+
+      // Optimistic local update
+      setMessages(prev => prev.map(m =>
+        m.id === message.id ? { ...m, status_tag: tag, status_tag_by: isRemoving ? null : currentUser.email, status_tag_at: isRemoving ? null : now } : m
+      ));
+
+      const tagLabels = { feito: "Feito", realizado: "Realizado", conciliado: "Conciliado" };
+
+      if (!isRemoving) {
+        toast({ title: `✅ Marcado como ${tagLabels[tag]}` });
+
+        // Send system message about the status change
+        const userName = currentUser.display_name || currentUser.full_name;
+        await ChatMessage.create({
+          conversation_id: message.conversation_id,
+          sender_email: currentUser.email,
+          sender_name: userName,
+          content: `✅ ${userName} marcou uma mensagem como ${tagLabels[tag]}`,
+          type: "system",
+          read_by: [{ email: currentUser.email, read_at: now }]
+        });
+
+        // Notify the message author if it's not the current user
+        if (message.sender_email !== currentUser.email) {
+          try {
+            const { Notification: NotificationEntity } = await import("@/entities/Notification");
+            await NotificationEntity.create({
+              user_email: message.sender_email,
+              title: `Mensagem marcada como ${tagLabels[tag]}`,
+              message: `${userName} marcou sua mensagem como ${tagLabels[tag]}`,
+              type: "interaction",
+              action_by: currentUser.email,
+              action_by_name: userName,
+            });
+          } catch (e) {
+            console.error("Erro ao notificar autor:", e);
+          }
+        }
+      } else {
+        toast({ title: "Marcação removida" });
+      }
+    } catch (error) {
+      console.error("Erro ao marcar status:", error);
+      toast({ title: "Erro ao marcar status", variant: "destructive" });
     }
   };
 
