@@ -37,6 +37,7 @@ import LinkPreview from "./LinkPreview";
 import ReadReceipt from "./ReadReceipt";
 import ReadReceiptBadge from "./ReadReceiptBadge";
 import MentionRenderer from "./MentionRenderer";
+import { formatChatTime } from "@/components/utils/dateUtils";
 
 // GIF inline com fallback e responsividade mobile
 function GifMessage({ src, isOwn }) {
