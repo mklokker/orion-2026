@@ -359,14 +359,15 @@ export default function Chat() {
       const response = await getChatConversations();
       const myConvs = response?.data?.conversations || [];
       setConversations(myConvs);
+      setCachedConversations(myConvs); // persist to IndexedDB
       
       // Use backend function for unread counts (server-side, no rate limits, all conversations)
       if (!skipUnreadCount) {
         try {
           const unreadResponse = await getUnreadCounts();
           const counts = unreadResponse?.data?.counts || {};
-          console.log("[loadConversations] Unread counts from server:", counts);
           setUnreadCounts(counts);
+          setMeta("unreadCounts", counts); // persist to IndexedDB
         } catch (e) {
           console.error("Erro ao carregar contadores de não lidas:", e);
         }
