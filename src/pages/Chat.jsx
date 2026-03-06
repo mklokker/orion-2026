@@ -381,10 +381,19 @@ export default function Chat() {
 
   const loadMessages = async (conversationId) => {
     try {
-      // Use backend function to get messages (works for all users)
-      const response = await getChatMessages({ conversation_id: conversationId });
+      // Phase 1: Show cached messages instantly
+      const cached = await getCachedMessages(conversationId, 80);
+      if (cached && cached.length > 0) {
+        setMessages(cached);
+      }
+
+      // Phase 2: Load from server (last 80 messages for speed)
+      const response = await getChatMessages({ conversation_id: conversationId, limit: 80 });
       const msgs = response?.data?.messages || [];
       setMessages(msgs);
+
+      // Persist to IndexedDB
+      setCachedMessages(conversationId, msgs);
       return msgs;
     } catch (error) {
       console.error("Erro ao carregar mensagens:", error);
