@@ -1049,6 +1049,7 @@ export default function Chat() {
             onLoadMore={handleLoadMore}
             hasMoreMessages={hasMoreMessages}
             isLoadingMore={isLoadingMore}
+            autoFocusTrigger={selectedConversation?.id}
           />
         </div>
       </div>
