@@ -84,7 +84,7 @@ export default function PinnedMessages({
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2">
                 <span className="text-sm font-semibold text-amber-900">{msg.sender_name}</span>
-                <span className="text-xs text-amber-600">{formatSaoPauloTime(msg.created_date)}</span>
+                <span className="text-xs text-amber-600">{formatChatTime(msg.created_date)}</span>
               </div>
               <p className="text-sm text-amber-800 truncate">{msg.content}</p>
             </div>
