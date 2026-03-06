@@ -28,9 +28,8 @@ import {
   CheckSquare,
   Square
 } from "lucide-react";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { ChatMessage } from "@/entities/ChatMessage";
+import { getLocalDayKey, getDateLabelBR, formatChatTime } from "@/components/utils/dateUtils";
 
 const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB
 const MAX_FILE_SIZE_LABEL = "25MB";
