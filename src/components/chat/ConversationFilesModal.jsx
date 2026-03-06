@@ -187,9 +187,10 @@ export default function ConversationFilesModal({
     return user?.display_name || user?.full_name || email;
   };
 
-  // Group files by date
+  // Group files by date (local tz)
   const groupedFiles = filteredFiles.reduce((groups, file) => {
-    const date = format(new Date(file.created_date), "yyyy-MM-dd");
+    const date = getLocalDayKey(file.created_date);
+    if (!date) return groups;
     if (!groups[date]) groups[date] = [];
     groups[date].push(file);
     return groups;
