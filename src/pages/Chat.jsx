@@ -145,17 +145,12 @@ export default function Chat() {
             if (prev.some(m => m.id === event.data.id)) return prev;
             return [...prev, event.data];
           });
-          // Mark as read immediately if from someone else
+          // Mark as read immediately if from someone else (via server to avoid rate limits)
           if (event.data.sender_email !== user.email) {
             const readByArray = event.data.read_by || [];
             const notReadYet = !readByArray.some(r => r.email === user.email);
             if (notReadYet) {
-              ChatMessage.update(event.data.id, {
-                read_by: [
-                  ...readByArray,
-                  { email: user.email, read_at: new Date().toISOString() }
-                ]
-              }).catch(() => {});
+              markMessagesAsRead({ conversation_id: msgConversationId }).catch(() => {});
             }
           }
         } else {
