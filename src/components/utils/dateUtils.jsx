@@ -100,9 +100,7 @@ export const isSameDayBR = (date1, date2) => {
 };
 
 /**
- * Converte string ISO (UTC) para formato "dd/MM/yyyy" em timezone Brasil
- * @param {string} isoString - "2026-03-05T10:30:00Z"
- * @returns {string} - "05/03/2026"
+ * Converte string ISO (UTC) para formato "dd/MM/yyyy" no tz do usuário
  */
 export const isoToDateBR = (isoString) => {
   if (!isoString) return "";
