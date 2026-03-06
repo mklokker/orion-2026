@@ -337,15 +337,6 @@ export default function GroupSettingsModal({
                   <Trash2 className="w-4 h-4 mr-2" /> Excluir grupo
                 </Button>
               )}
-              {!isGroup && (
-                <Button
-                  variant="outline"
-                  className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
-                  onClick={() => setShowDeleteConfirm(true)}
-                >
-                  <Trash2 className="w-4 h-4 mr-2" /> Excluir conversa
-                </Button>
-              )}
             </div>
           </div>
         </DialogContent>
@@ -373,9 +364,7 @@ export default function GroupSettingsModal({
       <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>
-              {isGroup ? "Excluir grupo?" : "Excluir conversa?"}
-            </AlertDialogTitle>
+            <AlertDialogTitle>Excluir grupo?</AlertDialogTitle>
             <AlertDialogDescription>
               Esta ação não pode ser desfeita. Todas as mensagens serão perdidas.
             </AlertDialogDescription>
