@@ -504,6 +504,31 @@ export default function Chat() {
     if (isMobileView) setShowConversation(true);
   };
 
+  const handleLoadMore = async () => {
+    if (!selectedConversation || isLoadingMore || !hasMoreMessages) return;
+    setIsLoadingMore(true);
+    try {
+      const oldest = messages[0];
+      if (!oldest) return;
+      const response = await getChatMessages({
+        conversation_id: selectedConversation.id,
+        limit: 50,
+        before_date: oldest.created_date,
+      });
+      const olderMsgs = response?.data?.messages || [];
+      const moreAvailable = response?.data?.has_more || false;
+      if (olderMsgs.length > 0) {
+        setMessages(prev => [...olderMsgs, ...prev]);
+        // Also cache them
+        for (const m of olderMsgs) addCachedMessage(m);
+      }
+      setHasMoreMessages(moreAvailable);
+    } catch (e) {
+      console.error("Erro ao carregar mensagens anteriores:", e);
+    }
+    setIsLoadingMore(false);
+  };
+
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
