@@ -166,18 +166,6 @@ export default function MessageBubble({
   const FileIcon = getFileIcon(message.file_type);
   const isImage = message.type === "image" || message.file_type?.includes("image");
   
-  // Formata hora subtraindo 3 horas do horário atual
-  const formatTimeMinusThreeHours = (dateStr) => {
-    if (!dateStr) return "";
-    
-    const date = new Date(dateStr);
-    // Subtrai 3 horas (em milissegundos)
-    const adjustedDate = new Date(date.getTime() - (3 * 60 * 60 * 1000));
-    const hours = String(adjustedDate.getHours()).padStart(2, "0");
-    const minutes = String(adjustedDate.getMinutes()).padStart(2, "0");
-    return `${hours}:${minutes}`;
-  };
-  
   // Detecta URLs no texto
   const extractUrls = (text) => {
     if (!text) return [];
