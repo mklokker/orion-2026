@@ -61,26 +61,35 @@ export const formatDateBR = (date, format = "dd/MM/yyyy HH:mm") => {
 export const formatChatTime = (dateStr) => formatDateBR(dateStr, "HH:mm");
 
 /**
- * Obtém data "hoje" em timezone Brasil (sem horário)
- * @returns {Date} - Data de hoje às 00:00 no timezone Brasil
+ * Retorna a chave do dia (YYYY-MM-DD) no tz do usuário para uma data/hora ISO
+ * Essencial para agrupar mensagens e comparar dias sem erros de UTC
  */
-export const getTodayBR = () => {
-  const now = new Date();
-  const formatter = new Intl.DateTimeFormat("pt-BR", {
-    timeZone: "America/Sao_Paulo",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit"
-  });
-  
-  const parts = formatter.formatToParts(now);
-  const year = parseInt(parts.find(p => p.type === "year").value);
-  const month = parseInt(parts.find(p => p.type === "month").value);
-  const day = parseInt(parts.find(p => p.type === "day").value);
-  
-  // Criar Date em UTC para consistência
-  return new Date(Date.UTC(year, month - 1, day, 0, 0, 0));
+export const getLocalDayKey = (dateStr) => {
+  if (!dateStr) return "";
+  try {
+    const dateObj = typeof dateStr === "string" ? new Date(dateStr) : dateStr;
+    if (isNaN(dateObj.getTime())) return "";
+    const tz = getUserTimeZone();
+    const formatter = new Intl.DateTimeFormat("pt-BR", {
+      timeZone: tz,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit"
+    });
+    const parts = formatter.formatToParts(dateObj);
+    const y = parts.find(p => p.type === "year").value;
+    const m = parts.find(p => p.type === "month").value;
+    const d = parts.find(p => p.type === "day").value;
+    return `${y}-${m}-${d}`;
+  } catch {
+    return "";
+  }
 };
+
+/**
+ * Retorna a chave YYYY-MM-DD de "hoje" no tz do usuário
+ */
+export const getTodayKeyBR = () => getLocalDayKey(new Date());
 
 /**
  * Compara se duas datas são o mesmo dia em timezone Brasil
