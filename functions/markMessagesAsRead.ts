@@ -35,12 +35,29 @@ Deno.serve(async (req) => {
       if (msg.sender_email === userEmail) continue;
       if (msg.is_deleted) continue;
 
-      const readByArray = Array.isArray(msg.read_by) ? msg.read_by : [];
-      const alreadyRead = readByArray.some(r => r && r.email === userEmail);
+      const rawReadBy = Array.isArray(msg.read_by) ? msg.read_by : [];
+      
+      // Sanitize read_by: convert any plain strings to proper objects
+      // Some old records may have emails as strings instead of {email, read_at}
+      const sanitizedReadBy = rawReadBy.map(entry => {
+        if (typeof entry === 'string') {
+          return { email: entry, read_at: now };
+        }
+        if (entry && typeof entry === 'object' && entry.email) {
+          return entry;
+        }
+        return null;
+      }).filter(Boolean);
+
+      const alreadyRead = sanitizedReadBy.some(r => r.email === userEmail);
 
       if (!alreadyRead) {
-        const newReadBy = [...readByArray, { email: userEmail, read_at: now }];
+        const newReadBy = [...sanitizedReadBy, { email: userEmail, read_at: now }];
         await base44.asServiceRole.entities.ChatMessage.update(msg.id, { read_by: newReadBy });
+        markedCount++;
+      } else if (sanitizedReadBy.length !== rawReadBy.length) {
+        // Even if already read, fix corrupted data
+        await base44.asServiceRole.entities.ChatMessage.update(msg.id, { read_by: sanitizedReadBy });
         markedCount++;
       }
     }
