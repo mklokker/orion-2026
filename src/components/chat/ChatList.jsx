@@ -10,8 +10,7 @@ const ScrollArea = ({ children, className }) => (
   <div className={`overflow-y-auto ${className || ""}`}>{children}</div>
 );
 import { useToast } from "@/components/ui/use-toast";
-import { format, isToday, isYesterday } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { formatChatListTime } from "@/components/utils/dateUtils";
 import PresenceIndicator from "./PresenceIndicator";
 
 const getInitials = (name) => {
