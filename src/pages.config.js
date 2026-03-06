@@ -51,7 +51,6 @@ import Acervo from './pages/Acervo';
 import Admin from './pages/Admin';
 import AtasAlinhamentos from './pages/AtasAlinhamentos';
 import CargaDiaria from './pages/CargaDiaria';
-import Chat from './pages/Chat';
 import Cursos from './pages/Cursos';
 import Dashboard from './pages/Dashboard';
 import GestaoTarefas from './pages/GestaoTarefas';
@@ -63,6 +62,7 @@ import ProdutividadeGeral from './pages/ProdutividadeGeral';
 import Ranking from './pages/Ranking';
 import Relatorios from './pages/Relatorios';
 import Removedor from './pages/Removedor';
+import Chat from './pages/Chat';
 import __Layout from './Layout.jsx';
 
 
@@ -71,7 +71,6 @@ export const PAGES = {
     "Admin": Admin,
     "AtasAlinhamentos": AtasAlinhamentos,
     "CargaDiaria": CargaDiaria,
-    "Chat": Chat,
     "Cursos": Cursos,
     "Dashboard": Dashboard,
     "GestaoTarefas": GestaoTarefas,
@@ -83,6 +82,7 @@ export const PAGES = {
     "Ranking": Ranking,
     "Relatorios": Relatorios,
     "Removedor": Removedor,
+    "Chat": Chat,
 }
 
 export const pagesConfig = {

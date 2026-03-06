@@ -22,6 +22,12 @@ import { playNotificationSound } from "@/components/chat/NotificationSounds";
 import { Department } from "@/entities/Department";
 import { setGlobalUnread } from "@/components/chat/useChatNotifications";
 import { base44 } from "@/api/base44Client";
+import {
+  getCachedConversations, setCachedConversations, updateCachedConversation, removeCachedConversation,
+  getCachedMessages, setCachedMessages, addCachedMessage, updateCachedMessage,
+  getCachedUsers, setCachedUsers,
+  getMeta, setMeta,
+} from "@/components/chat/chatCache";
 
 export default function Chat() {
   const { toast } = useToast();
