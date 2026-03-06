@@ -61,9 +61,10 @@ export default function UserProfileModal({ open, onClose, user, onUpdate }) {
     }
   };
 
-  const handlePhotoUpload = async (e) => {
+  const handlePhotoSelect = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    e.target.value = "";
 
     if (!file.type.startsWith('image/')) {
       toast({
@@ -74,19 +75,26 @@ export default function UserProfileModal({ open, onClose, user, onUpdate }) {
       return;
     }
 
-    if (file.size > 5 * 1024 * 1024) {
+    if (file.size > 10 * 1024 * 1024) {
       toast({
         title: "Arquivo muito grande",
-        description: "A foto deve ter no máximo 5MB.",
+        description: "A foto deve ter no máximo 10MB.",
         variant: "destructive"
       });
       return;
     }
 
+    setCropFile(file);
+    setShowCropModal(true);
+  };
+
+  const handleCropComplete = async (croppedFile) => {
+    setShowCropModal(false);
+    setCropFile(null);
     setIsUploadingPhoto(true);
     try {
-      const { file_url } = await UploadFile({ file });
-      setEditedUser({ ...editedUser, profile_picture: file_url });
+      const { file_url } = await UploadFile({ file: croppedFile });
+      setEditedUser(prev => ({ ...prev, profile_picture: file_url }));
       toast({
         title: "Foto carregada!",
         description: "Não esqueça de salvar as alterações.",
