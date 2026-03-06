@@ -33,16 +33,7 @@ export default function StatusTagBadge({ tag, tagBy, tagAt, users = [] }) {
   const user = users.find(u => u.email === tagBy);
   const userName = user?.display_name || user?.full_name || tagBy || "Alguém";
 
-  const formatDate = (dateStr) => {
-    if (!dateStr) return "";
-    const d = new Date(dateStr);
-    const adjusted = new Date(d.getTime() - 3 * 60 * 60 * 1000);
-    const day = String(adjusted.getDate()).padStart(2, "0");
-    const month = String(adjusted.getMonth() + 1).padStart(2, "0");
-    const hours = String(adjusted.getHours()).padStart(2, "0");
-    const minutes = String(adjusted.getMinutes()).padStart(2, "0");
-    return `${day}/${month} ${hours}:${minutes}`;
-  };
+  const formatDate = (dateStr) => formatDateBR(dateStr, "dd/MM HH:mm");
 
   return (
     <TooltipProvider delayDuration={200}>
