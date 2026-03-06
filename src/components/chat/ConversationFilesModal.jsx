@@ -291,7 +291,7 @@ export default function ConversationFilesModal({
               {sortedDates.map(date => (
                 <div key={date}>
                   <h3 className="text-sm font-medium text-gray-500 mb-3 sticky top-0 bg-white py-1">
-                    {format(new Date(date), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                   {getDateLabelBR(date)}
                   </h3>
                   
                   <div className="grid gap-2">
