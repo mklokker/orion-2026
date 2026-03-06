@@ -92,28 +92,11 @@ export const getLocalDayKey = (dateStr) => {
 export const getTodayKeyBR = () => getLocalDayKey(new Date());
 
 /**
- * Compara se duas datas são o mesmo dia em timezone Brasil
- * @param {Date|string} date1 - Data 1 (ISO ou Date)
- * @param {Date|string} date2 - Data 2 (ISO ou Date)
- * @returns {boolean}
+ * Compara se duas datas são o mesmo dia no tz do usuário
  */
 export const isSameDayBR = (date1, date2) => {
   if (!date1 || !date2) return false;
-  
-  const d1 = typeof date1 === "string" ? new Date(date1) : date1;
-  const d2 = typeof date2 === "string" ? new Date(date2) : date2;
-  
-  const formatter = new Intl.DateTimeFormat("pt-BR", {
-    timeZone: "America/Sao_Paulo",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit"
-  });
-  
-  const date1Str = formatter.format(d1);
-  const date2Str = formatter.format(d2);
-  
-  return date1Str === date2Str;
+  return getLocalDayKey(date1) === getLocalDayKey(date2);
 };
 
 /**
