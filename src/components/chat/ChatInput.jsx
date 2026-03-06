@@ -95,25 +95,31 @@ export default function ChatInput({
 
   const handleSend = async () => {
     if ((!message.trim() && files.length === 0) || uploading) return;
-    // Prevent double-send if Enter is held
+    // Prevent double-send if Enter is held (cooldown only on send action, not on typing)
     if (isSendingRef.current) return;
     isSendingRef.current = true;
 
+    // Capture content immediately and clear input right away — so user can start typing next message
+    const currentMessage = message;
+    const currentFiles = files;
+    const currentMentions = mentions;
+
     // GIF detected — send as gif type directly
-    const gifUrl = detectGiphyMessage(message);
-    if (gifUrl && files.length === 0) {
+    const gifUrl = detectGiphyMessage(currentMessage);
+    if (gifUrl && currentFiles.length === 0) {
+      // Clear input immediately so user can type next message
+      setMessage("");
+      setMentions([]);
+      onCancelReply?.();
+      requestAnimationFrame(() => textareaRef.current?.focus());
       try {
         await onSend({ 
           content: gifUrl, 
           type: "gif", 
           gif_url: gifUrl, 
-          original_url: message.trim(),
-          mentions
+          original_url: currentMessage.trim(),
+          mentions: currentMentions
         });
-        setMessage("");
-        setMentions([]);
-        onCancelReply?.();
-        requestAnimationFrame(() => textareaRef.current?.focus());
       } catch (error) {
         console.error("Erro ao enviar GIF:", error);
       }
@@ -121,15 +127,37 @@ export default function ChatInput({
       return;
     }
 
+    // For text messages (no files): clear input immediately, send in background
+    if (currentFiles.length === 0) {
+      setMessage("");
+      setMentions([]);
+      onCancelReply?.();
+      requestAnimationFrame(() => textareaRef.current?.focus());
+      try {
+        await onSend({ content: currentMessage.trim(), type: "text", mentions: currentMentions });
+      } catch (error) {
+        console.error("Erro ao enviar:", error);
+        toast({
+          title: "Erro ao enviar mensagem",
+          description: "Ocorreu um erro. Tente novamente.",
+          variant: "destructive"
+        });
+      }
+      // Short cooldown just to prevent double-send on rapid Enter presses
+      setTimeout(() => { isSendingRef.current = false; }, 300);
+      return;
+    }
+
+    // For file uploads: show progress (input stays locked while uploading)
     setUploading(true);
     setUploadProgress(0);
     
     try {
       const uploadedFiles = [];
-      const totalFiles = files.length;
+      const totalFiles = currentFiles.length;
       
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
+      for (let i = 0; i < currentFiles.length; i++) {
+        const file = currentFiles[i];
         setCurrentUploadFile(file.file.name);
         
         const baseProgress = (i / totalFiles) * 100;
@@ -152,30 +180,23 @@ export default function ChatInput({
 
       setUploadProgress(100);
 
-      if (uploadedFiles.length > 0) {
-        for (const f of uploadedFiles) {
-          await onSend({
-            content: f === uploadedFiles[uploadedFiles.length - 1] ? message.trim() : "",
-            type: f.isImage ? "image" : "file",
-            file_url: f.url,
-            file_name: f.name,
-            file_type: f.type,
-            file_size: f.size,
-            mentions
-          });
-        }
-      } else {
-        await onSend({ content: message.trim(), type: "text", mentions });
+      for (const f of uploadedFiles) {
+        await onSend({
+          content: f === uploadedFiles[uploadedFiles.length - 1] ? currentMessage.trim() : "",
+          type: f.isImage ? "image" : "file",
+          file_url: f.url,
+          file_name: f.name,
+          file_type: f.type,
+          file_size: f.size,
+          mentions: currentMentions
+        });
       }
 
       setMessage("");
       setMentions([]);
       setFiles([]);
       onCancelReply?.();
-      // Restore focus after state update (works on mobile too — keeps keyboard open)
-      requestAnimationFrame(() => {
-        textareaRef.current?.focus();
-      });
+      requestAnimationFrame(() => textareaRef.current?.focus());
     } catch (error) {
       console.error("Erro ao enviar:", error);
       toast({
@@ -183,10 +204,7 @@ export default function ChatInput({
         description: "Ocorreu um erro. Tente novamente.",
         variant: "destructive"
       });
-      // Keep focus so user can retry
-      requestAnimationFrame(() => {
-        textareaRef.current?.focus();
-      });
+      requestAnimationFrame(() => textareaRef.current?.focus());
     }
     
     setUploading(false);
