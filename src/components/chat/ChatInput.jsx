@@ -48,7 +48,8 @@ export default function ChatInput({
   onCancelReply,
   disabled,
   participants = [],
-  allUsers = []
+  allUsers = [],
+  autoFocusTrigger,
 }) {
   const { toast } = useToast();
   const [message, setMessage] = useState("");
