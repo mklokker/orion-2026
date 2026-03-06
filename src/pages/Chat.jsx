@@ -149,9 +149,17 @@ export default function Chat() {
       if (!user) return;
 
       const msgConversationId = event.data?.conversation_id;
+      if (!msgConversationId) return;
+
+      // SECURITY: Only process messages for conversations the user is a participant of
+      const belongsToConv = allConversations.find(c => c.id === msgConversationId);
+      if (!belongsToConv) {
+        // Not a conversation this user is part of — ignore completely
+        return;
+      }
 
       if (event.type === 'create') {
-        // Cache the new message
+        // Cache the new message (only for our conversations)
         addCachedMessage(event.data);
         
         // If message is for the selected conversation, add it
@@ -183,9 +191,8 @@ export default function Chat() {
             if (!notifiedMessagesRef.current.has(event.data.id)) {
               notifiedMessagesRef.current.add(event.data.id);
               
-              const conv = allConversations.find(c => c.id === msgConversationId);
-              if (conv && conv.type !== "self") {
-                const isGroup = conv.type === "group";
+              if (belongsToConv.type !== "self") {
+                const isGroup = belongsToConv.type === "group";
                 const isMention = event.data.content?.includes(`@${user.full_name}`) ||
                                   event.data.content?.includes(`@${user.email}`);
 
@@ -196,9 +203,9 @@ export default function Chat() {
 
                 if (shouldNotify) {
                   const senderName = event.data.sender_name || event.data.sender_email;
-                  const title = isGroup ? `${senderName} em ${conv.name || "Grupo"}` : senderName;
+                  const title = isGroup ? `${senderName} em ${belongsToConv.name || "Grupo"}` : senderName;
                   const body = event.data.type === "text" ? event.data.content : "📎 Enviou um arquivo";
-                  sendNotification(title, body, event.data.sender_email, conv.id);
+                  sendNotification(title, body, event.data.sender_email, belongsToConv.id);
                 }
               }
             }
