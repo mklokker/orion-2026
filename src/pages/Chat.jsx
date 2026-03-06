@@ -231,11 +231,8 @@ export default function Chat() {
         return updated;
       });
       
-      // Clear messages immediately to show loading state
-      setMessages([]);
-      // Then load fresh messages and mark as read
-      loadMessages(convId).then((loadedMsgs) => {
-        // markAsRead will use the messages already in state
+      // Load messages (cache first, then server) — no blank screen
+      loadMessages(convId).then(() => {
         markAsRead(convId);
       });
     }
