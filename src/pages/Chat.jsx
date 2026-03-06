@@ -396,7 +396,9 @@ export default function Chat() {
       // Phase 2: Load from server (last 80 messages for speed)
       const response = await getChatMessages({ conversation_id: conversationId, limit: 80 });
       const msgs = response?.data?.messages || [];
+      const serverHasMore = response?.data?.has_more || false;
       setMessages(msgs);
+      setHasMoreMessages(serverHasMore);
 
       // Persist to IndexedDB
       setCachedMessages(conversationId, msgs);
