@@ -247,40 +247,38 @@ export default function Chat() {
     try {
       const userData = await User.me();
       setCurrentUser(userData);
-      
-      // Garantir que o usuário tem uma conversa "self" (Anotações)
-      try {
-        await base44.functions.invoke('ensureSelfConversation');
-      } catch (e) {
-        console.error("Erro ao garantir conversa self:", e);
-      }
-      
-      // Use backend function to get users (works for all roles)
-      try {
-        const response = await getPublicUsers();
-        if (response?.data?.users) {
-          setUsers(response.data.users);
-        }
-      } catch (usersError) {
-        console.error("Erro ao carregar usuários via função:", usersError);
-        // Fallback: try direct list (works only for admins)
-        try {
-          const usersData = await User.list();
-          setUsers(usersData);
-        } catch (e) {
-          // If user is not admin, they can only see themselves
-          setUsers([userData]);
-        }
-      }
-      
-      // Load departments for task approval
-      try {
-        const depts = await Department.list();
-        setDepartments(depts);
-      } catch (e) {
-        console.error("Erro ao carregar departamentos:", e);
-      }
-      
+
+      // ── Phase 1: Load from IndexedDB cache (instant) ──
+      const [cachedConvs, cachedUsrs, cachedUnread] = await Promise.all([
+        getCachedConversations(),
+        getCachedUsers(),
+        getMeta("unreadCounts"),
+      ]);
+
+      if (cachedConvs) setConversations(cachedConvs);
+      if (cachedUsrs) setUsers(cachedUsrs);
+      if (cachedUnread) setUnreadCounts(cachedUnread);
+
+      // ── Phase 2: Sync from server in background ──
+      // Fire all server calls in parallel for speed
+      const [, usersResult, deptsResult] = await Promise.allSettled([
+        base44.functions.invoke('ensureSelfConversation').catch(() => {}),
+        getPublicUsers().then(r => r?.data?.users).catch(async () => {
+          try { return await User.list(); } catch { return [userData]; }
+        }),
+        Department.list().catch(() => []),
+      ]);
+
+      // Apply fresh users
+      const freshUsers = usersResult.status === "fulfilled" && usersResult.value
+        ? usersResult.value : (cachedUsrs || [userData]);
+      setUsers(freshUsers);
+      setCachedUsers(freshUsers); // persist to cache
+
+      // Apply departments
+      if (deptsResult.status === "fulfilled") setDepartments(deptsResult.value || []);
+
+      // Load conversations + unread from server
       await loadConversations(userData.email);
       await loadPresenceData();
     } catch (error) {
