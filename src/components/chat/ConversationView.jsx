@@ -285,6 +285,18 @@ export default function ConversationView({
 
         {/* Messages layer */}
         <div className="relative z-[2] px-2 md:px-4 py-2 md:py-4">
+        {/* Load older messages */}
+        {hasMoreMessages && (
+          <div className="flex justify-center py-3">
+            <button
+              onClick={onLoadMore}
+              disabled={isLoadingMore}
+              className="text-xs px-4 py-2 rounded-full bg-card border border-border shadow-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors disabled:opacity-50"
+            >
+              {isLoadingMore ? "Carregando..." : "Carregar mensagens anteriores"}
+            </button>
+          </div>
+        )}
         {Object.entries(groupedMessages).map(([date, msgs]) => (
           <div key={date}>
             {/* Date separator */}
