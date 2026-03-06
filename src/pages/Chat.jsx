@@ -1018,6 +1018,9 @@ export default function Chat() {
             isAdmin={isAdmin}
             onApproveTaskRequest={handleApproveTaskRequest}
             chatBgPrefs={chatBgPrefs}
+            onLoadMore={handleLoadMore}
+            hasMoreMessages={hasMoreMessages}
+            isLoadingMore={isLoadingMore}
           />
         </div>
       </div>
