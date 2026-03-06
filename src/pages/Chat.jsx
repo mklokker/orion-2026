@@ -8,6 +8,7 @@ import { getChatConversations } from "@/functions/getChatConversations";
 import { getChatMessages } from "@/functions/getChatMessages";
 import { deleteGroup } from "@/functions/deleteGroup";
 import { getUnreadCounts } from "@/functions/getUnreadCounts";
+import { markMessagesAsRead } from "@/functions/markMessagesAsRead";
 import ChatList from "@/components/chat/ChatList";
 import ConversationView from "@/components/chat/ConversationView";
 import NewChatModal from "@/components/chat/NewChatModal";
