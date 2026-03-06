@@ -537,10 +537,11 @@ export default function Chat() {
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
+      // Reload conversations and unread counts from server
       await loadConversations(currentUser.email, false);
       if (selectedConversation?.id) {
         await loadMessages(selectedConversation.id);
-        await markAsRead(selectedConversation.id);
+        markAsRead(selectedConversation.id);
       }
       toast({
         title: "Atualizado",
