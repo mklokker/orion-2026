@@ -21,6 +21,7 @@ import ConversationFilesModal from "./ConversationFilesModal";
 import TaskRequestModal from "./TaskRequestModal";
 import MessageSearchModal from "./MessageSearchModal";
 import ChatBackground from "./ChatBackground";
+import StatusTagFilter from "./StatusTagFilter";
 import { groupMessagesByDateBR, getDateLabelBR } from "@/components/utils/dateUtils";
 import {
   DropdownMenu,
@@ -52,6 +53,7 @@ export default function ConversationView({
   onReaction,
   onImageClick,
   onPinMessage,
+  onStatusTag,
   typingUsers,
   presenceMap = {},
   isAdmin = false,
@@ -62,6 +64,7 @@ export default function ConversationView({
   const [showFilesModal, setShowFilesModal] = useState(false);
   const [showTaskRequestModal, setShowTaskRequestModal] = useState(false);
   const [showSearchModal, setShowSearchModal] = useState(false);
+  const [statusFilter, setStatusFilter] = useState("all");
   const messageRefs = useRef({});
   const bottomRef = useRef(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
@@ -151,8 +154,15 @@ export default function ConversationView({
     return user?.profile_picture;
   };
 
+  // Filter messages by status tag
+  const filteredMessages = React.useMemo(() => {
+    if (statusFilter === "all") return messages || [];
+    if (statusFilter === "tagged") return (messages || []).filter(m => m.status_tag && m.status_tag !== "none");
+    return (messages || []).filter(m => m.status_tag === statusFilter);
+  }, [messages, statusFilter]);
+
   // Group messages by date em timezone Brasil
-  const groupedMessages = groupMessagesByDateBR(messages || []);
+  const groupedMessages = groupMessagesByDateBR(filteredMessages);
 
   const handleSend = async (msgData) => {
     await onSend({
