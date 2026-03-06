@@ -306,7 +306,7 @@ export default function ConversationView({
                   className="transition-colors duration-500 rounded-lg"
                 >
                   <MessageBubble
-                    message={msg}
+                    message={{...msg, _currentUser: currentUser}}
                     isOwn={isOwn}
                     showAvatar={showAvatar}
                     senderAvatar={getUserAvatar(msg.sender_email)}
