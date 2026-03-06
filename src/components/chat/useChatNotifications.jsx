@@ -143,25 +143,23 @@ export function useChatNotifications({
       // Already notified – skip
       if (notifiedRef.current.has(msg.id)) return;
 
-      notifiedRef.current.add(msg.id);
-
-      // Update per-conversation unread delta (for ChatList badges)
-      onUnreadDelta?.({ [msg.conversation_id]: 1 });
-
-      // Fetch conversation for name / type / mute info
+      // SECURITY: Validate user is participant BEFORE any state updates
+      // Fetch conversation for name / type / participant check
       try {
         const convs = await ChatConversation.filter({ id: msg.conversation_id });
         const conv = convs[0];
         if (!conv) return;
 
-        // FILTRO DEFENSIVO: validar se o usuário atual é participante
+        // CRITICAL: Only process if user is a participant of this conversation
         if (!conv.participants?.includes(currentUser.email)) {
-          console.warn(
-            `[useChatNotifications] SECURITY: Ignored message ${msg.id} from ${msg.sender_email} - ` +
-            `current user ${currentUser.email} is not a participant of conversation ${msg.conversation_id}`
-          );
-          return;
+          return; // Silently ignore — not our conversation
         }
+
+        // Now safe to mark as notified and update counters
+        notifiedRef.current.add(msg.id);
+
+        // Update per-conversation unread delta (for ChatList badges)
+        onUnreadDelta?.({ [msg.conversation_id]: 1 });
 
         if (conv.muted_by?.includes(currentUser.email)) return;
 
@@ -173,7 +171,6 @@ export function useChatNotifications({
           shouldNotify = false;
         }
         if (shouldNotify) {
-          console.log(`[useChatNotifications] Notifying for message ${msg.id} in conversation ${msg.conversation_id}`);
           schedule(msg.conversation_id, msg, conv.name || "Conversa", conv.type === "group");
         }
       } catch (error) {
