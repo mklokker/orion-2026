@@ -108,32 +108,17 @@ export const isoToDateBR = (isoString) => {
 };
 
 /**
- * Agrupa mensagens por data em timezone Brasil
- * @param {Array} messages - Array de mensagens com created_date em ISO
- * @returns {Object} - { "2026-03-05": [...msgs], "2026-03-04": [...msgs] }
+ * Agrupa mensagens por dia no tz do usuário
+ * @returns {Object} - { "2026-03-05": [...msgs], ... }
  */
 export const groupMessagesByDateBR = (messages) => {
   if (!messages || !Array.isArray(messages)) return {};
   
   const grouped = {};
-  const formatter = new Intl.DateTimeFormat("pt-BR", {
-    timeZone: "America/Sao_Paulo",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit"
-  });
-  
   messages.forEach(msg => {
-    const dateObj = typeof msg.created_date === "string" 
-      ? new Date(msg.created_date) 
-      : msg.created_date;
-    
-    const parts = formatter.formatToParts(dateObj);
-    const year = parts.find(p => p.type === "year").value;
-    const month = parts.find(p => p.type === "month").value;
-    const day = parts.find(p => p.type === "day").value;
-    const dateKey = `${year}-${month}-${day}`;
-    
+    if (!msg.created_date) return;
+    const dateKey = getLocalDayKey(msg.created_date);
+    if (!dateKey) return;
     if (!grouped[dateKey]) grouped[dateKey] = [];
     grouped[dateKey].push(msg);
   });
