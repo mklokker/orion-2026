@@ -25,8 +25,13 @@ export default function ReadReceipt({
   const readByArray = message.read_by || [];
   const hasReads = readByArray.length > 0;
 
+  // Normalizar: converter strings legadas para objetos {email, read_at}
+  const normalizedReads = readByArray.map(r => 
+    typeof r === "string" ? { email: r, read_at: null } : r
+  );
+
   // Filtrar: remover o sender da lista de "lido por" (não contar a si mesmo)
-  const otherReads = readByArray.filter(r => r.email !== currentUser.email);
+  const otherReads = normalizedReads.filter(r => r.email && r.email !== currentUser.email);
   const hasOtherReads = otherReads.length > 0;
 
   // Obter nomes dos que leram
@@ -34,7 +39,7 @@ export default function ReadReceipt({
     return otherReads.map(r => {
       const user = users?.find(u => u.email === r.email);
       return {
-        name: user?.display_name || user?.full_name || r.email.split("@")[0],
+        name: user?.display_name || user?.full_name || (r.email ? r.email.split("@")[0] : "?"),
         readAt: r.read_at
       };
     });

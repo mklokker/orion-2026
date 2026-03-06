@@ -12,7 +12,9 @@ export default function ReadReceiptBadge({ message, users, isGroup = false }) {
 
   if (!isGroup || !message) return null;
 
-  const readByArray = message.read_by || [];
+  const readByArray = (message.read_by || []).map(r => 
+    typeof r === "string" ? { email: r, read_at: null } : r
+  );
   const otherReads = readByArray.filter(r => r.email); // Filtrar válidos
   
   if (otherReads.length === 0) return null;
