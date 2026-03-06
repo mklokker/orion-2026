@@ -178,6 +178,15 @@ export const formatChatListTime = (dateStr) => {
  * Parseia uma string "YYYY-MM-DD" como data local (sem offset de timezone)
  * Usa para campos type="date" que retornam strings sem horário
  */
+/**
+ * Backward-compatible alias for getTodayBR — returns a Date object for "today" in local tz
+ */
+export const getTodayBR = () => {
+  const key = getTodayKeyBR();
+  const [y, m, d] = key.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d, 12, 0, 0));
+};
+
 export const parseDateAsLocal = (dateString) => {
   if (!dateString) return null;
   const [year, month, day] = dateString.split("-").map(Number);
