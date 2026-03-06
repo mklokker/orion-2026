@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Pin, ChevronDown, ChevronUp, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { formatChatTime } from "@/components/utils/dateUtils";
 
 const getInitials = (name) => {
   if (!name) return "?";
