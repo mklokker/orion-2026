@@ -64,6 +64,13 @@ export default function ChatInput({
   const [mentions, setMentions] = useState([]);
   const [showMentionModal, setShowMentionModal] = useState(false);
 
+  // Auto-focus when conversation changes
+  useEffect(() => {
+    if (autoFocusTrigger) {
+      requestAnimationFrame(() => textareaRef.current?.focus());
+    }
+  }, [autoFocusTrigger]);
+
   const validateFileSize = (file) => {
     if (file.size > MAX_FILE_SIZE) {
       toast({
