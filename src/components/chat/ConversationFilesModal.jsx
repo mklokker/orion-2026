@@ -333,7 +333,7 @@ export default function ConversationFilesModal({
                               <span>•</span>
                               <span>{formatFileSize(file.file_size)}</span>
                               <span>•</span>
-                              <span>{format(new Date(file.created_date), "HH:mm")}</span>
+                              <span>{formatChatTime(file.created_date)}</span>
                             </div>
                           </div>
 
