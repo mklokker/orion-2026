@@ -212,11 +212,20 @@ export default function Chat() {
   // Load messages when conversation changes + reset global unread for this conv
   useEffect(() => {
     if (selectedConversation?.id) {
+      const convId = selectedConversation.id;
+      
+      // Zero unread immediately (optimistic)
+      setUnreadCounts(prev => {
+        const updated = { ...prev };
+        delete updated[convId];
+        return updated;
+      });
+      
       // Clear messages immediately to show loading state
       setMessages([]);
       // Then load fresh messages and mark as read
-      const convId = selectedConversation.id;
-      loadMessages(convId).then(() => {
+      loadMessages(convId).then((loadedMsgs) => {
+        // markAsRead will use the messages already in state
         markAsRead(convId);
       });
     }
