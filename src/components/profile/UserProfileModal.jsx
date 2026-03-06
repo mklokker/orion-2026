@@ -34,6 +34,8 @@ export default function UserProfileModal({ open, onClose, user, onUpdate }) {
   const [departments, setDepartments] = useState([]);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [cropFile, setCropFile] = useState(null);
+  const [showCropModal, setShowCropModal] = useState(false);
 
   useEffect(() => {
     loadDepartments();
