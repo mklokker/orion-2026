@@ -22,13 +22,7 @@ const getInitials = (name) => {
   return name.substring(0, 2).toUpperCase();
 };
 
-const formatMessageTime = (dateStr) => {
-  if (!dateStr) return "";
-  const date = new Date(dateStr);
-  if (isToday(date)) return format(date, "HH:mm");
-  if (isYesterday(date)) return "Ontem";
-  return format(date, "dd/MM/yy");
-};
+const formatMessageTime = (dateStr) => formatChatListTime(dateStr);
 
 export default function ChatList({
   conversations,
