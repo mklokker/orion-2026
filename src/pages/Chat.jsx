@@ -51,6 +51,8 @@ export default function Chat() {
   const [selectedTaskRequestId, setSelectedTaskRequestId] = useState(null);
   const [departments, setDepartments] = useState([]);
   const [chatBgPrefs, setChatBgPrefs] = useState(null);
+  const [hasMoreMessages, setHasMoreMessages] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
 
   const typingTimeoutRef = useRef(null);
   const notifiedMessagesRef = useRef(new Set());
