@@ -271,8 +271,42 @@ export default function ChatInput({
 
   // Handle drag and drop
   const [isDragging, setIsDragging] = useState(false);
-  const [expanded, setExpanded] = useState(false);
+  const [expandLevel, setExpandLevel] = useState(0); // 0=compact, 1=medium, 2=half
+  const [customHeight, setCustomHeight] = useState(null); // manual drag height
+  const dragRef = useRef(null);
   const isSendingRef = useRef(false);
+
+  // Max height = 50vh
+  const getMaxHeight = () => Math.floor(window.innerHeight * 0.5);
+
+  // Handle drag resize
+  const handleDragStart = useCallback((e) => {
+    e.preventDefault();
+    const startY = e.type === "touchstart" ? e.touches[0].clientY : e.clientY;
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    const startHeight = textarea.offsetHeight;
+
+    const onMove = (ev) => {
+      const currentY = ev.type === "touchmove" ? ev.touches[0].clientY : ev.clientY;
+      const delta = startY - currentY;
+      const newHeight = Math.min(Math.max(44, startHeight + delta), getMaxHeight());
+      setCustomHeight(newHeight);
+      setExpandLevel(-1); // custom mode
+    };
+
+    const onEnd = () => {
+      document.removeEventListener("mousemove", onMove);
+      document.removeEventListener("mouseup", onEnd);
+      document.removeEventListener("touchmove", onMove);
+      document.removeEventListener("touchend", onEnd);
+    };
+
+    document.addEventListener("mousemove", onMove);
+    document.addEventListener("mouseup", onEnd);
+    document.addEventListener("touchmove", onMove, { passive: false });
+    document.addEventListener("touchend", onEnd);
+  }, []);
 
   const handleDragOver = (e) => {
     e.preventDefault();
