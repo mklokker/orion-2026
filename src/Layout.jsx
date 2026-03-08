@@ -500,15 +500,17 @@ function LayoutContent({ children, currentPageName }) {
 
   React.useEffect(() => {
     const html = document.documentElement;
-    // Remove all theme classes
-    html.classList.remove("dark", "theme-pastel", "theme-midnight", "theme-forest");
-    // Apply current theme
+    // Apply data-theme attribute (primary mechanism)
+    html.setAttribute("data-theme", currentTheme);
+    // Also apply .dark class for Tailwind compatibility
     if (currentTheme === "dark") {
       html.classList.add("dark");
-    } else if (currentTheme !== "light") {
-      html.classList.add(`theme-${currentTheme}`);
+    } else {
+      html.classList.remove("dark");
     }
     localStorage.setItem("orion_theme", currentTheme);
+    // Diagnostic log
+    console.log(`🎨 Theme changed: ${currentTheme}`, { dataTheme: html.getAttribute("data-theme"), darkClass: html.classList.contains("dark") });
   }, [currentTheme]);
 
   const toggleTheme = () => {
