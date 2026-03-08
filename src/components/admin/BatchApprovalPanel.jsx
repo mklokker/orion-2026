@@ -89,13 +89,15 @@ export default function BatchApprovalPanel({ currentUser, departments = [] }) {
     const total = toProcess.length;
     cancelRef.current = false;
 
+    // Init logs — one entry per request (will be enriched with item detail)
     const initLogs = toProcess.map(r => ({
-      id: r.id,
+      id:        r.id,
       requester: r.requester_name || r.requester_email,
       itemCount: (r.items || []).length,
-      status: "pending",
-      error: null,
-      _request: r,
+      status:    "pending",
+      error:     null,
+      summary:   null, // { created, skipped_active, failed }
+      _request:  r,
     }));
 
     setLogs(initLogs);
@@ -113,7 +115,7 @@ export default function BatchApprovalPanel({ currentUser, departments = [] }) {
         if (cancelRef.current) break;
         const idx = toProcess.indexOf(req);
 
-        // Validate: still pending?
+        // Validate: still pending? (deduplication)
         let freshStatus = "pending";
         try {
           const fresh = await TaskRequest.filter({ id: req.id });
@@ -121,7 +123,6 @@ export default function BatchApprovalPanel({ currentUser, departments = [] }) {
         } catch (_) {}
 
         if (freshStatus !== "pending") {
-          // Skip — already processed
           setLogs(prev => {
             const next = [...prev];
             next[idx] = { ...next[idx], status: "skipped", error: "Já processada anteriormente" };
@@ -140,10 +141,10 @@ export default function BatchApprovalPanel({ currentUser, departments = [] }) {
         });
 
         try {
-          await approveRequest(req, departmentId, currentUser);
+          const { summary } = await approveRequestWithValidation(req, departmentId, currentUser);
           setLogs(prev => {
             const next = [...prev];
-            next[idx] = { ...next[idx], status: "success" };
+            next[idx] = { ...next[idx], status: "success", summary };
             return next;
           });
         } catch (err) {
@@ -162,7 +163,6 @@ export default function BatchApprovalPanel({ currentUser, departments = [] }) {
     }
 
     setPhase("done");
-    // Remove approved from list
     await load();
     setSelected(new Set());
   };
