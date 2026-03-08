@@ -13,6 +13,7 @@ import {
   Star,
 } from "lucide-react";
 import { useFavorites } from "./useFavorites";
+import { useBubbleColors } from "./useBubbleColors";
 import FavoritesModal from "./FavoritesModal";
 import MessageBubble from "./MessageBubble";
 import ChatInput from "./ChatInput";
