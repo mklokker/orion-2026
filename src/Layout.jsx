@@ -501,18 +501,58 @@ function LayoutContent({ children, currentPageName }) {
 
   React.useEffect(() => {
     const html = document.documentElement;
-    // Apply data-theme attribute (primary mechanism)
+    
+    // Theme color mappings (must match globals.css)
+    const themeTokens = {
+      light: {
+        "--background": "0 0% 100%",
+        "--foreground": "222.2 84% 4.9%",
+        "--primary": "221.2 83.2% 53.3%",
+        "--primary-foreground": "210 40% 98%",
+      },
+      dark: {
+        "--background": "222.2 84% 4.9%",
+        "--foreground": "210 40% 98%",
+        "--primary": "217.2 91.2% 59.8%",
+        "--primary-foreground": "222.2 84% 4.9%",
+      },
+      pastel: {
+        "--background": "230 100% 98%",
+        "--foreground": "222.2 84% 4.9%",
+        "--primary": "258 90% 66%",
+        "--primary-foreground": "0 0% 100%",
+      },
+      midnight: {
+        "--background": "220 60% 96%",
+        "--foreground": "222.2 84% 4.9%",
+        "--primary": "222 82% 46%",
+        "--primary-foreground": "0 0% 100%",
+      },
+      forest: {
+        "--background": "120 30% 97%",
+        "--foreground": "222.2 84% 4.9%",
+        "--primary": "142 71% 45%",
+        "--primary-foreground": "0 0% 100%",
+      },
+    };
+    
+    // Apply data-theme attribute
     html.setAttribute("data-theme", currentTheme);
     
-    // Also apply .dark class for Tailwind compatibility
+    // Apply .dark class for Tailwind compatibility
     if (currentTheme === "dark") {
       html.classList.add("dark");
     } else {
       html.classList.remove("dark");
     }
     
+    // Force inline CSS vars on html element to override any cascade
+    const tokens = themeTokens[currentTheme] || themeTokens.light;
+    Object.entries(tokens).forEach(([key, value]) => {
+      html.style.setProperty(key, value);
+    });
+    
     // Force CSS recomputation by triggering a reflow
-    // This ensures Tailwind picks up the new CSS var values
     void html.offsetHeight;
     
     localStorage.setItem("orion_theme", currentTheme);
@@ -523,7 +563,6 @@ function LayoutContent({ children, currentPageName }) {
       const primaryHSL = styles.getPropertyValue('--primary').trim();
       const backgroundHSL = styles.getPropertyValue('--background').trim();
       const foregroundHSL = styles.getPropertyValue('--foreground').trim();
-      const primaryComputedStyle = window.getComputedStyle(document.querySelector('[class*="bg-primary"]') || html);
       console.log(`🎨 Theme changed to: ${currentTheme}`, {
         dataTheme: html.getAttribute("data-theme"),
         darkClass: html.classList.contains("dark"),
