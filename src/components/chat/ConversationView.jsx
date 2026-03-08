@@ -87,6 +87,7 @@ export default function ConversationView({
   conversations = [],
   taskRequestStatuses = {},
   departments = [],
+  onGoToFavorite,  // (fav) => void — cross-conversation navigation handled by parent
   }) {
   const scrollRef = useRef(null);
   const [replyingTo, setReplyingTo] = useState(null);
