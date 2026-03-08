@@ -7,70 +7,23 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle2, XCircle, Clock, User, Calendar, ListChecks, AlertTriangle, ChevronDown, ChevronUp, RefreshCw } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, User, Calendar, ListChecks, AlertTriangle, ChevronDown, ChevronUp, RefreshCw, SkipForward } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { base44 } from "@/api/base44Client";
 import { format } from "date-fns";
+import { approveRequestWithValidation } from "./approvalUtils";
 
 const TaskRequest = base44.entities.TaskRequest;
-const Task = base44.entities.Task;
-const Service = base44.entities.Service;
-const TaskInteraction = base44.entities.TaskInteraction;
-const ServiceInteraction = base44.entities.ServiceInteraction;
 
-// --- Config ---
-const CHUNK_SIZE = 5;
-const MAX_RETRIES = 2;
-const DELAY_BETWEEN_CHUNKS_MS = 200;
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
-const sleep = (ms) => new Promise(res => setTimeout(res, ms));
-
-async function processItemWithRetry(item, request, selectedDepartmentId, currentUser, retries = MAX_RETRIES) {
-  let lastError = null;
-  for (let attempt = 0; attempt <= retries; attempt++) {
-    try {
-      if (item.type === "task") {
-        const task = await Task.create({
-          protocol: item.identifier,
-          description: item.description || `Tarefa ${item.identifier}`,
-          end_date: item.end_date,
-          priority: "P3",
-          assigned_to: request.requester_email,
-          department_id: selectedDepartmentId || undefined,
-          status: "Pendente"
-        });
-        await TaskInteraction.create({
-          task_id: task.id,
-          interaction_type: "created",
-          message: `Tarefa criada via solicitação no chat por ${currentUser.full_name || currentUser.email}`,
-          user_email: currentUser.email,
-          user_name: currentUser.full_name || currentUser.email
-        });
-      } else {
-        const service = await Service.create({
-          service_name: item.identifier,
-          description: item.description || `Serviço ${item.identifier}`,
-          end_date: item.end_date,
-          priority: "P3",
-          assigned_to: request.requester_email,
-          department_id: selectedDepartmentId || undefined,
-          status: "Em Execução"
-        });
-        await ServiceInteraction.create({
-          service_id: service.id,
-          interaction_type: "created",
-          message: `Serviço criado via solicitação no chat por ${currentUser.full_name || currentUser.email}`,
-          user_email: currentUser.email,
-          user_name: currentUser.full_name || currentUser.email
-        });
-      }
-      return { status: "success", error: null };
-    } catch (err) {
-      lastError = err;
-      if (attempt < retries) await sleep(300 * (attempt + 1));
-    }
-  }
-  return { status: "failed", error: lastError?.message || "Erro desconhecido" };
+// ── Status icon per item result ────────────────────────────────────────────
+function ItemStatusIcon({ status }) {
+  if (status === "created")        return <CheckCircle2 className="w-3.5 h-3.5 text-green-500 shrink-0 mt-0.5" />;
+  if (status === "skipped_active") return <SkipForward  className="w-3.5 h-3.5 text-yellow-500 shrink-0 mt-0.5" />;
+  if (status === "failed")         return <XCircle      className="w-3.5 h-3.5 text-red-500 shrink-0 mt-0.5" />;
+  if (status === "processing")     return <div className="w-3.5 h-3.5 rounded-full border-2 border-primary border-t-transparent animate-spin shrink-0 mt-0.5" />;
+  return <Clock className="w-3.5 h-3.5 text-muted-foreground shrink-0 mt-0.5" />;
 }
 
 export default function TaskRequestApprovalModal({
@@ -79,20 +32,20 @@ export default function TaskRequestApprovalModal({
   requestId,
   currentUser,
   departments = [],
-  onApproved
+  onApproved,
 }) {
   const { toast } = useToast();
-  const [request, setRequest] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [request, setRequest]             = useState(null);
+  const [loading, setLoading]             = useState(true);
   const [selectedDepartmentId, setSelectedDepartmentId] = useState("");
   const [rejectionReason, setRejectionReason] = useState("");
-  const [showRejectForm, setShowRejectForm] = useState(false);
+  const [showRejectForm, setShowRejectForm]   = useState(false);
 
   // Processing state
-  const [phase, setPhase] = useState("idle"); // idle | processing | done | rejecting
-  const [itemLogs, setItemLogs] = useState([]); // {identifier, type, status, error}
+  const [phase, setPhase]               = useState("idle"); // idle | processing | done | rejecting
+  const [itemLogs, setItemLogs]         = useState([]);     // result per item
   const [processedCount, setProcessedCount] = useState(0);
-  const [showDetails, setShowDetails] = useState(false);
+  const [showDetails, setShowDetails]   = useState(false);
   const cancelRef = useRef(false);
 
   useEffect(() => {
@@ -109,112 +62,67 @@ export default function TaskRequestApprovalModal({
   const loadRequest = async () => {
     setLoading(true);
     try {
-      const requests = await TaskRequest.filter({ id: requestId });
-      if (requests.length > 0) setRequest(requests[0]);
-    } catch (error) {
-      console.error("Erro ao carregar solicitação:", error);
+      const rs = await TaskRequest.filter({ id: requestId });
+      if (rs.length > 0) setRequest(rs[0]);
+    } catch (e) {
+      console.error("Erro ao carregar solicitação:", e);
     }
     setLoading(false);
   };
 
-  const runBatch = async (itemsToProcess) => {
-    const total = itemsToProcess.length;
-    const logs = itemsToProcess.map(item => ({
-      identifier: item.identifier,
-      type: item.type,
-      status: "pending",
-      error: null,
-      _item: item
-    }));
-
-    setItemLogs([...logs]);
-    setProcessedCount(0);
-    setPhase("processing");
-    cancelRef.current = false;
-
-    let done = 0;
-
-    for (let i = 0; i < total; i += CHUNK_SIZE) {
-      if (cancelRef.current) break;
-
-      const chunk = itemsToProcess.slice(i, i + CHUNK_SIZE);
-
-      for (const item of chunk) {
-        if (cancelRef.current) break;
-
-        const idx = itemsToProcess.indexOf(item);
-        // Mark as processing
-        setItemLogs(prev => {
-          const next = [...prev];
-          next[idx] = { ...next[idx], status: "processing" };
-          return next;
-        });
-
-        const result = await processItemWithRetry(item, request, selectedDepartmentId, currentUser);
-        done++;
-
-        setItemLogs(prev => {
-          const next = [...prev];
-          next[idx] = { ...next[idx], status: result.status, error: result.error };
-          return next;
-        });
-        setProcessedCount(done);
-      }
-
-      if (i + CHUNK_SIZE < total && !cancelRef.current) {
-        await sleep(DELAY_BETWEEN_CHUNKS_MS);
-      }
-    }
-
-    return logs; // Return initial logs; caller uses itemLogs state
-  };
-
-  const handleApprove = async (failedItemsOnly = false) => {
+  const handleApprove = async () => {
     if (!request) return;
+    const items = request.items || [];
+    if (items.length === 0) return;
 
-    const allItems = request.items || [];
-    let itemsToProcess = allItems;
+    cancelRef.current = false;
+    setPhase("processing");
+    setShowDetails(false);
 
-    if (failedItemsOnly) {
-      const failedIds = itemLogs
-        .filter(l => l.status === "failed")
-        .map(l => l.identifier);
-      itemsToProcess = allItems.filter(i => failedIds.includes(i.identifier));
+    // Init placeholder logs
+    const placeholders = items.map(item => ({
+      identifier: item.identifier,
+      type:       item.type,
+      status:     "pending",
+      reason:     null,
+    }));
+    setItemLogs(placeholders);
+    setProcessedCount(0);
+
+    try {
+      await approveRequestWithValidation(
+        request,
+        selectedDepartmentId,
+        currentUser,
+        (result, doneCount) => {
+          if (cancelRef.current) return;
+          setItemLogs(prev => {
+            const next = [...prev];
+            const idx = next.findIndex(l => l.identifier === result.identifier && l.type === result.type);
+            if (idx >= 0) next[idx] = result;
+            return next;
+          });
+          setProcessedCount(doneCount);
+        }
+      );
+    } catch (err) {
+      console.error("Erro ao aprovar:", err);
+      toast({ title: "Erro na aprovação", description: err.message, variant: "destructive" });
     }
 
-    await runBatch(itemsToProcess);
-
-    // After batch, check results from state via callback
     setPhase("done");
+    if (onApproved) onApproved(request, "approved");
   };
-
-  // When phase becomes done, check if all succeeded to auto-update request
-  useEffect(() => {
-    if (phase !== "done") return;
-    const failures = itemLogs.filter(l => l.status === "failed");
-    const successes = itemLogs.filter(l => l.status === "success");
-
-    if (failures.length === 0 && successes.length > 0) {
-      // All succeeded - update request status
-      TaskRequest.update(requestId, {
-        status: "approved",
-        reviewed_by: currentUser.email,
-        reviewed_at: new Date().toISOString()
-      }).then(() => {
-        if (onApproved) onApproved(request, "approved");
-      }).catch(console.error);
-    }
-  }, [phase]);
 
   const handleReject = async () => {
     if (!request) return;
     setPhase("rejecting");
     try {
       await TaskRequest.update(requestId, {
-        status: "rejected",
-        reviewed_by: currentUser.email,
-        reviewed_at: new Date().toISOString(),
-        rejection_reason: rejectionReason
+        status:           "rejected",
+        reviewed_by:      currentUser.email,
+        reviewed_at:      new Date().toISOString(),
+        rejection_reason: rejectionReason,
       });
       toast({ title: "Solicitação rejeitada", description: "O solicitante será notificado." });
       if (onApproved) onApproved(request, "rejected");
@@ -226,9 +134,7 @@ export default function TaskRequestApprovalModal({
   };
 
   const handleClose = () => {
-    if (phase === "processing") {
-      cancelRef.current = true;
-    }
+    if (phase === "processing") cancelRef.current = true;
     setRequest(null);
     setSelectedDepartmentId("");
     setRejectionReason("");
@@ -240,19 +146,20 @@ export default function TaskRequestApprovalModal({
   };
 
   const isProcessing = phase === "processing";
-  const isDone = phase === "done";
+  const isDone       = phase === "done";
 
-  const successCount = itemLogs.filter(l => l.status === "success").length;
-  const failedCount = itemLogs.filter(l => l.status === "failed").length;
-  const totalCount = itemLogs.length;
-  const progressPct = totalCount > 0 ? Math.round((processedCount / totalCount) * 100) : 0;
+  const createdCount  = itemLogs.filter(l => l.status === "created").length;
+  const skippedCount  = itemLogs.filter(l => l.status === "skipped_active").length;
+  const failedCount   = itemLogs.filter(l => l.status === "failed").length;
+  const totalCount    = itemLogs.length;
+  const progressPct   = totalCount > 0 ? Math.round((processedCount / totalCount) * 100) : 0;
 
   if (loading) {
     return (
       <Dialog open={open} onOpenChange={handleClose}>
         <DialogContent>
           <div className="flex items-center justify-center py-8">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
           </div>
         </DialogContent>
       </Dialog>
@@ -263,14 +170,14 @@ export default function TaskRequestApprovalModal({
     return (
       <Dialog open={open} onOpenChange={handleClose}>
         <DialogContent>
-          <div className="text-center py-8 text-gray-500">Solicitação não encontrada</div>
+          <div className="text-center py-8 text-muted-foreground">Solicitação não encontrada</div>
         </DialogContent>
       </Dialog>
     );
   }
 
-  const items = request.items || [];
-  const taskCount = items.filter(i => i.type === "task").length;
+  const items        = request.items || [];
+  const taskCount    = items.filter(i => i.type === "task").length;
   const serviceCount = items.filter(i => i.type === "service").length;
 
   return (
@@ -285,7 +192,7 @@ export default function TaskRequestApprovalModal({
 
         <div className="flex-1 flex flex-col gap-3 overflow-y-auto min-h-0">
 
-          {/* Info do solicitante */}
+          {/* Solicitante */}
           <div className="bg-muted/50 p-3 rounded-lg flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-3 min-w-0">
               <User className="w-5 h-5 text-muted-foreground shrink-0" />
@@ -300,7 +207,7 @@ export default function TaskRequestApprovalModal({
             </div>
           </div>
 
-          {/* Resumo badges */}
+          {/* Badges */}
           <div className="flex flex-wrap gap-2">
             {taskCount > 0 && (
               <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
@@ -314,7 +221,7 @@ export default function TaskRequestApprovalModal({
             )}
           </div>
 
-          {/* Departamento - só mostra se não estiver processando/feito */}
+          {/* Departamento */}
           {phase === "idle" && !showRejectForm && (
             <div className="space-y-1.5">
               <label className="text-sm font-medium">Departamento (opcional)</label>
@@ -331,7 +238,7 @@ export default function TaskRequestApprovalModal({
             </div>
           )}
 
-          {/* Lista de itens - só quando idle */}
+          {/* Lista de itens — só quando idle */}
           {phase === "idle" && !showRejectForm && (
             <ScrollArea className="border rounded-md max-h-[180px]">
               <Table>
@@ -347,13 +254,13 @@ export default function TaskRequestApprovalModal({
                   {items.map((item, idx) => (
                     <TableRow key={idx}>
                       <TableCell className="py-1.5">
-                        <Badge variant="outline" className={`text-xs ${item.type === 'task' ? "bg-blue-50 text-blue-700 dark:bg-blue-900/30" : "bg-orange-50 text-orange-700 dark:bg-orange-900/30"}`}>
-                          {item.type === 'task' ? 'T' : 'S'}
+                        <Badge variant="outline" className={`text-xs ${item.type === "task" ? "bg-blue-50 text-blue-700 dark:bg-blue-900/30" : "bg-orange-50 text-orange-700 dark:bg-orange-900/30"}`}>
+                          {item.type === "task" ? "T" : "S"}
                         </Badge>
                       </TableCell>
                       <TableCell className="font-mono text-xs py-1.5">{item.identifier}</TableCell>
-                      <TableCell className="text-xs text-muted-foreground py-1.5 truncate max-w-[130px] hidden sm:table-cell">{item.description || "-"}</TableCell>
-                      <TableCell className="text-xs py-1.5 hidden sm:table-cell">{item.end_date}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground py-1.5 truncate max-w-[130px] hidden sm:table-cell">{item.description || "—"}</TableCell>
+                      <TableCell className="text-xs py-1.5 hidden sm:table-cell">{item.end_date || "—"}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -361,67 +268,88 @@ export default function TaskRequestApprovalModal({
             </ScrollArea>
           )}
 
-          {/* Progresso - durante processamento e após */}
+          {/* Progresso + resultado */}
           {(isProcessing || isDone) && (
             <div className="space-y-3 border rounded-lg p-4 bg-muted/30">
               {isProcessing && (
                 <p className="text-sm font-medium text-center">
-                  Processando {processedCount} de {totalCount}...
+                  Validando e processando {processedCount} de {totalCount}…
                 </p>
               )}
               {isDone && (
                 <p className="text-sm font-medium text-center flex items-center justify-center gap-2">
                   {failedCount === 0 ? (
-                    <><CheckCircle2 className="w-4 h-4 text-green-500" /> Concluído com sucesso!</>
+                    <><CheckCircle2 className="w-4 h-4 text-green-500" /> Processamento concluído!</>
                   ) : (
-                    <><AlertTriangle className="w-4 h-4 text-yellow-500" /> Concluído com falhas</>
+                    <><AlertTriangle className="w-4 h-4 text-yellow-500" /> Concluído com {failedCount} falha(s)</>
                   )}
                 </p>
               )}
 
               <Progress value={isProcessing ? progressPct : 100} className="h-2" />
 
-              <div className="flex justify-center gap-6 text-sm">
+              {/* Contadores */}
+              <div className="flex flex-wrap justify-center gap-4 text-sm">
                 <span className="flex items-center gap-1.5 text-green-600 dark:text-green-400">
-                  <CheckCircle2 className="w-4 h-4" /> {successCount} sucesso
+                  <CheckCircle2 className="w-4 h-4" /> {createdCount} criado(s)
                 </span>
-                <span className="flex items-center gap-1.5 text-muted-foreground">
-                  <Clock className="w-4 h-4" /> {totalCount - processedCount} pendente
-                </span>
+                {skippedCount > 0 && (
+                  <span className="flex items-center gap-1.5 text-yellow-600 dark:text-yellow-400">
+                    <SkipForward className="w-4 h-4" /> {skippedCount} pulado(s) — já ativo(s)
+                  </span>
+                )}
                 {failedCount > 0 && (
                   <span className="flex items-center gap-1.5 text-red-500">
                     <XCircle className="w-4 h-4" /> {failedCount} falha(s)
                   </span>
                 )}
+                {isProcessing && totalCount - processedCount > 0 && (
+                  <span className="flex items-center gap-1.5 text-muted-foreground">
+                    <Clock className="w-4 h-4" /> {totalCount - processedCount} pendente(s)
+                  </span>
+                )}
               </div>
 
-              {/* Toggle detalhe */}
+              {/* Toggle detalhes */}
               <button
-                className="w-full text-xs text-muted-foreground flex items-center justify-center gap-1 hover:text-foreground transition-colors"
+                className="w-full text-xs text-muted-foreground flex items-center justify-center gap-1 hover:text-foreground transition-colors py-1"
                 onClick={() => setShowDetails(!showDetails)}
               >
                 {showDetails ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                {showDetails ? "Ocultar detalhes" : "Ver detalhes"}
+                {showDetails ? "Ocultar detalhes" : "Ver detalhes por item"}
               </button>
 
               {showDetails && (
-                <ScrollArea className="max-h-[150px] border rounded-md bg-background">
-                  <div className="p-2 space-y-1">
+                <ScrollArea className="max-h-[160px] border rounded-md bg-background">
+                  <div className="p-2 space-y-1.5">
                     {itemLogs.map((log, idx) => (
                       <div key={idx} className="flex items-start gap-2 text-xs">
-                        {log.status === "success" && <CheckCircle2 className="w-3.5 h-3.5 text-green-500 mt-0.5 shrink-0" />}
-                        {log.status === "failed" && <XCircle className="w-3.5 h-3.5 text-red-500 mt-0.5 shrink-0" />}
-                        {log.status === "processing" && <div className="w-3.5 h-3.5 rounded-full border-2 border-primary border-t-transparent animate-spin mt-0.5 shrink-0" />}
-                        {log.status === "pending" && <Clock className="w-3.5 h-3.5 text-muted-foreground mt-0.5 shrink-0" />}
-                        <span className="font-mono">{log.identifier}</span>
-                        <Badge variant="outline" className="text-[10px] px-1 py-0">
-                          {log.type === 'task' ? 'T' : 'S'}
+                        <ItemStatusIcon status={log.status} />
+                        <span className="font-mono shrink-0">{log.identifier}</span>
+                        <Badge variant="outline" className="text-[10px] px-1 py-0 shrink-0">
+                          {log.type === "task" ? "T" : "S"}
                         </Badge>
-                        {log.error && <span className="text-red-500 truncate">{log.error}</span>}
+                        {log.status === "skipped_active" && (
+                          <span className="text-yellow-600 dark:text-yellow-400 truncate">{log.reason}</span>
+                        )}
+                        {log.status === "failed" && (
+                          <span className="text-red-500 truncate">{log.reason}</span>
+                        )}
+                        {log.status === "created" && (
+                          <span className="text-green-600 dark:text-green-400">criado</span>
+                        )}
                       </div>
                     ))}
                   </div>
                 </ScrollArea>
+              )}
+
+              {/* Aviso se todos pulados */}
+              {isDone && createdCount === 0 && skippedCount > 0 && failedCount === 0 && (
+                <div className="flex items-start gap-2 text-xs text-yellow-700 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-md p-3">
+                  <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+                  <span>Nenhum item novo criado — todos os itens solicitados já existem e estão ativos no sistema.</span>
+                </div>
               )}
             </div>
           )}
@@ -432,7 +360,7 @@ export default function TaskRequestApprovalModal({
               <label className="text-sm font-medium">Motivo da rejeição</label>
               <Textarea
                 value={rejectionReason}
-                onChange={(e) => setRejectionReason(e.target.value)}
+                onChange={e => setRejectionReason(e.target.value)}
                 placeholder="Informe o motivo da rejeição (opcional)..."
                 className="min-h-[80px]"
               />
@@ -441,20 +369,18 @@ export default function TaskRequestApprovalModal({
         </div>
 
         <DialogFooter className="flex-col sm:flex-row gap-2 pt-2 border-t">
-          {/* Estado idle: botões normais */}
           {phase === "idle" && !showRejectForm && (
             <>
               <Button variant="outline" onClick={handleClose} className="sm:order-1">Cancelar</Button>
               <Button variant="destructive" onClick={() => setShowRejectForm(true)} className="sm:order-2">
                 <XCircle className="w-4 h-4 mr-1.5" /> Rejeitar
               </Button>
-              <Button onClick={() => handleApprove(false)} className="sm:order-3 gap-2">
+              <Button onClick={handleApprove} className="sm:order-3 gap-2">
                 <CheckCircle2 className="w-4 h-4" /> Aprovar e Criar
               </Button>
             </>
           )}
 
-          {/* Processando */}
           {phase === "processing" && (
             <>
               <Button variant="outline" onClick={() => { cancelRef.current = true; }} className="sm:order-1">
@@ -467,30 +393,14 @@ export default function TaskRequestApprovalModal({
             </>
           )}
 
-          {/* Concluído */}
           {phase === "done" && (
-            <>
-              {failedCount > 0 ? (
-                <>
-                  <Button variant="outline" onClick={handleClose} className="sm:order-1">Fechar</Button>
-                  <Button variant="outline" onClick={() => handleApprove(true)} className="sm:order-2 gap-2 border-yellow-500 text-yellow-600 hover:bg-yellow-50">
-                    <RefreshCw className="w-4 h-4" /> Tentar falhas ({failedCount})
-                  </Button>
-                  {successCount > 0 && (
-                    <Button onClick={handleClose} className="sm:order-3">
-                      <CheckCircle2 className="w-4 h-4 mr-1.5" /> Confirmar ({successCount} criados)
-                    </Button>
-                  )}
-                </>
-              ) : (
-                <Button onClick={handleClose} className="gap-2">
-                  <CheckCircle2 className="w-4 h-4" /> Fechar
-                </Button>
-              )}
-            </>
+            <Button onClick={handleClose} className="gap-2 w-full sm:w-auto">
+              <CheckCircle2 className="w-4 h-4" />
+              Fechar
+              {createdCount > 0 && ` (${createdCount} criado${createdCount > 1 ? "s" : ""})`}
+            </Button>
           )}
 
-          {/* Rejeição */}
           {showRejectForm && (
             <>
               <Button variant="outline" onClick={() => setShowRejectForm(false)} className="sm:order-1">Voltar</Button>
