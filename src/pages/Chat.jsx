@@ -1048,6 +1048,7 @@ export default function Chat() {
             onImageClick={setViewingImage}
             onPinMessage={handlePinMessage}
             onStatusTag={handleStatusTag}
+            onForward={setForwardingMessage}
             typingUsers={typingUsers}
             presenceMap={presenceMap}
             isAdmin={isAdmin}
@@ -1107,6 +1108,7 @@ export default function Chat() {
             onImageClick={setViewingImage}
             onPinMessage={handlePinMessage}
             onStatusTag={handleStatusTag}
+            onForward={setForwardingMessage}
             typingUsers={typingUsers}
             presenceMap={presenceMap}
             isAdmin={isAdmin}
