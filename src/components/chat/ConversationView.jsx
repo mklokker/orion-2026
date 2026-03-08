@@ -651,6 +651,34 @@ export default function ConversationView({
         onNavigateToMessage={scrollToMessage}
       />
 
+      {/* Favorites Modal */}
+      <FavoritesModal
+        open={showFavoritesModal}
+        onClose={() => setShowFavoritesModal(false)}
+        records={favRecords}
+        loading={favLoading}
+        currentConversationId={conversation?.id}
+        onUnfavorite={(fav) => {
+          // Build a minimal message object to toggle
+          toggleFavorite({ id: fav.message_id, conversation_id: fav.conversation_id });
+        }}
+        onGoTo={(fav) => {
+          setShowFavoritesModal(false);
+          // If message is in current conversation, scroll to it
+          if (fav.conversation_id === conversation?.id) {
+            // Try to find it in current messages
+            const found = (messages || []).find(m => m.id === fav.message_id);
+            if (found) {
+              setTimeout(() => scrollToMessage(fav.message_id), 100);
+            } else {
+              // Message not loaded yet — inform user
+              scrollToMessage(fav.message_id);
+            }
+          }
+          // Cross-conversation navigation is handled by pages/Chat via onGoToFavorite
+        }}
+      />
+
       {/* Batch Delete Confirm */}
       <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
         <AlertDialogContent>
