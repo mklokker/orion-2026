@@ -400,7 +400,7 @@ export default function ConversationView({
   }
 
   return (
-    <div className="flex flex-col bg-muted/30 w-full min-w-0 h-full min-h-0">
+    <div className="flex flex-col w-full min-w-0 h-full min-h-0">
       {/* Header */}
       <div className="flex items-center gap-2 md:gap-3 px-2 md:px-3 py-2 md:py-3 bg-card border-b border-border z-30 shrink-0">
         <Button variant="ghost" size="icon" className="md:hidden shrink-0 h-10 w-10" onClick={onBack}>
@@ -513,7 +513,7 @@ export default function ConversationView({
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        className="flex-1 min-h-0 overflow-y-auto overscroll-contain overflow-x-hidden w-full relative"
+        className="flex-1 min-h-0 overflow-y-auto overscroll-contain overflow-x-hidden w-full relative overflow-hidden"
         style={{ isolation: "isolate" }}
       >
         {/* Chat background layer - absolute, não interfere no scroll */}
@@ -522,7 +522,7 @@ export default function ConversationView({
         </div>
 
         {/* Messages layer */}
-        <div className="relative z-10 px-2 md:px-4 py-2 md:py-4">
+        <div className="relative z-10 px-2 md:px-4 py-2 md:py-4 bg-transparent">
         {/* Load older messages */}
         {hasMoreMessages && (
           <div className="flex justify-center py-3">
