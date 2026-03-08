@@ -11,6 +11,7 @@ import {
   ChevronDown,
   CheckSquare,
   Star,
+  Bookmark,
 } from "lucide-react";
 import { useFavorites } from "./useFavorites";
 import { useBubbleColors } from "./useBubbleColors";
@@ -98,6 +99,7 @@ export default function ConversationView({
   const [showTaskRequestModal, setShowTaskRequestModal] = useState(false);
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [showFavoritesModal, setShowFavoritesModal] = useState(false);
+  const [showReadLaterModal, setShowReadLaterModal] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
 
   // ── Bubble Colors ─────────────────────────────────────────────────────────────
@@ -454,6 +456,9 @@ export default function ConversationView({
           <Button variant="ghost" size="icon" onClick={() => setShowFilesModal(true)} title="Ver arquivos">
             <FolderOpen className="w-5 h-5" />
           </Button>
+          <Button variant="ghost" size="icon" onClick={() => setShowReadLaterModal(true)} title="Ler depois">
+            <Bookmark className="w-5 h-5 text-blue-500" />
+          </Button>
           <Button variant="ghost" size="icon" onClick={() => setShowTaskRequestModal(true)} title="Solicitar Tarefas">
             <ListPlus className="w-5 h-5" />
           </Button>
@@ -473,6 +478,12 @@ export default function ConversationView({
             <DropdownMenuItem onClick={() => setShowFilesModal(true)}>
               <FolderOpen className="w-4 h-4 mr-2" /> Ver arquivos
             </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setShowReadLaterModal(true)}>
+              <Bookmark className="w-4 h-4 mr-2 text-blue-500" /> Ler depois
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => { refreshFavs(); setShowFavoritesModal(true); }}>
+              <Star className="w-4 h-4 mr-2 text-amber-400" /> Mensagens favoritas
+            </DropdownMenuItem>
             <DropdownMenuItem onClick={() => setShowTaskRequestModal(true)}>
               <ListPlus className="w-4 h-4 mr-2" /> Solicitar Tarefas
             </DropdownMenuItem>
@@ -481,9 +492,6 @@ export default function ConversationView({
             </DropdownMenuItem>
             <DropdownMenuItem onClick={enterSelectionMode}>
               <CheckSquare className="w-4 h-4 mr-2" /> Selecionar mensagens
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => { refreshFavs(); setShowFavoritesModal(true); }}>
-              <Star className="w-4 h-4 mr-2 text-amber-400" /> Mensagens favoritas
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -696,6 +704,17 @@ export default function ConversationView({
           }
         }}
       />
+
+      {/* Read Later Modal */}
+      {showReadLaterModal && (
+        <ReadLaterPanel
+          open={showReadLaterModal}
+          onClose={() => setShowReadLaterModal(false)}
+          currentConversationId={conversation?.id}
+          onNavigateToMessage={scrollToMessage}
+          users={users}
+        />
+      )}
 
       {/* Batch Delete Confirm */}
       <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
