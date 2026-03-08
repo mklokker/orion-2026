@@ -412,6 +412,19 @@ export default function PresenceSettings({ open, onClose, currentUser, presence,
           </Button>
         </div>
       </DialogContent>
+
+      {/* Bubble appearance modal */}
+      <BubbleAppearanceModal
+        open={showBubbleModal}
+        onClose={() => setShowBubbleModal(false)}
+        initialData={presence}
+        onSave={async (bubbleData) => {
+          if (presence?.id) {
+            await UserPresence.update(presence.id, bubbleData);
+            onUpdate?.();
+          }
+        }}
+      />
     </Dialog>
   );
 }
