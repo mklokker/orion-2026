@@ -447,16 +447,21 @@ export default function ConversationView({
         </div>
       </div>
 
-      {/* Botão scroll para baixo */}
+      {/* Botão scroll para baixo / novas mensagens */}
       {showScrollButton && (
-        <Button
+        <button
           onClick={scrollToBottom}
-          className="absolute bottom-24 right-6 z-50 rounded-full w-10 h-10 bg-card shadow-lg hover:bg-accent border border-border"
-          size="icon"
-          variant="ghost"
+          className="absolute bottom-24 right-4 z-50 flex items-center gap-1.5 px-3 py-2 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 transition-all text-xs font-medium"
         >
-          <ArrowDown className="w-5 h-5 text-foreground" />
-        </Button>
+          {newMessagesCount > 0 ? (
+            <>
+              <ChevronDown className="w-3.5 h-3.5" />
+              {newMessagesCount} nova{newMessagesCount > 1 ? "s" : ""}
+            </>
+          ) : (
+            <ChevronDown className="w-4 h-4" />
+          )}
+        </button>
       )}
 
       {/* Input - fixo no rodapé */}
