@@ -328,16 +328,28 @@ export default function MessageBubble({
         {/* Link preview para o primeiro link */}
         {urls.length > 0 && <LinkPreview url={urls[0]} isOwn={isOwn} />}
         
-        {/* Botão de aprovar para admins em solicitações de tarefas */}
-        {isTaskRequest && isAdmin && !isOwn && taskRequestId && (
+        {/* Botão de aprovar para admins em solicitações de tarefas pendentes */}
+        {isTaskRequest && isAdmin && !isOwn && taskRequestId && taskRequestStatus !== "approved" && taskRequestStatus !== "rejected" && (
           <Button
             onClick={() => onApproveTaskRequest?.(taskRequestId)}
             className="mt-3 w-full gap-2"
             size="sm"
+            variant={taskRequestStatus === null ? "default" : "default"}
           >
             <ListChecks className="w-4 h-4" />
             Revisar Solicitação
           </Button>
+        )}
+        {/* Badge de status quando já processado */}
+        {isTaskRequest && taskRequestId && taskRequestStatus === "approved" && (
+          <div className="mt-2 flex items-center gap-1.5 text-xs text-green-600 dark:text-green-400 font-medium">
+            <CheckCircle2 className="w-3.5 h-3.5 shrink-0" /> Solicitação aprovada
+          </div>
+        )}
+        {isTaskRequest && taskRequestId && taskRequestStatus === "rejected" && (
+          <div className="mt-2 flex items-center gap-1.5 text-xs text-red-500 font-medium">
+            <XCircle className="w-3.5 h-3.5 shrink-0" /> Solicitação rejeitada
+          </div>
         )}
       </>
     );
