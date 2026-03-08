@@ -98,6 +98,9 @@ export default function ConversationView({
   const [showFavoritesModal, setShowFavoritesModal] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
 
+  // ── Bubble Colors ─────────────────────────────────────────────────────────────
+  useBubbleColors(presenceMap?.[currentUser?.email]);
+
   // ── Favorites ────────────────────────────────────────────────────────────────
   const { isFavorited, toggleFavorite, records: favRecords, loading: favLoading, refresh: refreshFavs } = useFavorites(currentUser?.email);
 
