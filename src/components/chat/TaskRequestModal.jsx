@@ -136,7 +136,8 @@ export default function TaskRequestModal({
 
       await onSendMessage({
         content: messageContent,
-        type: "text"
+        type: "text",
+        task_request_id: request.id
       });
 
       toast({ 
