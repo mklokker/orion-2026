@@ -400,7 +400,14 @@ export default function ConversationView({
   }
 
   return (
-    <div className="flex flex-col w-full min-w-0 h-full min-h-0">
+    <div className="relative flex flex-col w-full min-w-0 h-full min-h-0 overflow-hidden">
+      {/* Background layer - estática, não rola */}
+      <div className="absolute inset-0 pointer-events-none z-0">
+        <ChatBackground chatBgPrefs={chatBgPrefs} />
+      </div>
+
+      {/* Conteúdo acima do background */}
+      <div className="relative z-10 flex flex-col w-full h-full min-h-0">
       {/* Header */}
       <div className="flex items-center gap-2 md:gap-3 px-2 md:px-3 py-2 md:py-3 bg-card border-b border-border z-30 shrink-0">
         <Button variant="ghost" size="icon" className="md:hidden shrink-0 h-10 w-10" onClick={onBack}>
@@ -513,16 +520,11 @@ export default function ConversationView({
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        className="flex-1 min-h-0 overflow-y-auto overscroll-contain overflow-x-hidden w-full relative overflow-hidden"
+        className="flex-1 min-h-0 overflow-y-auto overscroll-contain overflow-x-hidden w-full bg-transparent"
         style={{ isolation: "isolate" }}
       >
-        {/* Chat background layer - absolute, não interfere no scroll */}
-        <div className="absolute inset-0 pointer-events-none z-0">
-          <ChatBackground chatBgPrefs={chatBgPrefs} />
-        </div>
-
         {/* Messages layer */}
-        <div className="relative z-10 px-2 md:px-4 py-2 md:py-4 bg-transparent">
+        <div className="px-2 md:px-4 py-2 md:py-4 bg-transparent">
         {/* Load older messages */}
         {hasMoreMessages && (
           <div className="flex justify-center py-3">
@@ -750,6 +752,7 @@ export default function ConversationView({
           isBatch={true}
         />
       )}
+      </div>
     </div>
   );
 }
