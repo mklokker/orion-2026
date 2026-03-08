@@ -148,6 +148,18 @@ export default function ConversationView({
       .filter(m => selectedIds.has(m.id))
       .sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
   }, [selectedIds, messages, selectionMode]);
+
+  // Extract TaskRequest IDs from selected messages (for batch approval)
+  const selectedTaskRequestIds = React.useMemo(() => {
+    if (!selectionMode) return [];
+    const ids = new Set();
+    (messages || []).forEach(m => {
+      if (!selectedIds.has(m.id)) return;
+      const id = m.task_request_id || m.content?.match(/`ID:\s*([a-zA-Z0-9_-]+)`/)?.[1];
+      if (id) ids.add(id);
+    });
+    return [...ids];
+  }, [selectedIds, messages, selectionMode]);
   const messageRefs = useRef({});
   const bottomRef = useRef(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
