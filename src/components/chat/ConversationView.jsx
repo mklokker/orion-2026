@@ -81,6 +81,7 @@ export default function ConversationView({
   isLoadingMore = false,
   autoFocusTrigger,
   conversations = [],
+  taskRequestStatuses = {},
   }) {
   const scrollRef = useRef(null);
   const [replyingTo, setReplyingTo] = useState(null);
