@@ -10,7 +10,10 @@ import {
   ListPlus,
   ChevronDown,
   CheckSquare,
+  Star,
 } from "lucide-react";
+import { useFavorites } from "./useFavorites";
+import FavoritesModal from "./FavoritesModal";
 import MessageBubble from "./MessageBubble";
 import ChatInput from "./ChatInput";
 import PresenceIndicator, { statusConfig } from "./PresenceIndicator";
