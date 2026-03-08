@@ -137,6 +137,8 @@ export default function MessageBubble({
   onToggleSelect,
   taskRequestStatusOverride = null, // override from parent post-approval
   onShowReactions,   // (message) => void
+  onReadLater,       // (message) => void
+  isReadLater = false,
 }) {
   const [showActions, setShowActions] = React.useState(false);
   const [menuOpen, setMenuOpen] = React.useState(false);
@@ -565,6 +567,10 @@ export default function MessageBubble({
                   <DropdownMenuItem onClick={() => { onFavorite?.(message); setMenuOpen(false); }}>
                     <Star className={`w-4 h-4 mr-2 ${isFavorited ? "fill-amber-400 text-amber-400" : ""}`} />
                     {isFavorited ? "Remover favorito" : "Favoritar"}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => { onReadLater?.(message); setMenuOpen(false); }}>
+                    <Bookmark className={`w-4 h-4 mr-2 ${isReadLater ? "fill-current" : ""}`} />
+                    {isReadLater ? "Remover de ler depois" : "Ler depois"}
                   </DropdownMenuItem>
                   {message.type !== "system" && (
                     <>
