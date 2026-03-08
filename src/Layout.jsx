@@ -787,6 +787,8 @@ function LayoutContent({ children, currentPageName }) {
           </>
         )}
         <Toaster />
+        {/* Theme Debugger - Remove when themes are confirmed working */}
+        <ThemeDebugger />
       </TooltipProvider>
     </QueryClientProvider>
   );
