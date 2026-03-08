@@ -147,6 +147,11 @@ export default function ChatList({
             <Button variant="ghost" size="icon" onClick={onOpenPresenceSettings} title="Status de presença" className="h-9 w-9">
               <Settings className="w-4 h-4" />
             </Button>
+            {isAdmin && (
+              <Button variant="ghost" size="icon" onClick={() => setShowBatchApproval(true)} title="Aprovações em lote" className="h-9 w-9 text-amber-600 hover:text-amber-700 hover:bg-amber-50 dark:hover:bg-amber-900/20">
+                <ListChecks className="w-4 h-4" />
+              </Button>
+            )}
             <Button variant="ghost" size="icon" onClick={onNewChat} title="Nova conversa" className="h-9 w-9">
               <Plus className="w-4 h-4" />
             </Button>
