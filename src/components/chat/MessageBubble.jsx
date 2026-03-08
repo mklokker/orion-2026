@@ -190,6 +190,24 @@ export default function MessageBubble({
   const urls = message.type === "text" ? extractUrls(message.content) : [];
 
   const renderContent = () => {
+    // Forward header — exibido acima do conteúdo quando mensagem foi encaminhada
+    const forwardHeader = message.forwarded_from_message_id && (
+      <div className={`mb-2 flex items-start gap-2 p-2 rounded-lg text-xs border-l-2 ${isOwn ? "bg-primary-foreground/10 border-primary-foreground/40" : "bg-muted border-primary/40"}`}>
+        <Forward className="w-3 h-3 mt-0.5 shrink-0 opacity-70" />
+        <div className="min-w-0">
+          <p className="font-semibold text-xs opacity-80">Encaminhada</p>
+          <p className="truncate opacity-70">
+            De: <span className="font-medium">{message.forwarded_from_sender_name || message.forwarded_from_sender_email}</span>
+          </p>
+          {message.forwarded_from_conversation_name && (
+            <p className="truncate opacity-60">
+              Em: {message.forwarded_from_conversation_name}
+            </p>
+          )}
+        </div>
+      </div>
+    );
+
     // Reply preview - clicável para scroll até a mensagem original
     const replyPreview = message.reply_to_id && (
       <div 
