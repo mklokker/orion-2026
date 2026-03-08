@@ -742,17 +742,20 @@ export default function ConversationView({
         conversations={conversations}
         messages={messages}
         onConversationClick={(convId) => {
+          setShowReadLaterModal(false);
           // Navegar para conversa se estiver em outra
           if (conversation?.id !== convId) {
-            // Pai precisa lidar com isso
-            setShowReadLaterModal(false);
-          } else {
-            setShowReadLaterModal(false);
+            onGoToConversation?.(convId);
           }
         }}
         onMessageClick={(convId, msgId) => {
           setShowReadLaterModal(false);
-          if (conversation?.id === convId) {
+          // Navegar para conversa se estiver em outra
+          if (conversation?.id !== convId) {
+            onGoToConversation?.(convId);
+            // Aguardar um pouco para a conversa carregar antes de fazer scroll
+            setTimeout(() => scrollToMessage(msgId), 300);
+          } else {
             setTimeout(() => scrollToMessage(msgId), 100);
           }
         }}
