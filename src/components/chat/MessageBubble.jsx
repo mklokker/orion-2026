@@ -346,11 +346,46 @@ export default function MessageBubble({
   const reactions = message.reactions || {};
   const hasReactions = Object.keys(reactions).length > 0;
 
+  // In selection mode, clicking the bubble toggles selection
+  if (selectionMode) {
+    const canDelete = isOwn || isAdmin;
+    return (
+      <div
+        className={`flex w-full min-w-0 items-center gap-3 px-2 py-1 cursor-pointer transition-colors rounded-lg ${isSelected ? "bg-primary/10" : "hover:bg-muted/50"}`}
+        onClick={() => onToggleSelect?.(message.id)}
+        onTouchStart={handleTouchStart}
+        onTouchEnd={handleTouchEnd}
+      >
+        <Checkbox
+          checked={isSelected}
+          onCheckedChange={() => onToggleSelect?.(message.id)}
+          onClick={e => e.stopPropagation()}
+          disabled={!canDelete && !isSelected}
+          className="shrink-0"
+        />
+        <div className={`flex flex-1 min-w-0 ${isOwn ? "justify-end" : "justify-start"}`}>
+          <div className={`max-w-[80%] px-3 py-2 rounded-xl text-sm ${isOwn ? "bg-primary text-primary-foreground" : "bg-card border border-border/50"} ${isSelected ? "opacity-90" : ""}`}>
+            {!isOwn && <p className="text-xs font-semibold mb-0.5 opacity-70">{message.sender_name}</p>}
+            <p className="truncate text-sm">
+              {message.is_deleted ? <em className="opacity-60">Mensagem excluída</em>
+                : message.type === "image" ? "📷 Imagem"
+                : message.type === "gif"   ? "🎞 GIF"
+                : message.type === "file"  ? `📎 ${message.file_name || "Arquivo"}`
+                : message.content || ""}
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div 
       className={`flex w-full min-w-0 ${isOwn ? "justify-end" : "justify-start"} mb-3 group px-1`}
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => !keepActionsVisible && setShowActions(false)}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
     >
       {/* Avatar for others */}
       {!isOwn && (
