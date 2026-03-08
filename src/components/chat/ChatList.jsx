@@ -4,7 +4,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Search, Plus, Users, Check, CheckCheck, Settings, Pin, PinOff, Globe, RefreshCw, FileText, ListChecks } from "lucide-react";
+import { Search, Plus, Users, Check, CheckCheck, Settings, Pin, PinOff, Globe, RefreshCw, FileText, ListChecks, Eye, EyeOff } from "lucide-react";
+import { useUnreadStatus } from "./useUnreadStatus";
+import { ConversationContextMenu } from "./ConversationContextMenu";
 
 // Inline scroll area to avoid react-router indirect import
 const ScrollArea = ({ children, className }) => (
@@ -53,6 +55,7 @@ export default function ChatList({
   const [showBatchApproval, setShowBatchApproval] = React.useState(false);
   const { toast } = useToast();
   const isAdmin = currentUser?.role === "admin";
+  const { isManualUnread, toggleUnreadStatus } = useUnreadStatus(currentUser?.email);
   
   const MAX_PINNED = 5;
   
@@ -215,27 +218,32 @@ export default function ChatList({
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-1 min-w-0">
-                              {isPinned && <Pin className="w-3 h-3 text-amber-500 shrink-0" />}
-                              {conv.is_public && <Globe className="w-3 h-3 text-blue-500 shrink-0" />}
-                              <span className="font-semibold text-foreground truncate">{display.name}</span>
-                            </div>
+                               {isPinned && <Pin className="w-3 h-3 text-amber-500 shrink-0" />}
+                               {isManualUnread(conv.id) && <EyeOff className="w-3 h-3 text-red-500 shrink-0" title="Marcado como não lido" />}
+                               {conv.is_public && <Globe className="w-3 h-3 text-blue-500 shrink-0" />}
+                               <span className="font-semibold text-foreground truncate">{display.name}</span>
+                             </div>
                       <div className="flex items-center gap-1 shrink-0">
                         <span className="text-xs text-muted-foreground">
                           {formatMessageTime(conv.last_message_at)}
                         </span>
-                        <button
-                          onClick={(e) => handlePinToggle(e, conv)}
-                          className={`p-1 rounded-lg hover:bg-accent transition-opacity ${
-                            isPinned ? "opacity-100" : "opacity-0 group-hover:opacity-100"
-                          }`}
-                          title={isPinned ? "Desafixar" : "Fixar conversa"}
-                        >
-                          {isPinned ? (
-                            <PinOff className="w-4 h-4 text-amber-500" />
-                          ) : (
-                            <Pin className="w-4 h-4 text-gray-400" />
-                          )}
-                        </button>
+                        <ConversationContextMenu
+                          conversation={conv}
+                          isPinned={isPinned}
+                          isManualUnread={isManualUnread(conv.id)}
+                          currentUser={currentUser}
+                          onPin={(shouldPin) => onPinConversation?.(conv, shouldPin)}
+                          onMarkUnread={() => toggleUnreadStatus(conv.id)}
+                          trigger={
+                            <button
+                              onClick={(e) => e.stopPropagation()}
+                              className="p-1 rounded-lg hover:bg-accent transition-opacity opacity-0 group-hover:opacity-100"
+                              title="Menu"
+                            >
+                              <MoreVertical className="w-4 h-4 text-gray-400" />
+                            </button>
+                          }
+                        />
                       </div>
                     </div>
                     <div className="flex items-center justify-between">
