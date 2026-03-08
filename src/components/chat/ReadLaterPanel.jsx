@@ -147,7 +147,7 @@ export default function ReadLaterPanel({
                         {getConversationDisplay(conv)}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {format(new Date(record.created_at), "dd 'de' MMM", { locale: ptBR })}
+                        {record.created_date ? format(new Date(record.created_date), "dd 'de' MMM", { locale: ptBR }) : "Data inválida"}
                       </p>
                     </div>
 
@@ -239,7 +239,7 @@ export default function ReadLaterPanel({
                       </p>
                       <p className="text-sm truncate">{preview}</p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        {format(new Date(record.created_at), "dd 'de' MMM", { locale: ptBR })}
+                        {record.created_date ? format(new Date(record.created_date), "dd 'de' MMM", { locale: ptBR }) : "Data inválida"}
                       </p>
                     </div>
 
