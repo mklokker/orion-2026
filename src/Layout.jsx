@@ -234,6 +234,8 @@ function SidebarContent({
   onLogout,
   onNavClick,
   currentTheme,
+  isUIv2Enabled,
+  onToggleUIv2,
 }) {
   const themeLabels = { light: "Claro", dark: "Escuro", pastel: "Pastel", midnight: "Midnight", forest: "Forest" };
   const onGetThemeLabel = () => themeLabels[currentTheme] || "Claro";
