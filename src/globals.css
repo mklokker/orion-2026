@@ -6,6 +6,15 @@
 
 @layer base {
 
+  /* ─── CSS Variables para Bolhas Personalizadas ─── */
+  :root {
+    --bubble-my-bg: #4338CA;
+    --bubble-my-text: #FFFFFF;
+    --bubble-other-bg: #E5E7EB;
+    --bubble-other-text: #000000;
+    --bubble-meta-color: #999999;
+  }
+
   /* ─── TEMA 1 — LIGHT (Clean / Profissional) ─── */
   :root {
     --background: 210 40% 98%;
