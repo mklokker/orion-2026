@@ -566,6 +566,8 @@ export default function ConversationView({
                     onPin={selectionMode ? undefined : onPinMessage}
                     onStatusTag={selectionMode ? undefined : onStatusTag}
                     onForward={selectionMode ? undefined : onForward}
+                    onFavorite={selectionMode ? undefined : handleFavorite}
+                    isFavorited={isFavorited(msg.id)}
                     onScrollToMessage={selectionMode ? undefined : scrollToMessage}
                     isAdmin={isAdmin}
                     onApproveTaskRequest={selectionMode ? undefined : onApproveTaskRequest}
