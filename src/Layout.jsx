@@ -54,6 +54,8 @@ import { useChatNotifications, useGlobalUnreadCount, setGlobalUnread } from "./c
 import { UserPresence } from "@/entities/UserPresence";
 import { NotificationProvider, useNotifications } from "./components/notifications/NotificationContext";
 import { useNotificationSync } from "./components/notifications/useNotificationSync";
+import { useUIv2Preview } from "./components/ui/useUIv2Preview";
+import { Zap } from "lucide-react";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { refetchOnWindowFocus: false, retry: 1 } },
