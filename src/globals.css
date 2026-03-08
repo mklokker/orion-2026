@@ -383,3 +383,52 @@ html[data-theme="midnight"] .animate-pulse,
 .dark .animate-pulse {
   opacity: 0.5;
 }
+
+/* ========================================
+   OVERRIDE FALLBACK - Garantir que temas específicos prevalecem
+   ======================================== */
+
+/* Força Light theme para sobrescrever qualquer :root genérico */
+html[data-theme="light"],
+html[data-theme="light"] * {
+  --background: 0 0% 100% !important;
+  --foreground: 222.2 84% 4.9% !important;
+  --primary: 221.2 83.2% 53.3% !important;
+  --primary-foreground: 210 40% 98% !important;
+}
+
+/* Força Pastel */
+html[data-theme="pastel"],
+html[data-theme="pastel"] * {
+  --background: 230 100% 98% !important;
+  --foreground: 222.2 84% 4.9% !important;
+  --primary: 258 90% 66% !important;
+  --primary-foreground: 0 0% 100% !important;
+}
+
+/* Força Midnight */
+html[data-theme="midnight"],
+html[data-theme="midnight"] * {
+  --background: 220 60% 96% !important;
+  --foreground: 222.2 84% 4.9% !important;
+  --primary: 222 82% 46% !important;
+  --primary-foreground: 0 0% 100% !important;
+}
+
+/* Força Forest */
+html[data-theme="forest"],
+html[data-theme="forest"] * {
+  --background: 120 30% 97% !important;
+  --foreground: 222.2 84% 4.9% !important;
+  --primary: 142 71% 45% !important;
+  --primary-foreground: 0 0% 100% !important;
+}
+
+/* Força Dark */
+html[data-theme="dark"],
+html[data-theme="dark"] * {
+  --background: 222.2 84% 4.9% !important;
+  --foreground: 210 40% 98% !important;
+  --primary: 217.2 91.2% 59.8% !important;
+  --primary-foreground: 222.2 84% 4.9% !important;
+}
