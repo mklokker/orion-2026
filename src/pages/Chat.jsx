@@ -1227,8 +1227,9 @@ export default function Chat() {
         currentUser={currentUser}
         departments={departments}
         onApproved={(request, newStatus) => {
-          // Update local taskRequestStatuses so button hides immediately
+          // Update global cache + local state so button hides immediately
           if (selectedTaskRequestId) {
+            invalidateTaskRequestCache(selectedTaskRequestId, newStatus);
             setTaskRequestStatuses(prev => ({ ...prev, [selectedTaskRequestId]: newStatus }));
           }
         }}
