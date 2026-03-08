@@ -396,8 +396,8 @@ export default function ConversationView({
 
   return (
     <div className="flex flex-col bg-muted/30 w-full min-w-0 h-full min-h-0">
-      {/* Header - sticky no mobile com backdrop blur para melhor visibilidade */}
-      <div className="sticky top-0 md:relative flex items-center gap-2 md:gap-3 px-2 md:px-3 py-2 md:py-3 bg-card/95 backdrop-blur-sm border-b border-border z-40 shrink-0">
+      {/* Header */}
+      <div className="flex items-center gap-2 md:gap-3 px-2 md:px-3 py-2 md:py-3 bg-card border-b border-border z-30 shrink-0">
         <Button variant="ghost" size="icon" className="md:hidden shrink-0 h-10 w-10" onClick={onBack}>
           <ArrowLeft className="w-5 h-5" />
         </Button>
@@ -472,47 +472,43 @@ export default function ConversationView({
         </DropdownMenu>
       </div>
 
-      {/* Selection Bar (sticky no mobile when active, replaces normal header) */}
+      {/* Selection Bar (replaces normal header actions when in selection mode) */}
       {selectionMode && (
-        <div className="sticky top-10 md:relative z-50 md:z-30">
-          <SelectionBar
-            count={selectedIds.size}
-            onCancel={exitSelectionMode}
-            onDelete={() => setShowDeleteConfirm(true)}
-            onForward={() => setShowBatchForward(true)}
-            canDeleteAll={canDeleteSelected || isAdmin}
-            isAdmin={isAdmin}
-            taskRequestCount={selectedTaskRequestIds.length}
-            onBatchApprove={() => setShowBatchApprovalModal(true)}
-          />
-        </div>
+        <SelectionBar
+          count={selectedIds.size}
+          onCancel={exitSelectionMode}
+          onDelete={() => setShowDeleteConfirm(true)}
+          onForward={() => setShowBatchForward(true)}
+          canDeleteAll={canDeleteSelected || isAdmin}
+          isAdmin={isAdmin}
+          taskRequestCount={selectedTaskRequestIds.length}
+          onBatchApprove={() => setShowBatchApprovalModal(true)}
+        />
       )}
 
-      {/* Pinned Messages - sticky no mobile apenas se houver mensagens fixadas */}
-      {pinnedMessages.length > 0 && (
-        <div className="sticky top-10 md:relative z-30 md:z-20 shrink-0">
-          <PinnedMessages
-            pinnedMessages={pinnedMessages}
-            users={users}
-            currentUser={currentUser}
-            onUnpin={onPinMessage}
-            onScrollToMessage={scrollToMessage}
-          />
-        </div>
-      )}
+      {/* Pinned Messages */}
+      <div className="shrink-0">
+        <PinnedMessages
+          pinnedMessages={pinnedMessages}
+          users={users}
+          currentUser={currentUser}
+          onUnpin={onPinMessage}
+          onScrollToMessage={scrollToMessage}
+        />
+      </div>
 
-      {/* Status Tag Filter - sticky no mobile apenas se houver filtros */}
+      {/* Status Tag Filter */}
       {conversation && (
-        <div className="sticky top-10 md:relative z-20 md:z-10 flex items-center px-2 md:px-3 py-1.5 border-b border-border bg-card/80 backdrop-blur-sm shrink-0">
+        <div className="flex items-center px-2 md:px-3 py-1.5 border-b border-border bg-card/80 backdrop-blur-sm shrink-0">
           <StatusTagFilter value={statusFilter} onChange={setStatusFilter} messages={messages} />
         </div>
       )}
 
-      {/* Messages - área com scroll próprio (com padding para não ficar sob input no mobile) */}
+      {/* Messages - área com scroll próprio */}
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        className="flex-1 min-h-0 overflow-y-auto overscroll-contain overflow-x-hidden w-full relative pb-2"
+        className="flex-1 min-h-0 overflow-y-auto overscroll-contain overflow-x-hidden w-full relative"
         style={{ isolation: "isolate" }}
       >
         {/* Chat background layer - absolute, não interfere no scroll */}
@@ -520,8 +516,8 @@ export default function ConversationView({
           <ChatBackground chatBgPrefs={chatBgPrefs} />
         </div>
 
-        {/* Messages layer - com padding correto para mobile */}
-        <div className="relative z-10 px-2 md:px-4 py-2 md:py-4 pt-2 md:pt-4">
+        {/* Messages layer */}
+        <div className="relative z-10 px-2 md:px-4 py-2 md:py-4">
         {/* Load older messages */}
         {hasMoreMessages && (
           <div className="flex justify-center py-3">
@@ -599,14 +595,14 @@ export default function ConversationView({
 
         {/* Âncora para scroll automático */}
         <div ref={bottomRef} />
-        </div> {/* fecha Messages layer */}
-      </div> {/* fecha Messages scroll container */}
+        </div>
+      </div>
 
       {/* Botão scroll para baixo / novas mensagens */}
       {showScrollButton && (
         <button
           onClick={scrollToBottom}
-          className="absolute bottom-24 right-4 z-40 flex items-center gap-1.5 px-3 py-2 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 transition-all text-xs font-medium"
+          className="absolute bottom-24 right-4 z-50 flex items-center gap-1.5 px-3 py-2 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 transition-all text-xs font-medium"
         >
           {newMessagesCount > 0 ? (
             <>
