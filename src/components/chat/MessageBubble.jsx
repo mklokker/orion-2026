@@ -132,7 +132,7 @@ export default function MessageBubble({
   selectionMode = false,
   isSelected = false,
   onToggleSelect,
-  taskRequestStatus = null, // "pending" | "approved" | "rejected" | null
+  taskRequestStatusOverride = null, // override from parent post-approval
 }) {
   const [showActions, setShowActions] = React.useState(false);
   const [menuOpen, setMenuOpen] = React.useState(false);
