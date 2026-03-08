@@ -259,23 +259,23 @@ export default function ChatList({
           </div>
         )}
       </ScrollArea>
-    </div>
 
-    {/* Batch Approval Sheet — admin only */}
-    {isAdmin && (
-      <Sheet open={showBatchApproval} onOpenChange={setShowBatchApproval}>
-        <SheetContent side="right" className="w-full sm:w-[520px] p-0 flex flex-col">
-          <SheetHeader className="px-4 py-3 border-b shrink-0">
-            <SheetTitle className="flex items-center gap-2 text-base">
-              <ListChecks className="w-5 h-5 text-amber-600" />
-              Aprovação em Lote
-            </SheetTitle>
-          </SheetHeader>
-          <div className="flex-1 overflow-y-auto p-4">
-            <BatchApprovalPanel currentUser={currentUser} departments={departments} />
-          </div>
-        </SheetContent>
-      </Sheet>
-    )}
+      {/* Batch Approval Sheet — admin only */}
+      {isAdmin && (
+        <Sheet open={showBatchApproval} onOpenChange={setShowBatchApproval}>
+          <SheetContent side="right" className="w-full sm:w-[520px] p-0 flex flex-col">
+            <SheetHeader className="px-4 py-3 border-b shrink-0">
+              <SheetTitle className="flex items-center gap-2 text-base">
+                <ListChecks className="w-5 h-5 text-amber-600" />
+                Aprovação em Lote
+              </SheetTitle>
+            </SheetHeader>
+            <div className="flex-1 overflow-y-auto p-4">
+              <BatchApprovalPanel currentUser={currentUser} departments={departments} />
+            </div>
+          </SheetContent>
+        </Sheet>
+      )}
+    </div>
   );
 }
