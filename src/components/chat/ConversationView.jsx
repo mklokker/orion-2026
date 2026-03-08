@@ -90,6 +90,7 @@ export default function ConversationView({
   departments = [],
   onGoToFavorite,  // (fav) => void — cross-conversation navigation handled by parent
   onShowReactions,  // (message) => void
+  myPresence = null,  // myPresence com campos bubble_my_bg etc (opcional, para debug)
   }) {
   const scrollRef = useRef(null);
   const [replyingTo, setReplyingTo] = useState(null);
@@ -100,7 +101,8 @@ export default function ConversationView({
   const [statusFilter, setStatusFilter] = useState("all");
 
   // ── Bubble Colors ─────────────────────────────────────────────────────────────
-  const bubbleColorVars = useBubbleColors(presenceMap?.[currentUser?.email]);
+  // Usar chatBgPrefs que já contém os campos bubble_* salvo no BD
+  const bubbleColorVars = useBubbleColors(chatBgPrefs);
 
   // ── Favorites ────────────────────────────────────────────────────────────────
   const { isFavorited, toggleFavorite, records: favRecords, loading: favLoading, refresh: refreshFavs } = useFavorites(currentUser?.email);
