@@ -118,8 +118,8 @@ export default function BatchApprovalPanel({ currentUser, departments = [] }) {
         // Validate: still pending? (deduplication)
         let freshStatus = "pending";
         try {
-          const fresh = await TaskRequest.filter({ id: req.id });
-          freshStatus = fresh[0]?.status || "pending";
+          const fresh = await TaskRequest.list();
+          freshStatus = fresh.find(r => r.id === req.id)?.status || "pending";
         } catch (_) {}
 
         if (freshStatus !== "pending") {
