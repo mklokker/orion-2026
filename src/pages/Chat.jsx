@@ -17,6 +17,7 @@ import ImageViewer from "@/components/chat/ImageViewer";
 import PresenceSettings from "@/components/chat/PresenceSettings";
 import AudioPermissionBanner from "@/components/chat/AudioPermissionBanner";
 import TaskRequestApprovalModal from "@/components/chat/TaskRequestApprovalModal";
+import ForwardMessageModal from "@/components/chat/ForwardMessageModal";
 import { useToast } from "@/components/ui/use-toast";
 import { playNotificationSound } from "@/components/chat/NotificationSounds";
 import { Department } from "@/entities/Department";
