@@ -231,9 +231,14 @@ export default function TaskRequestApprovalModal({
                   <SelectValue placeholder="Selecione um departamento..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {departments.map(dept => (
-                    <SelectItem key={dept.id} value={dept.id}>{dept.name}</SelectItem>
-                  ))}
+                 {[...departments].sort((a, b) => {
+                   const ORDER = ["Registro","Conferencia","Certidão","ONR","Cadastro","Finalização","Arquivo","Atendimento","Administrativo"];
+                   const ai = ORDER.findIndex(n => a.name?.toLowerCase() === n.toLowerCase());
+                   const bi = ORDER.findIndex(n => b.name?.toLowerCase() === n.toLowerCase());
+                   return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+                 }).map(dept => (
+                   <SelectItem key={dept.id} value={dept.id}>{dept.name}</SelectItem>
+                 ))}
                 </SelectContent>
               </Select>
             </div>
