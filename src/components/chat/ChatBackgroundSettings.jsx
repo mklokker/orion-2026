@@ -6,7 +6,7 @@ import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
 import { base44 } from "@/api/base44Client";
 import { CHAT_BG_PRESETS } from "./ChatBackground";
-import { Upload, Link, Trash2, Check, Loader2, ImageIcon } from "lucide-react";
+import { Upload, Link, Trash2, Check, Loader2, ImageIcon, Palette } from "lucide-react";
 import { toast } from "sonner";
 
 const MAX_FILE_SIZE = 3 * 1024 * 1024; // 3MB
