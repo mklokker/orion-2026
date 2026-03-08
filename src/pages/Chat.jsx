@@ -1071,6 +1071,7 @@ export default function Chat() {
             onPinConversation={handlePinConversation}
             onRefresh={handleRefresh}
             isRefreshing={isRefreshing}
+            departments={departments}
           />
         </div>
         {/* Conversa - Desktop */}
