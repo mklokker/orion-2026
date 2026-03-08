@@ -420,6 +420,9 @@ export default function ConversationView({
             <DropdownMenuItem onClick={() => setShowSearchModal(true)}>
               <Search className="w-4 h-4 mr-2" /> Buscar mensagens
             </DropdownMenuItem>
+            <DropdownMenuItem onClick={enterSelectionMode}>
+              <CheckSquare className="w-4 h-4 mr-2" /> Selecionar mensagens
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
