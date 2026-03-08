@@ -74,44 +74,133 @@ export default function ConversationView({
   const messageRefs = useRef({});
   const bottomRef = useRef(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
-  const scrollAreaRef = useRef(null);
-  
+  const [newMessagesCount, setNewMessagesCount] = useState(0);
+
+  // ─── Scroll Manager ─────────────────────────────────────────────────────────
+  // Tracks per-conversation initial scroll state
+  const initialScrollDoneRef = useRef({}); // { [conversationId]: boolean }
+  const isUserInteractingRef = useRef(false);
+  const userInteractingTimerRef = useRef(null);
+  const isAtBottomRef = useRef(true);
+  const lastActionRef = useRef("initial_load"); // "initial_load" | "send" | "realtime_new" | "update"
+  const prevMessagesLengthRef = useRef(0);
+  const prevConversationIdRef = useRef(null);
+
+  const BOTTOM_THRESHOLD = 60; // px from bottom = "at bottom"
+
+  const checkIsAtBottom = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return true;
+    return el.scrollHeight - el.scrollTop - el.clientHeight < BOTTOM_THRESHOLD;
+  }, []);
+
+  // Instant scroll (no animation) — used only for initial load
+  const scrollToBottomInstant = useCallback(() => {
+    const el = scrollRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+    isAtBottomRef.current = true;
+    setShowScrollButton(false);
+    setNewMessagesCount(0);
+  }, []);
+
+  // Smooth scroll — used for send / new message button
+  const scrollToBottom = useCallback(() => {
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    setNewMessagesCount(0);
+    setShowScrollButton(false);
+  }, []);
+
   // Mensagens fixadas
   const pinnedMessages = messages.filter(m => m.is_pinned).sort((a, b) => 
     new Date(b.pinned_at || b.created_date) - new Date(a.pinned_at || a.created_date)
   );
   
   // Scroll para uma mensagem específica
-  const scrollToMessage = (messageId) => {
+  const scrollToMessage = useCallback((messageId) => {
     const element = messageRefs.current[messageId];
     if (element) {
       element.scrollIntoView({ behavior: "smooth", block: "center" });
       element.classList.add("bg-amber-100/50");
       setTimeout(() => element.classList.remove("bg-amber-100/50"), 2000);
     }
-  };
+  }, []);
 
-  // Scroll para o final
-  const scrollToBottom = () => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  // Detectar scroll para mostrar/esconder botão
-  const handleScroll = (e) => {
+  // Detectar interação do usuário com scroll
+  const handleScroll = useCallback((e) => {
     const target = e.target;
-    const isNearBottom = target.scrollHeight - target.scrollTop - target.clientHeight < 200;
-    setShowScrollButton(!isNearBottom);
-  };
+    const atBottom = target.scrollHeight - target.scrollTop - target.clientHeight < BOTTOM_THRESHOLD;
+    isAtBottomRef.current = atBottom;
+    setShowScrollButton(!atBottom);
+    if (atBottom) setNewMessagesCount(0);
 
-  // Auto scroll to bottom - usa um elemento âncora no final
+    // Mark user as interacting (suppress auto-scroll for 2s)
+    isUserInteractingRef.current = true;
+    clearTimeout(userInteractingTimerRef.current);
+    userInteractingTimerRef.current = setTimeout(() => {
+      isUserInteractingRef.current = false;
+    }, 2000);
+  }, []);
+
+  // ── Core scroll effect: conversation change vs messages update ──────────────
   useEffect(() => {
-    if (bottomRef.current && messages.length > 0) {
-      // Pequeno delay para garantir que o DOM foi renderizado
-      setTimeout(() => {
-        bottomRef.current?.scrollIntoView({ behavior: "auto" });
-      }, 100);
+    if (!messages.length) return;
+
+    const convId = conversation?.id;
+    const isNewConversation = convId !== prevConversationIdRef.current;
+
+    if (isNewConversation) {
+      // Reset state for new conversation
+      prevConversationIdRef.current = convId;
+      isUserInteractingRef.current = false;
+      isAtBottomRef.current = true;
+      setNewMessagesCount(0);
+      setShowScrollButton(false);
+      lastActionRef.current = "initial_load";
+      prevMessagesLengthRef.current = messages.length;
+
+      // Scroll to bottom once, after DOM renders (two rAF for safety)
+      if (!initialScrollDoneRef.current[convId]) {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            scrollToBottomInstant();
+            initialScrollDoneRef.current[convId] = true;
+          });
+        });
+      }
+      return;
     }
-  }, [messages, conversation?.id]);
+
+    // Same conversation — check what changed
+    const currentLength = messages.length;
+    const prevLength = prevMessagesLengthRef.current;
+    const messagesAdded = currentLength > prevLength;
+    prevMessagesLengthRef.current = currentLength;
+
+    if (!messagesAdded) {
+      // Messages were updated (reaction/pin/status/edit) — never scroll
+      lastActionRef.current = "update";
+      return;
+    }
+
+    // New messages arrived
+    const action = lastActionRef.current;
+
+    if (action === "send") {
+      // I just sent — always scroll to bottom
+      requestAnimationFrame(() => scrollToBottomInstant());
+      lastActionRef.current = "update";
+      return;
+    }
+
+    // Realtime message from someone else
+    if (isAtBottomRef.current && !isUserInteractingRef.current) {
+      // Stick-to-bottom: user is at bottom, auto-scroll
+      requestAnimationFrame(() => scrollToBottomInstant());
+    } else {
+      // User is scrolling above — show "new messages" indicator
+      setNewMessagesCount(n => n + (currentLength - prevLength));
+    }
+  }, [messages, conversation?.id, scrollToBottomInstant]);
 
   // Atalho Ctrl+F para abrir busca
   useEffect(() => {
