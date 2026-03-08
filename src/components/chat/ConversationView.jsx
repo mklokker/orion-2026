@@ -429,6 +429,7 @@ export default function ConversationView({
                     onImageClick={onImageClick}
                     onPin={onPinMessage}
                     onStatusTag={onStatusTag}
+                    onForward={onForward}
                     onScrollToMessage={scrollToMessage}
                     isAdmin={isAdmin}
                     onApproveTaskRequest={onApproveTaskRequest}
