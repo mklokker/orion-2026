@@ -935,6 +935,70 @@ export default function Chat() {
     setShowTaskApprovalModal(true);
   };
 
+  // Resolve conversation display name for forwarding metadata
+  const getConvName = (conv) => {
+    if (!conv) return "";
+    if (conv.type === "group") return conv.name || "Grupo";
+    if (conv.type === "self") return "Minhas Anotações";
+    const otherEmail = conv.participants?.find((p) => p !== currentUser?.email);
+    const otherUser = users.find((u) => u.email === otherEmail);
+    return otherUser?.display_name || otherUser?.full_name || otherEmail || "Conversa";
+  };
+
+  const handleForwardMessage = async (message, targetConversation) => {
+    if (!currentUser) return;
+    try {
+      // Origin conversation name (from currently selected)
+      const originConvName = getConvName(
+        conversations.find(c => c.id === message.conversation_id) || selectedConversation
+      );
+
+      // Build forward payload — preserves type and media fields
+      const forwardPayload = {
+        conversation_id: targetConversation.id,
+        sender_email: currentUser.email,
+        sender_name: currentUser.display_name || currentUser.full_name,
+        type: message.type,
+        content: message.content || "",
+        // Preserve file/image/gif fields
+        file_url: message.file_url || undefined,
+        file_name: message.file_name || undefined,
+        file_type: message.file_type || undefined,
+        file_size: message.file_size || undefined,
+        gif_url: message.gif_url || undefined,
+        // Forward metadata
+        forwarded_from_message_id: message.forwarded_from_message_id || message.id,
+        forwarded_from_conversation_id: message.forwarded_from_conversation_id || message.conversation_id,
+        forwarded_from_sender_email: message.forwarded_from_sender_email || message.sender_email,
+        forwarded_from_sender_name: message.forwarded_from_sender_name || message.sender_name,
+        forwarded_from_created_at: message.forwarded_from_created_at || message.created_date,
+        forwarded_from_conversation_name: message.forwarded_from_conversation_name || originConvName,
+        read_by: [{ email: currentUser.email, read_at: new Date().toISOString() }],
+      };
+
+      // Remove undefined keys
+      Object.keys(forwardPayload).forEach(k => forwardPayload[k] === undefined && delete forwardPayload[k]);
+
+      await ChatMessage.create(forwardPayload);
+
+      // Update target conversation last_message
+      const now = new Date().toISOString();
+      const preview = message.type === "text"
+        ? `↪ ${message.content}`
+        : `↪ ${message.type === "image" ? "📷 Imagem" : message.type === "gif" ? "🎞 GIF" : `📎 ${message.file_name || "Arquivo"}`}`;
+      await ChatConversation.update(targetConversation.id, {
+        last_message: preview,
+        last_message_at: now,
+        last_message_by: currentUser.email,
+      });
+
+      toast({ title: "✅ Mensagem encaminhada!" });
+    } catch (error) {
+      console.error("Erro ao encaminhar:", error);
+      toast({ title: "Erro ao encaminhar", variant: "destructive" });
+    }
+  };
+
   // Mobile: mostrar lista ou conversa (nunca os dois)
   // Desktop: split view lado a lado
   const showList = !isMobileView || !showConversation;
