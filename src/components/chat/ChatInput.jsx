@@ -365,7 +365,7 @@ export default function ChatInput({
 
   return (
     <div 
-      className={`border-t border-border bg-card p-2 md:p-3 transition-colors relative ${isDragging ? "bg-accent border-primary/40 border-2 border-dashed" : ""}`}
+      className={`ui-v2-composer border-t border-border bg-card p-2 md:p-3 transition-colors relative ${isDragging ? "bg-accent border-primary/40 border-2 border-dashed" : ""}`}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
