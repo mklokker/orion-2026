@@ -8,7 +8,8 @@ import {
   Search,
   FolderOpen,
   ListPlus,
-  ChevronDown
+  ChevronDown,
+  CheckSquare,
 } from "lucide-react";
 import MessageBubble from "./MessageBubble";
 import ChatInput from "./ChatInput";
@@ -20,6 +21,8 @@ import TaskRequestModal from "./TaskRequestModal";
 import MessageSearchModal from "./MessageSearchModal";
 import ChatBackground from "./ChatBackground";
 import StatusTagFilter from "./StatusTagFilter";
+import SelectionBar from "./SelectionBar";
+import ForwardMessageModal from "./ForwardMessageModal";
 import { groupMessagesByDateBR, getDateLabelBR } from "@/components/utils/dateUtils";
 import {
   DropdownMenu,
@@ -27,6 +30,21 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { base44 } from "@/api/base44Client";
+
+const ChatMessage = base44.entities.ChatMessage;
+const CHUNK_SIZE = 20;
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
 const getInitials = (name) => {
   if (!name) return "?";
