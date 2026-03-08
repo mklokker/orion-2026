@@ -55,6 +55,7 @@ export default function Chat() {
   const [hasMoreMessages, setHasMoreMessages] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [forwardingMessage, setForwardingMessage] = useState(null);
+  const [taskRequestStatuses, setTaskRequestStatuses] = useState({}); // { [requestId]: "pending"|"approved"|"rejected" }
 
   const typingTimeoutRef = useRef(null);
   const notifiedMessagesRef = useRef(new Set());
