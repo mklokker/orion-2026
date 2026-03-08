@@ -1184,42 +1184,43 @@ export default function Chat() {
         </div>
 
         {/* Conversa - Mobile (visível quando há conversa selecionada) */}
-        <div
-          className={`absolute inset-0 flex flex-col bg-card transition-transform duration-300 ${
-            showConversation ? "translate-x-0" : "translate-x-full"
-          }`}
-        >
-          <ConversationView
-            conversation={selectedConversation}
-            messages={messages}
-            currentUser={currentUser}
-            users={users}
-            onSend={handleSendMessage}
-            onTyping={handleTyping}
-            onBack={handleBack}
-            onOpenSettings={() => setShowSettings(true)}
-            onEditMessage={handleEditMessage}
-            onDeleteMessage={handleDeleteMessage}
-            onReaction={handleReaction}
-            onImageClick={setViewingImage}
-            onPinMessage={handlePinMessage}
-            onStatusTag={handleStatusTag}
-            onForward={setForwardingMessage}
-            typingUsers={typingUsers}
-            presenceMap={presenceMap}
-            isAdmin={isAdmin}
-            onApproveTaskRequest={handleApproveTaskRequest}
-            chatBgPrefs={chatBgPrefs}
-            onLoadMore={handleLoadMore}
-            hasMoreMessages={hasMoreMessages}
-            isLoadingMore={isLoadingMore}
-            autoFocusTrigger={selectedConversation?.id}
-            conversations={conversations}
-            taskRequestStatuses={taskRequestStatuses}
-            departments={departments}
-            onGoToFavorite={handleGoToFavorite}
-            onShowReactions={handleShowReactions}
-          />
+         <div
+           className={`absolute inset-0 flex flex-col bg-card transition-transform duration-300 ${
+             showConversation ? "translate-x-0" : "translate-x-full"
+           }`}
+         >
+           <ConversationView
+             conversation={selectedConversation}
+             messages={messages}
+             currentUser={currentUser}
+             users={users}
+             onSend={handleSendMessage}
+             onTyping={handleTyping}
+             onBack={handleBack}
+             onOpenSettings={() => setShowSettings(true)}
+             onEditMessage={handleEditMessage}
+             onDeleteMessage={handleDeleteMessage}
+             onReaction={handleReaction}
+             onImageClick={setViewingImage}
+             onPinMessage={handlePinMessage}
+             onStatusTag={handleStatusTag}
+             onForward={setForwardingMessage}
+             typingUsers={typingUsers}
+             presenceMap={presenceMap}
+             isAdmin={isAdmin}
+             onApproveTaskRequest={handleApproveTaskRequest}
+             chatBgPrefs={chatBgPrefs}
+             myPresence={myPresence}
+             onLoadMore={handleLoadMore}
+             hasMoreMessages={hasMoreMessages}
+             isLoadingMore={isLoadingMore}
+             autoFocusTrigger={selectedConversation?.id}
+             conversations={conversations}
+             taskRequestStatuses={taskRequestStatuses}
+             departments={departments}
+             onGoToFavorite={handleGoToFavorite}
+             onShowReactions={handleShowReactions}
+           />
         </div>
       </div>
 
