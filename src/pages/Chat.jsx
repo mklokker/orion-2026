@@ -1258,8 +1258,8 @@ export default function Chat() {
         currentUser={currentUser}
         presence={myPresence}
         onUpdate={() => {
+          // Reload presence data to pick up any changes
           loadPresenceData();
-          updateMyPresence();
         }}
         onBgUpdate={(bgData) => {
           setChatBgPrefs(prev => ({ ...prev, ...bgData }));
