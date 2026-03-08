@@ -510,8 +510,17 @@ function LayoutContent({ children, currentPageName }) {
       html.classList.remove("dark");
     }
     localStorage.setItem("orion_theme", currentTheme);
+    
     // Diagnostic log
-    console.log(`🎨 Theme changed: ${currentTheme}`, { dataTheme: html.getAttribute("data-theme"), darkClass: html.classList.contains("dark") });
+    const styles = getComputedStyle(html);
+    const primaryHSL = styles.getPropertyValue('--primary').trim();
+    const backgroundHSL = styles.getPropertyValue('--background').trim();
+    console.log(`🎨 Theme changed: ${currentTheme}`, {
+      dataTheme: html.getAttribute("data-theme"),
+      darkClass: html.classList.contains("dark"),
+      "--primary (HSL)": primaryHSL,
+      "--background (HSL)": backgroundHSL,
+    });
   }, [currentTheme]);
 
   const toggleTheme = () => {
