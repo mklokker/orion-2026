@@ -508,11 +508,11 @@ export default function ConversationView({
         </div>
       )}
 
-      {/* Messages - área com scroll próprio */}
+      {/* Messages - área com scroll próprio (com padding para não ficar sob input no mobile) */}
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        className="flex-1 min-h-0 overflow-y-auto overscroll-contain overflow-x-hidden w-full relative"
+        className="flex-1 min-h-0 overflow-y-auto overscroll-contain overflow-x-hidden w-full relative pb-2"
         style={{ isolation: "isolate" }}
       >
         {/* Chat background layer - absolute, não interfere no scroll */}
