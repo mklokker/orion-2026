@@ -676,7 +676,10 @@ export default function ConversationView({
               scrollToMessage(fav.message_id);
             }
           }
-          // Cross-conversation navigation is handled by pages/Chat via onGoToFavorite
+          // Cross-conversation navigation handled by parent
+          if (fav.conversation_id !== conversation?.id) {
+            onGoToFavorite?.(fav);
+          }
         }}
       />
 
