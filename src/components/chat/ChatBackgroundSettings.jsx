@@ -15,7 +15,7 @@ const MAX_FILE_SIZE = 3 * 1024 * 1024; // 3MB
  * ChatBackgroundSettings - GLOBAL background settings.
  * Reads/writes to UserPresence fields: chat_bg_type, chat_bg_value, chat_bg_opacity, chat_bg_blur, chat_bg_dim.
  */
-export default function ChatBackgroundSettings({ chatBgPrefs, onSave }) {
+export default function ChatBackgroundSettings({ chatBgPrefs, onSave, onOpenBubbleSettings }) {
   const [themeType, setThemeType] = useState(chatBgPrefs?.chat_bg_type || "default");
   const [themeValue, setThemeValue] = useState(chatBgPrefs?.chat_bg_value || "");
   const [themeOpacity, setThemeOpacity] = useState(chatBgPrefs?.chat_bg_opacity ?? 0.15);
