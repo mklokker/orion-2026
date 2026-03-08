@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { useFavorites } from "./useFavorites";
 import { useBubbleColors } from "./useBubbleColors";
+import { useReadLater } from "./useReadLater";
 import FavoritesModal from "./FavoritesModal";
 import ReadLaterPanel from "./ReadLaterPanel";
 import MessageBubble from "./MessageBubble";
@@ -109,6 +110,18 @@ export default function ConversationView({
 
   // ── Favorites ────────────────────────────────────────────────────────────────
   const { isFavorited, toggleFavorite, records: favRecords, loading: favLoading, refresh: refreshFavs } = useFavorites(currentUser?.email);
+
+  // ── Read Later ────────────────────────────────────────────────────────────────
+  const {
+    readLaterConversations,
+    readLaterMessages,
+    loading: readLaterLoading,
+    toggleConversationReadLater,
+    toggleMessageReadLater,
+    markConversationDone,
+    markMessageDone,
+    reloadData: reloadReadLater,
+  } = useReadLater(currentUser?.email);
 
   const getConvName = () => {
     if (!conversation) return "";
@@ -707,15 +720,33 @@ export default function ConversationView({
       />
 
       {/* Read Later Modal */}
-      {showReadLaterModal && (
-        <ReadLaterPanel
-          open={showReadLaterModal}
-          onClose={() => setShowReadLaterModal(false)}
-          currentConversationId={conversation?.id}
-          onNavigateToMessage={scrollToMessage}
-          users={users}
-        />
-      )}
+      <ReadLaterPanel
+        open={showReadLaterModal}
+        onClose={() => setShowReadLaterModal(false)}
+        readLaterConversations={readLaterConversations}
+        readLaterMessages={readLaterMessages}
+        conversations={conversations}
+        messages={messages}
+        onConversationClick={(convId) => {
+          // Navegar para conversa se estiver em outra
+          if (conversation?.id !== convId) {
+            // Pai precisa lidar com isso
+            setShowReadLaterModal(false);
+          } else {
+            setShowReadLaterModal(false);
+          }
+        }}
+        onMessageClick={(convId, msgId) => {
+          setShowReadLaterModal(false);
+          if (conversation?.id === convId) {
+            setTimeout(() => scrollToMessage(msgId), 100);
+          }
+        }}
+        onMarkConversationDone={markConversationDone}
+        onMarkMessageDone={markMessageDone}
+        onRemoveConversation={toggleConversationReadLater}
+        onRemoveMessage={toggleMessageReadLater}
+      />
 
       {/* Batch Delete Confirm */}
       <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
