@@ -451,6 +451,9 @@ export default function ConversationView({
           onDelete={() => setShowDeleteConfirm(true)}
           onForward={() => setShowBatchForward(true)}
           canDeleteAll={canDeleteSelected || isAdmin}
+          isAdmin={isAdmin}
+          taskRequestCount={selectedTaskRequestIds.length}
+          onBatchApprove={() => setShowBatchApprovalModal(true)}
         />
       )}
 
