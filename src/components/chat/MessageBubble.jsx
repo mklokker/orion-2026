@@ -128,6 +128,8 @@ export default function MessageBubble({
   onApproveTaskRequest,
   onStatusTag,
   onForward,
+  onFavorite,       // (message) => void
+  isFavorited = false,
   isAdmin = false,
   users = [],
   selectionMode = false,
