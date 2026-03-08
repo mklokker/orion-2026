@@ -435,13 +435,13 @@ export default function MessageBubble({
         )}
 
         {/* Message bubble */}
-         <div
-           className={`ui-v2-message-bubble relative px-3 md:px-4 py-2 md:py-3 rounded-2xl min-w-0 overflow-hidden ${
-             isOwn
-               ? "bg-primary text-primary-foreground rounded-tr-sm"
-               : "bg-card text-card-foreground rounded-tl-sm shadow-md border border-border/50"
-           }`}
-         >
+        <div
+          className={`relative px-3 md:px-4 py-2 md:py-3 rounded-2xl min-w-0 overflow-hidden ${
+            isOwn
+              ? "bg-primary text-primary-foreground rounded-tr-sm"
+              : "bg-card text-card-foreground rounded-tl-sm shadow-md border border-border/50"
+          }`}
+        >
           {renderContent()}
 
           {/* Status tag badge */}

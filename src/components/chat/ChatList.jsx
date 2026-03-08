@@ -128,7 +128,7 @@ export default function ChatList({
   });
 
   return (
-    <div className="flex flex-col h-full min-h-0 bg-card overflow-hidden ui-v2-header">
+    <div className="flex flex-col h-full min-h-0 bg-card overflow-hidden">
       {/* Header */}
       <div className="p-3 md:p-4 border-b border-border shrink-0">
         <div className="flex items-center justify-between mb-3">
@@ -190,11 +190,11 @@ export default function ChatList({
                 <div
                   key={conv.id}
                   onClick={() => onSelect(conv)}
-                  className={`ui-v2-conversation-item ${
+                  className={`flex items-center gap-2.5 md:gap-3 p-2.5 md:p-3 cursor-pointer transition-all rounded-xl group min-h-[60px] ${
                     isSelected 
-                      ? "active" 
-                      : ""
-                  } ${isPinned && !isSelected ? "ring-1 ring-amber-400/50" : ""}`}
+                      ? "bg-primary/10 ring-2 ring-primary/30" 
+                      : "hover:bg-accent active:bg-accent"
+                  } ${isPinned && !isSelected ? "bg-amber-500/10" : ""}`}
                 >
                   <div className="relative shrink-0">
                     <Avatar className="w-11 h-11 md:w-12 md:h-12">

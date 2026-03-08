@@ -54,8 +54,6 @@ import { useChatNotifications, useGlobalUnreadCount, setGlobalUnread } from "./c
 import { UserPresence } from "@/entities/UserPresence";
 import { NotificationProvider, useNotifications } from "./components/notifications/NotificationContext";
 import { useNotificationSync } from "./components/notifications/useNotificationSync";
-import { useUIv2Preview } from "./components/ui/useUIv2Preview";
-import { Zap } from "lucide-react";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { refetchOnWindowFocus: false, retry: 1 } },
@@ -234,8 +232,6 @@ function SidebarContent({
   onLogout,
   onNavClick,
   currentTheme,
-  isUIv2Enabled,
-  onToggleUIv2,
 }) {
   const themeLabels = { light: "Claro", dark: "Escuro", pastel: "Pastel", midnight: "Midnight", forest: "Forest" };
   const onGetThemeLabel = () => themeLabels[currentTheme] || "Claro";
@@ -306,37 +302,6 @@ function SidebarContent({
 
       {/* Footer */}
       <div className="border-t border-border p-2 shrink-0 space-y-1">
-        {/* UI V2 Toggle */}
-        {expanded ? (
-          <button
-            onClick={onToggleUIv2}
-            title="Alternar UI V2 (beta)"
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
-              isUIv2Enabled
-                ? "bg-primary/10 text-primary"
-                : "text-foreground hover:bg-accent"
-            }`}
-          >
-            <Zap className="w-4 h-4 shrink-0" />
-            <span className="truncate">UI V2 {isUIv2Enabled ? "✓" : ""}</span>
-          </button>
-        ) : (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <button
-                onClick={onToggleUIv2}
-                className={`w-full flex justify-center items-center py-2.5 rounded-lg transition-colors ${
-                  isUIv2Enabled ? "bg-primary/10 text-primary" : "text-foreground hover:bg-accent"
-                }`}
-                title="Alternar UI V2 (beta)"
-              >
-                <Zap className="w-4 h-4" />
-              </button>
-            </TooltipTrigger>
-            <TooltipContent side="right">UI V2 {isUIv2Enabled ? "ativo" : "inativo"}</TooltipContent>
-          </Tooltip>
-        )}
-
         {/* Theme Selector */}
           {expanded ? (
             <button
@@ -499,9 +464,6 @@ function LayoutContent({ children, currentPageName }) {
     requestNotificationPermission,
     restoreSoundPreference
   } = useNotifications();
-
-  // UI V2 Preview
-  const { isUIv2Enabled, toggleUIv2 } = useUIv2Preview();
 
   // Sync notifications with real-time updates
   useNotificationSync(user?.email, !!user);
@@ -678,8 +640,6 @@ function LayoutContent({ children, currentPageName }) {
     pinned: sidebarPinned,
     onTogglePin: togglePin,
     currentTheme,
-    isUIv2Enabled,
-    onToggleUIv2: toggleUIv2,
   };
 
   return (

@@ -332,7 +332,7 @@ export default function Dashboard() {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-          <Card className="border-0 shadow-md bg-primary text-primary-foreground ui-v2-card">
+          <Card className="border-0 shadow-md bg-primary text-primary-foreground">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium opacity-90 flex items-center gap-2 text-primary-foreground">
                 <FileText className="w-4 h-4" />
