@@ -446,10 +446,13 @@ export default function Chat() {
   };
 
   const fetchTaskRequestStatuses = async (msgs) => {
-    const idRegex = /`ID: ([a-zA-Z0-9_-]+)`/g;
+    // Collect all task_request_ids from messages (structured field first, then content parse)
+    const idRegex = /`ID:\s*([a-zA-Z0-9_-]+)`/g;
     const ids = new Set();
     for (const m of msgs) {
-      if (m.content?.includes("📝 **Solicitação de Criação de Tarefas/Serviços**")) {
+      if (m.task_request_id) {
+        ids.add(m.task_request_id);
+      } else if (m.content?.includes("📝 **Solicitação de Criação de Tarefas/Serviços**")) {
         let match;
         idRegex.lastIndex = 0;
         while ((match = idRegex.exec(m.content)) !== null) ids.add(match[1]);
@@ -457,15 +460,21 @@ export default function Chat() {
     }
     if (ids.size === 0) return;
     try {
-      // Fetch all task requests for this conversation and map by id
       const allRequests = await TaskRequest.list();
       const map = {};
       allRequests.forEach(req => {
-        if (ids.has(req.id)) map[req.id] = req.status;
+        if (ids.has(req.id)) {
+          map[req.id] = req.status;
+          // Also pre-populate the hook cache
+          invalidateTaskRequestCache(req.id, req.status);
+        }
       });
-      // For any ids not found, mark as "pending" so button shows
+      // For any ids not found in DB, mark as "pending" so button shows
       ids.forEach(id => {
-        if (!(id in map)) map[id] = "pending";
+        if (!(id in map)) {
+          map[id] = "pending";
+          invalidateTaskRequestCache(id, "pending");
+        }
       });
       setTaskRequestStatuses(prev => ({ ...prev, ...map }));
     } catch (_) {}
