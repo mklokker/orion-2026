@@ -1167,6 +1167,7 @@ export default function Chat() {
             autoFocusTrigger={selectedConversation?.id}
             conversations={conversations}
             taskRequestStatuses={taskRequestStatuses}
+            departments={departments}
           />
         </div>
       </div>
