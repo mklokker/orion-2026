@@ -464,6 +464,9 @@ export default function ConversationView({
             <DropdownMenuItem onClick={enterSelectionMode}>
               <CheckSquare className="w-4 h-4 mr-2" /> Selecionar mensagens
             </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => { refreshFavs(); setShowFavoritesModal(true); }}>
+              <Star className="w-4 h-4 mr-2 text-amber-400" /> Mensagens favoritas
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
