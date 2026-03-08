@@ -30,14 +30,12 @@ export default function ChatBackground({ chatBgPrefs }) {
     if (themeType === "default" || !themeValue) return null;
 
     const base = {
-      position: "sticky",
-      top: 0,
-      left: 0,
+      position: "absolute",
+      inset: 0,
       width: "100%",
       height: "100%",
       pointerEvents: "none",
       zIndex: 0,
-      marginBottom: "-100%", // collapse so it doesn't push content down
     };
 
     if (themeType === "solid") {
