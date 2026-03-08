@@ -22,7 +22,8 @@ import {
   FileCheck,
   XCircle,
   Forward,
-  Star
+  Star,
+  Bookmark
 } from "lucide-react";
 import StatusTagBadge from "./StatusTagBadge";
 import {
