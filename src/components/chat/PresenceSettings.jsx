@@ -15,7 +15,6 @@ import { format, addHours, addMinutes, isPast } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import ChatBackgroundSettings from "./ChatBackgroundSettings";
 import BubbleAppearanceModal from "./BubbleAppearanceModal";
-import { useState, useEffect } from "react";
 
 const statusOptions = [
   { value: "auto", label: "Automático", description: "Detectar automaticamente", icon: Zap, color: "text-blue-500" },
