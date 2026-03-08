@@ -93,7 +93,25 @@ export default function ConversationView({
   const [showFilesModal, setShowFilesModal] = useState(false);
   const [showTaskRequestModal, setShowTaskRequestModal] = useState(false);
   const [showSearchModal, setShowSearchModal] = useState(false);
+  const [showFavoritesModal, setShowFavoritesModal] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
+
+  // ── Favorites ────────────────────────────────────────────────────────────────
+  const { isFavorited, toggleFavorite, records: favRecords, loading: favLoading, refresh: refreshFavs } = useFavorites(currentUser?.email);
+
+  const getConvName = () => {
+    if (!conversation) return "";
+    if (conversation.type === "group") return conversation.name || "Grupo";
+    if (conversation.type === "self") return "Minhas Anotações";
+    const otherEmail = conversation.participants?.find(p => p !== currentUser?.email);
+    const otherUser = users.find(u => u.email === otherEmail);
+    return otherUser?.display_name || otherUser?.full_name || otherEmail || "Conversa";
+  };
+
+  const handleFavorite = async (message) => {
+    const convName = getConvName();
+    await toggleFavorite(message, convName);
+  };
 
   // ── Selection mode ─────────────────────────────────────────────────────────
   const [selectionMode, setSelectionMode] = useState(false);
