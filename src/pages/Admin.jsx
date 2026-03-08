@@ -16,6 +16,7 @@ import DepartmentViewEditModal from "../components/admin/DepartmentViewEditModal
 import ImportTasksModal from "../components/admin/ImportTasksModal";
 import AppearanceSettings from "../components/admin/AppearanceSettings";
 import BackupRestore from "../components/admin/BackupRestore";
+import BatchApprovalPanel from "../components/admin/BatchApprovalPanel";
 import {
   Dialog,
   DialogContent,
