@@ -46,10 +46,13 @@ export default function ChatList({
   onOpenPresenceSettings,
   onPinConversation,
   onRefresh,
-  isRefreshing = false
+  isRefreshing = false,
+  departments = [],
 }) {
   const [search, setSearch] = React.useState("");
+  const [showBatchApproval, setShowBatchApproval] = React.useState(false);
   const { toast } = useToast();
+  const isAdmin = currentUser?.role === "admin";
   
   const MAX_PINNED = 5;
   
