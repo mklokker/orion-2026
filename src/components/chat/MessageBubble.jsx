@@ -467,6 +467,9 @@ export default function MessageBubble({
                   <DropdownMenuItem onClick={() => { onReply?.(message); setMenuOpen(false); }}>
                     <Reply className="w-4 h-4 mr-2" /> Responder
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => { onForward?.(message); setMenuOpen(false); }}>
+                    <Forward className="w-4 h-4 mr-2" /> Encaminhar
+                  </DropdownMenuItem>
                   {message.type !== "system" && (
                     <>
                       {message.status_tag !== "feito" && (
