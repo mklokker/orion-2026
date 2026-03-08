@@ -1151,6 +1151,7 @@ export default function Chat() {
             isLoadingMore={isLoadingMore}
             autoFocusTrigger={selectedConversation?.id}
             conversations={conversations}
+            taskRequestStatuses={taskRequestStatuses}
           />
         </div>
       </div>
