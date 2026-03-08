@@ -260,6 +260,8 @@ export default function ConversationView({
   const groupedMessages = groupMessagesByDateBR(filteredMessages);
 
   const handleSend = async (msgData) => {
+    // Mark as "send" so scroll manager knows to auto-scroll after this message
+    lastActionRef.current = "send";
     await onSend({
       ...msgData,
       reply_to_id: replyingTo?.id,
