@@ -596,6 +596,22 @@ svg,
   border-color: hsl(var(--border)) !important;
 }
 
+/* UI V2 Modal Overlay with Backdrop Blur */
+:root.ui-v2 [role="dialog"] {
+  animation: v2-modal-in 280ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+:root.ui-v2 [data-radix-dialog-overlay],
+:root.ui-v2 [role="presentation"] ~ div[data-radix-dialog-overlay] {
+  backdrop-filter: blur(10px);
+  background-color: rgba(0, 0, 0, 0.45) !important;
+}
+
+:root.ui-v2.dark [data-radix-dialog-overlay],
+:root.ui-v2.dark [role="presentation"] ~ div[data-radix-dialog-overlay] {
+  background-color: rgba(0, 0, 0, 0.55) !important;
+}
+
 /* ========================================
    SHADOW ADJUSTMENTS PER COLOR-SCHEME
    ======================================== */
