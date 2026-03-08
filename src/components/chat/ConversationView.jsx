@@ -472,9 +472,10 @@ export default function ConversationView({
         </DropdownMenu>
       </div>
 
-      {/* Selection Bar (replaces normal header actions when in selection mode) */}
+      {/* Selection Bar (sticky no mobile, replaces normal header actions when in selection mode) */}
       {selectionMode && (
-        <SelectionBar
+        <div className="sticky top-0 md:relative z-40">
+          <SelectionBar
           count={selectedIds.size}
           onCancel={exitSelectionMode}
           onDelete={() => setShowDeleteConfirm(true)}
