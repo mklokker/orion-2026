@@ -23,6 +23,7 @@ import ChatBackground from "./ChatBackground";
 import StatusTagFilter from "./StatusTagFilter";
 import SelectionBar from "./SelectionBar";
 import ForwardMessageModal from "./ForwardMessageModal";
+import BatchApprovalFromSelectionModal from "./BatchApprovalFromSelectionModal";
 import { groupMessagesByDateBR, getDateLabelBR } from "@/components/utils/dateUtils";
 import {
   DropdownMenu,
