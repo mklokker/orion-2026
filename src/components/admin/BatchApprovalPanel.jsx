@@ -220,7 +220,12 @@ export default function BatchApprovalPanel({ currentUser, departments = [] }) {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value={null}>Sem departamento</SelectItem>
-              {departments.map(d => (
+              {[...departments].sort((a, b) => {
+                const ORDER = ["Registro","Conferencia","Certidão","ONR","Cadastro","Finalização","Arquivo","Atendimento","Administrativo"];
+                const ai = ORDER.findIndex(n => a.name?.toLowerCase() === n.toLowerCase());
+                const bi = ORDER.findIndex(n => b.name?.toLowerCase() === n.toLowerCase());
+                return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+              }).map(d => (
                 <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
               ))}
             </SelectContent>
