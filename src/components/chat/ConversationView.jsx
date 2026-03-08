@@ -368,13 +368,16 @@ export default function ConversationView({
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden w-full relative"
+        className="flex-1 min-h-0 overflow-y-auto overscroll-contain overflow-x-hidden w-full relative"
+        style={{ isolation: "isolate" }}
       >
-        {/* Chat background layer - GLOBAL prefs, fixed to viewport of scroll area */}
-        <ChatBackground chatBgPrefs={chatBgPrefs} />
+        {/* Chat background layer - absolute, não interfere no scroll */}
+        <div className="absolute inset-0 pointer-events-none z-0">
+          <ChatBackground chatBgPrefs={chatBgPrefs} />
+        </div>
 
         {/* Messages layer */}
-        <div className="relative z-[2] px-2 md:px-4 py-2 md:py-4">
+        <div className="relative z-10 px-2 md:px-4 py-2 md:py-4">
         {/* Load older messages */}
         {hasMoreMessages && (
           <div className="flex justify-center py-3">
