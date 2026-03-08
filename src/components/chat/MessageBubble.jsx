@@ -487,21 +487,27 @@ export default function MessageBubble({
 
         {/* Reactions */}
         {hasReactions && (
-          <div 
-            className={`flex gap-1 mt-1 ${isOwn ? "justify-end" : "justify-start"} cursor-pointer`}
-            onClick={() => onShowReactions?.(message)}
-          >
+          <div className={`flex gap-1 mt-1 ${isOwn ? "justify-end" : "justify-start"}`}>
             {Object.entries(reactions).map(([emoji, users]) => (
-              <button
-                key={emoji}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onReaction?.(message.id, emoji);
-                }}
-                className="flex items-center gap-1 px-2 py-0.5 bg-card rounded-full shadow-sm text-sm hover:bg-accent border border-border/50"
-              >
-                {emoji} <span className="text-xs text-muted-foreground">{users.length}</span>
-              </button>
+              <div key={emoji} className="flex items-center gap-1">
+                {/* Emoji button - toggle reaction */}
+                <button
+                  onClick={() => onReaction?.(message.id, emoji)}
+                  className="text-lg hover:scale-125 transition-transform"
+                  title="Clique para reagir"
+                >
+                  {emoji}
+                </button>
+                
+                {/* Count badge - open modal */}
+                <button
+                  onClick={() => onShowReactions?.(message)}
+                  className="px-1.5 py-0.5 text-xs text-muted-foreground bg-card rounded-full shadow-sm border border-border/50 hover:bg-accent cursor-pointer transition-colors"
+                  title="Ver quem reagiu"
+                >
+                  {users.length}
+                </button>
+              </div>
             ))}
           </div>
         )}
