@@ -398,6 +398,20 @@ function LayoutContent({ children, currentPageName }) {
   });
   const [hovered, setHovered] = React.useState(false);
   const [mobileOpen, setMobileOpen] = React.useState(false);
+  const collapseTimeoutRef = React.useRef(null);
+
+  const handleSidebarMouseEnter = () => {
+    if (collapseTimeoutRef.current) clearTimeout(collapseTimeoutRef.current);
+    setHovered(true);
+  };
+
+  const handleSidebarMouseLeave = () => {
+    if (!sidebarPinned) {
+      collapseTimeoutRef.current = setTimeout(() => {
+        setHovered(false);
+      }, 280);
+    }
+  };
 
   const expanded = sidebarPinned || hovered;
 
