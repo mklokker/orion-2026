@@ -209,7 +209,7 @@ export default function Admin() {
         </div>
 
         <Tabs defaultValue="departments" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-6">
+          <TabsList className="grid w-full grid-cols-5 mb-6">
             <TabsTrigger value="departments" className="gap-2">
               <Building2 className="w-4 h-4" />
               <span className="hidden sm:inline">Departamentos</span>
@@ -217,6 +217,10 @@ export default function Admin() {
             <TabsTrigger value="users" className="gap-2">
               <Users className="w-4 h-4" />
               <span className="hidden sm:inline">Usuários</span>
+            </TabsTrigger>
+            <TabsTrigger value="approvals" className="gap-2">
+              <ListChecks className="w-4 h-4" />
+              <span className="hidden sm:inline">Aprovações</span>
             </TabsTrigger>
             <TabsTrigger value="appearance" className="gap-2">
               <Palette className="w-4 h-4" />
