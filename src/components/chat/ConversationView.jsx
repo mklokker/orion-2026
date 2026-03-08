@@ -80,6 +80,7 @@ export default function ConversationView({
   hasMoreMessages = false,
   isLoadingMore = false,
   autoFocusTrigger,
+  conversations = [],
   }) {
   const scrollRef = useRef(null);
   const [replyingTo, setReplyingTo] = useState(null);
