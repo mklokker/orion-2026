@@ -124,6 +124,7 @@ export default function MessageBubble({
   onScrollToMessage,
   onApproveTaskRequest,
   onStatusTag,
+  onForward,
   isAdmin = false,
   users = []
 }) {
