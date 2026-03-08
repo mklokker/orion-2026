@@ -31,6 +31,7 @@ export default function PresenceSettings({ open, onClose, currentUser, presence,
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState("status");
   const [showBubbleModal, setShowBubbleModal] = useState(false);
+  const [showBubbleDebug, setShowBubbleDebug] = useState(false); // DEBUG: mostrar valores atuais
   
   // Notification settings
   const [notifyNewMessages, setNotifyNewMessages] = useState(presence?.notify_new_messages !== false);
@@ -403,6 +404,28 @@ export default function PresenceSettings({ open, onClose, currentUser, presence,
               }}
               onOpenBubbleSettings={() => setShowBubbleModal(true)}
             />
+            
+            {/* DEBUG: Mostrar valores atuais dos bubbles */}
+            <div className="border-t border-border pt-4 mt-4">
+              <button
+                onClick={() => setShowBubbleDebug(!showBubbleDebug)}
+                className="w-full text-xs text-muted-foreground hover:text-foreground text-left py-2 px-3 rounded-lg border border-dashed border-border hover:bg-muted/30 transition-colors"
+              >
+                {showBubbleDebug ? "▼" : "▶"} Debug: Valores atuais dos bubbles
+              </button>
+              {showBubbleDebug && (
+                <div className="mt-2 p-3 bg-muted/50 rounded-lg text-xs font-mono space-y-1 text-foreground/80 max-h-48 overflow-auto">
+                  <p>bubble_my_bg: <span className="text-primary font-semibold">{presence?.bubble_my_bg || "(vazio)"}</span></p>
+                  <p>bubble_my_text_mode: <span className="text-primary font-semibold">{presence?.bubble_my_text_mode || "(vazio)"}</span></p>
+                  <p>bubble_my_text_color: <span className="text-primary font-semibold">{presence?.bubble_my_text_color || "(vazio)"}</span></p>
+                  <p>bubble_other_bg: <span className="text-primary font-semibold">{presence?.bubble_other_bg || "(vazio)"}</span></p>
+                  <p>bubble_other_text_mode: <span className="text-primary font-semibold">{presence?.bubble_other_text_mode || "(vazio)"}</span></p>
+                  <p>bubble_other_text_color: <span className="text-primary font-semibold">{presence?.bubble_other_text_color || "(vazio)"}</span></p>
+                  <p>bubble_meta_color_mode: <span className="text-primary font-semibold">{presence?.bubble_meta_color_mode || "(vazio)"}</span></p>
+                  <p>bubble_meta_color: <span className="text-primary font-semibold">{presence?.bubble_meta_color || "(vazio)"}</span></p>
+                </div>
+              )}
+            </div>
           </TabsContent>
         </Tabs>
 
