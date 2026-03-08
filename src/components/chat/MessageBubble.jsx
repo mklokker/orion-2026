@@ -136,6 +136,7 @@ export default function MessageBubble({
   isSelected = false,
   onToggleSelect,
   taskRequestStatusOverride = null, // override from parent post-approval
+  onShowReactions,   // (message) => void
 }) {
   const [showActions, setShowActions] = React.useState(false);
   const [menuOpen, setMenuOpen] = React.useState(false);
@@ -486,11 +487,17 @@ export default function MessageBubble({
 
         {/* Reactions */}
         {hasReactions && (
-          <div className={`flex gap-1 mt-1 ${isOwn ? "justify-end" : "justify-start"}`}>
+          <div 
+            className={`flex gap-1 mt-1 ${isOwn ? "justify-end" : "justify-start"} cursor-pointer`}
+            onClick={() => onShowReactions?.(message)}
+          >
             {Object.entries(reactions).map(([emoji, users]) => (
               <button
                 key={emoji}
-                onClick={() => onReaction?.(message.id, emoji)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onReaction?.(message.id, emoji);
+                }}
                 className="flex items-center gap-1 px-2 py-0.5 bg-card rounded-full shadow-sm text-sm hover:bg-accent border border-border/50"
               >
                 {emoji} <span className="text-xs text-muted-foreground">{users.length}</span>
