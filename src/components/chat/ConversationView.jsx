@@ -83,6 +83,7 @@ export default function ConversationView({
   autoFocusTrigger,
   conversations = [],
   taskRequestStatuses = {},
+  departments = [],
   }) {
   const scrollRef = useRef(null);
   const [replyingTo, setReplyingTo] = useState(null);
