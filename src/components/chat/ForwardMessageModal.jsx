@@ -91,10 +91,18 @@ export default function ForwardMessageModal({
         {/* Preview da mensagem a encaminhar */}
         {message && (
           <div className="mx-4 mb-3 p-3 rounded-lg bg-muted border border-border/50 text-sm">
-            <p className="text-xs text-muted-foreground mb-0.5 font-medium">
-              De: {message.forwarded_from_sender_name || message.sender_name}
-            </p>
-            <p className="truncate text-foreground">{contentPreview()}</p>
+            {isBatch && Array.isArray(message) ? (
+              <p className="text-xs text-muted-foreground">
+                {message.length} mensagem{message.length !== 1 ? "s" : ""} selecionada{message.length !== 1 ? "s" : ""}
+              </p>
+            ) : (
+              <>
+                <p className="text-xs text-muted-foreground mb-0.5 font-medium">
+                  De: {message?.forwarded_from_sender_name || message?.sender_name}
+                </p>
+                <p className="truncate text-foreground">{contentPreview()}</p>
+              </>
+            )}
           </div>
         )}
 
