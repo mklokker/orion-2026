@@ -6,118 +6,26 @@ import { Progress } from "@/components/ui/progress";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import {
   CheckCircle2, XCircle, Clock, AlertTriangle, RefreshCw,
-  ListChecks, ChevronDown, ChevronUp, User, Calendar, Layers
+  ListChecks, ChevronDown, ChevronUp, User, Calendar, Layers, SkipForward
 } from "lucide-react";
 import { format } from "date-fns";
+import { approveRequestWithValidation } from "@/components/chat/approvalUtils";
 
 const TaskRequest = base44.entities.TaskRequest;
-const Task = base44.entities.Task;
-const Service = base44.entities.Service;
-const TaskInteraction = base44.entities.TaskInteraction;
-const ServiceInteraction = base44.entities.ServiceInteraction;
-const ChatMessage = base44.entities.ChatMessage;
-const ChatConversation = base44.entities.ChatConversation;
 
 const CHUNK_SIZE = 8;
 const DELAY_MS = 150;
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
-// ── Process a single TaskRequest (approve all items) ──────────────────────────
-async function approveRequest(request, departmentId, currentUser) {
-  const items = request.items || [];
-  let created = 0;
-  const errors = [];
-
-  for (const item of items) {
-    try {
-      if (item.type === "task") {
-        const task = await Task.create({
-          protocol: item.identifier,
-          description: item.description || `Tarefa ${item.identifier}`,
-          end_date: item.end_date,
-          priority: "P3",
-          assigned_to: request.requester_email,
-          department_id: departmentId || undefined,
-          status: "Pendente",
-        });
-        await TaskInteraction.create({
-          task_id: task.id,
-          interaction_type: "created",
-          message: `Tarefa criada via aprovação em lote por ${currentUser.display_name || currentUser.full_name || currentUser.email}`,
-          user_email: currentUser.email,
-          user_name: currentUser.display_name || currentUser.full_name || currentUser.email,
-        });
-      } else {
-        const svc = await Service.create({
-          service_name: item.identifier,
-          description: item.description || `Serviço ${item.identifier}`,
-          end_date: item.end_date,
-          priority: "P3",
-          assigned_to: request.requester_email,
-          department_id: departmentId || undefined,
-          status: "Em Execução",
-        });
-        await ServiceInteraction.create({
-          service_id: svc.id,
-          interaction_type: "created",
-          message: `Serviço criado via aprovação em lote por ${currentUser.display_name || currentUser.full_name || currentUser.email}`,
-          user_email: currentUser.email,
-          user_name: currentUser.display_name || currentUser.full_name || currentUser.email,
-        });
-      }
-      created++;
-    } catch (err) {
-      errors.push(`${item.identifier}: ${err.message || "erro"}`);
-    }
-  }
-
-  // Update request status
-  await TaskRequest.update(request.id, {
-    status: "approved",
-    reviewed_by: currentUser.email,
-    reviewed_at: new Date().toISOString(),
-  });
-
-  // Post chat message if conversation exists
-  if (request.conversation_id) {
-    try {
-      const approverName = currentUser.display_name || currentUser.full_name || currentUser.email;
-      const taskItems = items.filter(i => i.type === "task");
-      const svcItems = items.filter(i => i.type === "service");
-      let summary = `✅ **Solicitação aprovada** por ${approverName}\n\n`;
-      if (taskItems.length) summary += `📋 **${taskItems.length} Tarefa(s)** criada(s)\n`;
-      if (svcItems.length) summary += `🔧 **${svcItems.length} Serviço(s)** criado(s)\n`;
-      if (errors.length) summary += `\n⚠️ ${errors.length} item(s) com erro.`;
-
-      await ChatMessage.create({
-        conversation_id: request.conversation_id,
-        sender_email: currentUser.email,
-        sender_name: approverName,
-        content: summary,
-        type: "text",
-        read_by: [{ email: currentUser.email, read_at: new Date().toISOString() }],
-      });
-
-      await ChatConversation.update(request.conversation_id, {
-        last_message: `✅ Solicitação aprovada por ${approverName}`,
-        last_message_at: new Date().toISOString(),
-        last_message_by: currentUser.email,
-      });
-    } catch (_) { /* silent – chat notification is non-critical */ }
-  }
-
-  return { created, errors };
-}
-
-// ── Result badge per item ────────────────────────────────────────────────────
+// ── Status icon ────────────────────────────────────────────────────────────
 function StatusIcon({ status }) {
   if (status === "success")     return <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />;
-  if (status === "skipped")     return <Clock className="w-4 h-4 text-yellow-500 shrink-0" />;
-  if (status === "failed")      return <XCircle className="w-4 h-4 text-red-500 shrink-0" />;
+  if (status === "skipped")     return <SkipForward  className="w-4 h-4 text-yellow-500 shrink-0" />;
+  if (status === "failed")      return <XCircle      className="w-4 h-4 text-red-500 shrink-0" />;
   if (status === "processing")  return <div className="w-4 h-4 rounded-full border-2 border-primary border-t-transparent animate-spin shrink-0" />;
   return <Clock className="w-4 h-4 text-muted-foreground shrink-0" />;
 }
