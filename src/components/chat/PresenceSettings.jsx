@@ -29,6 +29,7 @@ export default function PresenceSettings({ open, onClose, currentUser, presence,
   const [statusMessage, setStatusMessage] = useState(presence?.status_message || "");
   const [saving, setSaving] = useState(false);
   const [activeTab, setActiveTab] = useState("status");
+  const [showBubbleModal, setShowBubbleModal] = useState(false);
   
   // Notification settings
   const [notifyNewMessages, setNotifyNewMessages] = useState(presence?.notify_new_messages !== false);
