@@ -572,6 +572,10 @@ export default function MessageBubble({
                     <Bookmark className={`w-4 h-4 mr-2 ${isReadLater ? "fill-current" : ""}`} />
                     {isReadLater ? "Remover de ler depois" : "Ler depois"}
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => { onReadLater?.(message); setMenuOpen(false); }}>
+                    <Bookmark className={`w-4 h-4 mr-2 ${isReadLater ? "fill-current" : ""}`} />
+                    {isReadLater ? "Remover de ler depois" : "Ler depois"}
+                  </DropdownMenuItem>
                   {message.type !== "system" && (
                     <>
                       {message.status_tag !== "feito" && (
