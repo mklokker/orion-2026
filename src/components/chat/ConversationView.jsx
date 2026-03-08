@@ -5,11 +5,8 @@ import {
   ArrowLeft, 
   MoreVertical, 
   Users, 
-  Phone,
-  Video,
   Search,
   FolderOpen,
-  ArrowDown,
   ListPlus,
   ChevronDown
 } from "lucide-react";
