@@ -597,6 +597,48 @@ export default function ConversationView({
         conversation={conversation}
         onNavigateToMessage={scrollToMessage}
       />
+
+      {/* Batch Delete Confirm */}
+      <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir {selectedIds.size} mensagem{selectedIds.size !== 1 ? "s" : ""}?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação não pode ser desfeita. As mensagens serão marcadas como excluídas para todos.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={batchProcessing}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleBatchDelete}
+              disabled={batchProcessing}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {batchProcessing ? "Excluindo..." : "Excluir"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Batch Forward Modal */}
+      <ForwardMessageModal
+        open={showBatchForward}
+        onClose={() => setShowBatchForward(false)}
+        message={selectedMessagesOrdered}
+        conversations={[]}
+        users={users}
+        currentUser={currentUser}
+        onForward={onForward ? async (msgs, target) => {
+          setBatchProcessing(true);
+          for (const m of (Array.isArray(msgs) ? msgs : [msgs])) {
+            await onForward(m, target);
+          }
+          setBatchProcessing(false);
+          setShowBatchForward(false);
+          exitSelectionMode();
+        } : undefined}
+        isBatch={true}
+      />
     </div>
   );
 }
