@@ -25,10 +25,10 @@ Deno.serve(async (req) => {
     return Response.json({ error: 'Backup file not available' }, { status: 400 });
   }
 
-  // Gera signed URL com 10 minutos de expiração
+  // Gera signed URL com 10 minutos de expiração via integração Core
   const result = await base44.asServiceRole.integrations.Core.CreateFileSignedUrl({
     file_uri: metadata.file_uri,
-    expires_in: 600, // 10 minutos
+    expires_in: 600,
   });
 
   // Registra que este backup foi utilizado para download
