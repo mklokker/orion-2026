@@ -77,18 +77,16 @@ export default function ChatBackground({ chatBgPrefs }) {
         )}
       </div>
 
-      {/* Dim overlay for readability - also sticky */}
+      {/* Dim overlay for readability */}
       {themeDim && themeType !== "default" && themeValue && (
         <div
           style={{
-            position: "sticky",
-            top: 0,
-            left: 0,
+            position: "absolute",
+            inset: 0,
             width: "100%",
             height: "100%",
             pointerEvents: "none",
             zIndex: 1,
-            marginBottom: "-100%",
             backgroundColor: "hsl(var(--background))",
             opacity: themeType === "image" ? 0.5 : 0.3,
           }}
