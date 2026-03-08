@@ -200,10 +200,13 @@ export default function ReadLaterPanel({
           {readLaterMessages.map((record) => {
             const msg = getMessageData(record.message_id);
             const conv = getConversationData(record.conversation_id);
-            if (!msg || !conv) return null;
+            if (!msg || !conv) {
+              console.warn(`ReadLaterPanel: mensagem ${record.message_id} ou conversa ${record.conversation_id} não encontrada`);
+              return null;
+            }
 
             const isSelected = selectedIds.has(record.id);
-            const preview = msg.text?.substring(0, 80) || "(mensagem sem texto)";
+            const preview = (msg.content || msg.text || "")?.substring(0, 80) || "(mensagem sem texto)";
 
             return (
               <motion.div
