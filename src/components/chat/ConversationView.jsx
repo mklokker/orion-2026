@@ -96,6 +96,7 @@ export default function ConversationView({
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showBatchForward, setShowBatchForward] = useState(false);
+  const [showBatchApprovalModal, setShowBatchApprovalModal] = useState(false);
   const [batchProcessing, setBatchProcessing] = useState(false);
 
   const enterSelectionMode = () => { setSelectionMode(true); setSelectedIds(new Set()); };
