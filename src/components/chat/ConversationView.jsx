@@ -599,8 +599,8 @@ export default function ConversationView({
 
         {/* Âncora para scroll automático */}
         <div ref={bottomRef} />
-        </div>
-      </div>
+        </div> {/* fecha Messages layer */}
+      </div> {/* fecha Messages scroll container */}
 
       {/* Botão scroll para baixo / novas mensagens */}
       {showScrollButton && (
