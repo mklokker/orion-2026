@@ -627,7 +627,7 @@ export default function ConversationView({
           open={showBatchForward}
           onClose={() => { setShowBatchForward(false); }}
           message={selectedMessagesOrdered}
-          conversations={[]}
+          conversations={conversations}
           users={users}
           currentUser={currentUser}
           onForward={async (msgs, target) => {
