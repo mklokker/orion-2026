@@ -1165,6 +1165,17 @@ export default function Chat() {
         }}
       />
 
+      {/* Forward Message Modal */}
+      <ForwardMessageModal
+        open={!!forwardingMessage}
+        onClose={() => setForwardingMessage(null)}
+        message={forwardingMessage}
+        conversations={conversations}
+        users={users}
+        currentUser={currentUser}
+        onForward={handleForwardMessage}
+      />
+
       {/* Banner para solicitar permissão de áudio */}
       <AudioPermissionBanner />
 
