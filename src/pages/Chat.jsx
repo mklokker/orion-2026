@@ -21,6 +21,7 @@ import ForwardMessageModal from "@/components/chat/ForwardMessageModal";
 import { useToast } from "@/components/ui/use-toast";
 import { playNotificationSound } from "@/components/chat/NotificationSounds";
 import { Department } from "@/entities/Department";
+import { TaskRequest } from "@/entities/TaskRequest";
 import { setGlobalUnread } from "@/components/chat/useChatNotifications";
 import { base44 } from "@/api/base44Client";
 import {
