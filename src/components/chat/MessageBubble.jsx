@@ -127,11 +127,24 @@ export default function MessageBubble({
   onStatusTag,
   onForward,
   isAdmin = false,
-  users = []
+  users = [],
+  selectionMode = false,
+  isSelected = false,
+  onToggleSelect,
 }) {
   const [showActions, setShowActions] = React.useState(false);
   const [menuOpen, setMenuOpen] = React.useState(false);
   const [emojiOpen, setEmojiOpen] = React.useState(false);
+
+  // Long-press to enter selection on mobile (fires onToggleSelect which enables selection)
+  const longPressTimer = useRef(null);
+  const handleTouchStart = () => {
+    if (selectionMode) return;
+    longPressTimer.current = setTimeout(() => {
+      onToggleSelect?.(message.id);
+    }, 500);
+  };
+  const handleTouchEnd = () => clearTimeout(longPressTimer.current);
   
   // Mantém ações visíveis enquanto menu ou emoji estiver aberto
   const keepActionsVisible = menuOpen || emojiOpen;
