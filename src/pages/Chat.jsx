@@ -432,11 +432,40 @@ export default function Chat() {
 
       // Persist to IndexedDB
       setCachedMessages(conversationId, msgs);
+
+      // Fetch TaskRequest statuses for any request messages
+      fetchTaskRequestStatuses(msgs);
+
       return msgs;
     } catch (error) {
       console.error("Erro ao carregar mensagens:", error);
       return [];
     }
+  };
+
+  const fetchTaskRequestStatuses = async (msgs) => {
+    const idRegex = /`ID: ([a-zA-Z0-9_-]+)`/g;
+    const ids = new Set();
+    for (const m of msgs) {
+      if (m.content?.includes("📝 **Solicitação de Criação de Tarefas/Serviços**")) {
+        let match;
+        idRegex.lastIndex = 0;
+        while ((match = idRegex.exec(m.content)) !== null) ids.add(match[1]);
+      }
+    }
+    if (ids.size === 0) return;
+    try {
+      const TaskRequest = base44.entities.TaskRequest;
+      const results = await Promise.allSettled(
+        [...ids].map(id => TaskRequest.filter({ id }))
+      );
+      const map = {};
+      results.forEach((r, i) => {
+        const id = [...ids][i];
+        if (r.status === "fulfilled" && r.value?.[0]) map[id] = r.value[0].status;
+      });
+      setTaskRequestStatuses(prev => ({ ...prev, ...map }));
+    } catch (_) {}
   };
 
   const sendNotification = (title, body, senderEmail, conversationId) => {
