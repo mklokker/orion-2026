@@ -645,6 +645,8 @@ function LayoutContent({ children, currentPageName }) {
     pinned: sidebarPinned,
     onTogglePin: togglePin,
     currentTheme,
+    isUIv2Enabled,
+    onToggleUIv2: toggleUIv2,
   };
 
   return (
