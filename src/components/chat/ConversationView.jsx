@@ -643,6 +643,21 @@ export default function ConversationView({
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* Batch Approval from Selection Modal */}
+      {showBatchApprovalModal && (
+        <BatchApprovalFromSelectionModal
+          open={showBatchApprovalModal}
+          onClose={() => setShowBatchApprovalModal(false)}
+          taskRequestIds={selectedTaskRequestIds}
+          currentUser={currentUser}
+          departments={[]}
+          onApproved={() => {
+            setShowBatchApprovalModal(false);
+            exitSelectionMode();
+          }}
+        />
+      )}
+
       {/* Batch Forward Modal — usa o onForward do pages/Chat mas iterando todas as msgs */}
       {showBatchForward && (
         <ForwardMessageModal
