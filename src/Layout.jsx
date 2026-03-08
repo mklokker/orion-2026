@@ -54,6 +54,7 @@ import { useChatNotifications, useGlobalUnreadCount, setGlobalUnread } from "./c
 import { UserPresence } from "@/entities/UserPresence";
 import { NotificationProvider, useNotifications } from "./components/notifications/NotificationContext";
 import { useNotificationSync } from "./components/notifications/useNotificationSync";
+import ThemeDebugger from "./components/debug/ThemeDebugger";
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { refetchOnWindowFocus: false, retry: 1 } },
