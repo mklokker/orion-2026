@@ -224,6 +224,7 @@ export default function MessageBubble({
       const gifSrc = message.gif_url || message.content;
       return (
         <>
+          {forwardHeader}
           {replyPreview}
           <GifMessage src={gifSrc} isOwn={isOwn} />
         </>
@@ -234,6 +235,7 @@ export default function MessageBubble({
     if (isImage && message.file_url) {
       return (
         <>
+          {forwardHeader}
           {replyPreview}
           <img
             src={message.file_url}
@@ -251,6 +253,7 @@ export default function MessageBubble({
     if (message.type === "file" && message.file_url) {
       return (
         <>
+          {forwardHeader}
           {replyPreview}
           <div className="flex flex-col gap-2">
             <a
