@@ -336,7 +336,7 @@ export default function MessageBubble({
         {urls.length > 0 && <LinkPreview url={urls[0]} isOwn={isOwn} />}
         
         {/* Botão de aprovar para admins em solicitações de tarefas pendentes */}
-        {isTaskRequest && isAdmin && !isOwn && taskRequestId && taskRequestStatus !== "approved" && taskRequestStatus !== "rejected" && (
+        {isTaskRequest && isAdmin && taskRequestId && taskRequestStatus !== "approved" && taskRequestStatus !== "rejected" && (
           <Button
             onClick={() => onApproveTaskRequest?.(taskRequestId)}
             className="mt-3 w-full gap-2"
