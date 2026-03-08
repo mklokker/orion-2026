@@ -15,6 +15,7 @@ import { format, addHours, addMinutes, isPast } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import ChatBackgroundSettings from "./ChatBackgroundSettings";
 import BubbleAppearanceModal from "./BubbleAppearanceModal";
+import { useState, useEffect } from "react";
 
 const statusOptions = [
   { value: "auto", label: "Automático", description: "Detectar automaticamente", icon: Zap, color: "text-blue-500" },
@@ -420,32 +421,47 @@ export default function PresenceSettings({ open, onClose, currentUser, presence,
         initialData={presence}
         onSave={async (bubbleData) => {
           if (!presence?.id) {
-            console.error("Erro: Nenhum UserPresence id disponível");
+            console.error("[BubbleAppearance] ❌ Erro: Nenhum UserPresence id disponível");
+            toast({ 
+              title: "Erro ao salvar", 
+              description: "Presença não encontrada", 
+              variant: "destructive" 
+            });
             return;
           }
 
           try {
-            // Log what we're saving
-            console.log("[BubbleAppearance] Salvando cores:", bubbleData);
+            console.log("[BubbleAppearance] 📤 Payload sendo salvo:", bubbleData);
 
             // Save to database
             await UserPresence.update(presence.id, bubbleData);
-            console.log("[BubbleAppearance] Salvo com sucesso!");
+            console.log("[BubbleAppearance] ✅ Atualização bem-sucedida no BD");
 
-            // Verify persistence by reloading
+            // Verify persistence by reloading — obrigatório
             const updated = await UserPresence.filter({ user_email: currentUser?.email });
             if (updated.length > 0) {
-              console.log("[BubbleAppearance] Verificação - dados persistidos:", {
-                bubble_my_bg: updated[0].bubble_my_bg,
-                bubble_other_bg: updated[0].bubble_other_bg,
+              const record = updated[0];
+              console.log("[BubbleAppearance] 🔍 VERIFICAÇÃO DE PERSISTÊNCIA:", {
+                bubble_my_bg: record.bubble_my_bg,
+                bubble_my_text_mode: record.bubble_my_text_mode,
+                bubble_my_text_color: record.bubble_my_text_color,
+                bubble_other_bg: record.bubble_other_bg,
+                bubble_other_text_mode: record.bubble_other_text_mode,
+                bubble_other_text_color: record.bubble_other_text_color,
+                bubble_meta_mode: record.bubble_meta_mode,
+                bubble_meta_color: record.bubble_meta_color,
               });
+              
+              // Atualizar estado local imediatamente — CRÍTICO para aplicar cores na hora
+              onUpdate?.();
+            } else {
+              console.warn("[BubbleAppearance] ⚠️ Registro não encontrado após salvar");
             }
 
             toast({ title: "✅ Cores salvas com sucesso!", description: "As mudanças foram aplicadas." });
-            onUpdate?.();
             setShowBubbleModal(false);
           } catch (error) {
-            console.error("[BubbleAppearance] Erro ao salvar:", error);
+            console.error("[BubbleAppearance] ❌ Erro ao salvar:", error);
             toast({ 
               title: "❌ Erro ao salvar", 
               description: error?.message || "Tente novamente", 
