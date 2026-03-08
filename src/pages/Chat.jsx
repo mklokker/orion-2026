@@ -54,6 +54,7 @@ export default function Chat() {
   const [chatBgPrefs, setChatBgPrefs] = useState(null);
   const [hasMoreMessages, setHasMoreMessages] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [forwardingMessage, setForwardingMessage] = useState(null);
 
   const typingTimeoutRef = useRef(null);
   const notifiedMessagesRef = useRef(new Set());
