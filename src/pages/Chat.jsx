@@ -1139,6 +1139,7 @@ export default function Chat() {
             taskRequestStatuses={taskRequestStatuses}
             departments={departments}
             onGoToFavorite={handleGoToFavorite}
+            onShowReactions={handleShowReactions}
           />
         </div>
       </div>
@@ -1204,6 +1205,7 @@ export default function Chat() {
             taskRequestStatuses={taskRequestStatuses}
             departments={departments}
             onGoToFavorite={handleGoToFavorite}
+            onShowReactions={handleShowReactions}
           />
         </div>
       </div>
