@@ -288,6 +288,112 @@ svg,
 }
 
 /* ========================================
+   ORION UI V2 — DESIGN TOKENS & STYLES
+   Light + Dark only
+   ======================================== */
+
+:root.ui-v2 {
+  /* ── Colors (Light) ── */
+  --v2-primary: #4F46E5;
+  --v2-primary-light: #6366F1;
+  --v2-primary-dark: #4338CA;
+  --v2-accent: #06B6D4;
+  --v2-success: #10B981;
+  --v2-warning: #F59E0B;
+  --v2-error: #EF4444;
+  --v2-bg-primary: #FFFFFF;
+  --v2-bg-secondary: #F8FAFC;
+  --v2-bg-tertiary: #F1F5F9;
+  --v2-text-primary: #0F172A;
+  --v2-text-secondary: #475569;
+  --v2-text-tertiary: #94A3B8;
+  --v2-border: #E2E8F0;
+  --v2-shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
+  --v2-shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.1), 0 2px 4px -2px rgba(15, 23, 42, 0.1);
+  --v2-shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.1), 0 4px 6px -4px rgba(15, 23, 42, 0.1);
+  --v2-radius-md: 10px;
+  --v2-radius-lg: 14px;
+}
+
+:root.ui-v2.dark {
+  /* ── Colors (Dark) ── */
+  --v2-primary: #818CF8;
+  --v2-primary-dark: #6366F1;
+  --v2-accent: #06B6D4;
+  --v2-success: #10B981;
+  --v2-warning: #F59E0B;
+  --v2-error: #F87171;
+  --v2-bg-primary: #0F172A;
+  --v2-bg-secondary: #1E293B;
+  --v2-bg-tertiary: #334155;
+  --v2-text-primary: #F8FAFC;
+  --v2-text-secondary: #CBD5E1;
+  --v2-text-tertiary: #94A3B8;
+  --v2-border: #334155;
+  --v2-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+  --v2-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
+  --v2-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+}
+
+:root.ui-v2 .ui-v2-card {
+  background-color: var(--v2-bg-primary);
+  border: 1px solid var(--v2-border);
+  border-radius: var(--v2-radius-lg);
+  box-shadow: var(--v2-shadow-sm);
+  transition: all 250ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+:root.ui-v2 .ui-v2-card:hover {
+  box-shadow: var(--v2-shadow-md);
+  transform: translateY(-2px);
+  border-color: var(--v2-primary);
+}
+
+:root.ui-v2 .ui-v2-button {
+  border-radius: var(--v2-radius-md);
+  font-weight: 600;
+  transition: all 200ms cubic-bezier(0.22, 1, 0.36, 1);
+  box-shadow: var(--v2-shadow-sm);
+}
+
+:root.ui-v2 .ui-v2-button:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--v2-shadow-md);
+}
+
+:root.ui-v2 .ui-v2-modal {
+  animation: v2-scale-in 300ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes v2-scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+:root.ui-v2 .ui-v2-dropdown {
+  border-radius: var(--v2-radius-lg);
+  box-shadow: var(--v2-shadow-lg);
+  animation: v2-slide-in 200ms ease-out;
+}
+
+@keyframes v2-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ========================================
    DARK THEME TABLE / POPOVER FIXES
    ======================================== */
 
