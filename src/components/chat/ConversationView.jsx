@@ -560,16 +560,18 @@ export default function ConversationView({
         </button>
       )}
 
-      {/* Input - fixo no rodapé */}
-      <ChatInput
-        onSend={handleSend}
-        onTyping={onTyping}
-        replyingTo={replyingTo}
-        onCancelReply={() => setReplyingTo(null)}
-        participants={conversation?.participants || []}
-        allUsers={users}
-        autoFocusTrigger={autoFocusTrigger}
-      />
+      {/* Input - fixo no rodapé (oculto em modo seleção) */}
+      {!selectionMode && (
+        <ChatInput
+          onSend={handleSend}
+          onTyping={onTyping}
+          replyingTo={replyingTo}
+          onCancelReply={() => setReplyingTo(null)}
+          participants={conversation?.participants || []}
+          allUsers={users}
+          autoFocusTrigger={autoFocusTrigger}
+        />
+      )}
 
       {/* Files Modal */}
       <ConversationFilesModal
