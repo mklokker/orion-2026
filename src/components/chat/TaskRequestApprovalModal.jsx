@@ -62,8 +62,9 @@ export default function TaskRequestApprovalModal({
   const loadRequest = async () => {
     setLoading(true);
     try {
-      const rs = await TaskRequest.filter({ id: requestId });
-      if (rs.length > 0) setRequest(rs[0]);
+      const all = await TaskRequest.list();
+      const found = all.find(r => r.id === requestId);
+      if (found) setRequest(found);
     } catch (e) {
       console.error("Erro ao carregar solicitação:", e);
     }
