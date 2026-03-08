@@ -1130,6 +1130,7 @@ export default function Chat() {
             conversations={conversations}
             taskRequestStatuses={taskRequestStatuses}
             departments={departments}
+            onGoToFavorite={handleGoToFavorite}
           />
         </div>
       </div>
