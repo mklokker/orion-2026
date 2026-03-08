@@ -551,6 +551,7 @@ export default function ConversationView({
                 <div
                   key={msg.id}
                   ref={el => messageRefs.current[msg.id] = el}
+                  data-msgid={msg.id}
                   className="transition-colors duration-500 rounded-lg"
                 >
                   <MessageBubble
