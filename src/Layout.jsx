@@ -244,7 +244,10 @@ function SidebarContent({
             <img
               src={appSettings.logo_url}
               alt="Logo"
-              className={`object-contain transition-all duration-200 ${expanded ? "h-10 max-w-[140px]" : "h-8 w-8"}`}
+              className={`object-contain ${expanded ? "h-10 max-w-[140px]" : "h-8 w-8"}`}
+              style={{
+                transition: "height 350ms cubic-bezier(0.22, 1, 0.36, 1), max-width 350ms cubic-bezier(0.22, 1, 0.36, 1)",
+              }}
             />
           ) : (
             <div className="w-8 h-8 bg-gradient-to-br from-primary to-blue-700 rounded-lg flex items-center justify-center shrink-0">
@@ -252,7 +255,15 @@ function SidebarContent({
             </div>
           )}
           {expanded && !appSettings?.logo_url && (
-            <span className="font-bold text-foreground text-base truncate">Orion</span>
+            <span
+              className="font-bold text-foreground text-base truncate"
+              style={{
+                opacity: expanded ? 1 : 0,
+                transition: "opacity 350ms cubic-bezier(0.22, 1, 0.36, 1)",
+              }}
+            >
+              Orion
+            </span>
           )}
         </Link>
         {expanded && onTogglePin && (
