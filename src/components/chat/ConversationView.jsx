@@ -488,8 +488,8 @@ export default function ConversationView({
         </div>
       )}
 
-      {/* Pinned Messages */}
-      <div className="shrink-0">
+      {/* Pinned Messages - sticky no mobile */}
+      <div className="sticky top-10 md:relative z-30 shrink-0">
         <PinnedMessages
           pinnedMessages={pinnedMessages}
           users={users}
@@ -499,9 +499,9 @@ export default function ConversationView({
         />
       </div>
 
-      {/* Status Tag Filter */}
+      {/* Status Tag Filter - sticky no mobile */}
       {conversation && (
-        <div className="flex items-center px-2 md:px-3 py-1.5 border-b border-border bg-card/80 backdrop-blur-sm shrink-0">
+        <div className="sticky top-16 md:relative z-20 flex items-center px-2 md:px-3 py-1.5 border-b border-border bg-card/80 backdrop-blur-sm shrink-0">
           <StatusTagFilter value={statusFilter} onChange={setStatusFilter} messages={messages} />
         </div>
       )}
