@@ -518,8 +518,8 @@ export default function ConversationView({
           <ChatBackground chatBgPrefs={chatBgPrefs} />
         </div>
 
-        {/* Messages layer */}
-        <div className="relative z-10 px-2 md:px-4 py-2 md:py-4">
+        {/* Messages layer - com padding correto para mobile */}
+        <div className="relative z-10 px-2 md:px-4 py-2 md:py-4 pt-2 md:pt-4">
         {/* Load older messages */}
         {hasMoreMessages && (
           <div className="flex justify-center py-3">
