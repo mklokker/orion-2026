@@ -455,14 +455,15 @@ export default function Chat() {
     }
     if (ids.size === 0) return;
     try {
-      const TaskRequest = base44.entities.TaskRequest;
-      const results = await Promise.allSettled(
-        [...ids].map(id => TaskRequest.filter({ id }))
-      );
+      // Fetch all task requests for this conversation and map by id
+      const allRequests = await TaskRequest.list();
       const map = {};
-      results.forEach((r, i) => {
-        const id = [...ids][i];
-        if (r.status === "fulfilled" && r.value?.[0]) map[id] = r.value[0].status;
+      allRequests.forEach(req => {
+        if (ids.has(req.id)) map[req.id] = req.status;
+      });
+      // For any ids not found, mark as "pending" so button shows
+      ids.forEach(id => {
+        if (!(id in map)) map[id] = "pending";
       });
       setTaskRequestStatuses(prev => ({ ...prev, ...map }));
     } catch (_) {}
