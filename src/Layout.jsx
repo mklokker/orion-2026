@@ -107,9 +107,13 @@ function NavItem({ item, isActive, expanded, onClick }) {
     >
       <item.icon className="w-5 h-5 shrink-0" />
       <span
-        className={`font-medium text-sm whitespace-nowrap overflow-hidden transition-all duration-200 ${
+        className={`font-medium text-sm whitespace-nowrap overflow-hidden ${
           expanded ? "opacity-100 max-w-[180px]" : "opacity-0 max-w-0"
         }`}
+        style={{
+          transform: expanded ? "translateX(0)" : "translateX(-8px)",
+          transition: "opacity 300ms cubic-bezier(0.22, 1, 0.36, 1), transform 300ms cubic-bezier(0.22, 1, 0.36, 1), max-width 300ms cubic-bezier(0.22, 1, 0.36, 1)",
+        }}
       >
         {item.title}
       </span>
