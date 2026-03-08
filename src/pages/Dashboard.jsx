@@ -356,9 +356,9 @@ export default function Dashboard() {
             </CardContent>
           </Card>
 
-          <Card className="border-0 shadow-md" style={{ backgroundColor: "var(--app-success, #16A34A)", color: "#FFFFFF" }}>
+          <Card className="border-0 shadow-md bg-green-600 text-white">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium opacity-90 flex items-center gap-2 text-inherit">
+              <CardTitle className="text-sm font-medium opacity-90 flex items-center gap-2 text-green-50">
                 <CheckCircle2 className="w-4 h-4" />
                 Concluídas {hasActiveFilters ? "(filtrado)" : "(mês)"}
               </CardTitle>
