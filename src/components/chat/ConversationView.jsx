@@ -528,6 +528,10 @@ export default function ConversationView({
                     selectionMode={selectionMode}
                     isSelected={selectedIds.has(msg.id)}
                     onToggleSelect={toggleSelect}
+                    taskRequestStatus={(() => {
+                      const m = msg.content?.match(/`ID: ([a-zA-Z0-9_-]+)`/);
+                      return m ? (taskRequestStatuses[m[1]] ?? null) : null;
+                    })()}
                   />
                 </div>
               );
