@@ -977,6 +977,32 @@ export default function Chat() {
     setShowTaskApprovalModal(true);
   };
 
+  const handleGoToFavorite = useCallback(async (fav) => {
+    // Find target conversation
+    const targetConv = conversations.find(c => c.id === fav.conversation_id);
+    if (!targetConv) return;
+
+    // Switch to that conversation
+    handleSelectConversation(targetConv);
+
+    // Wait for messages to load, then scroll to message
+    // We poll until the message appears in the DOM (up to 3s)
+    const messageId = fav.message_id;
+    let attempts = 0;
+    const tryScroll = () => {
+      const el = document.querySelector(`[data-msgid="${messageId}"]`);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        el.classList.add("bg-amber-100/50", "dark:bg-amber-900/30");
+        setTimeout(() => el.classList.remove("bg-amber-100/50", "dark:bg-amber-900/30"), 2500);
+        return;
+      }
+      attempts++;
+      if (attempts < 15) setTimeout(tryScroll, 200);
+    };
+    setTimeout(tryScroll, 400);
+  }, [conversations]);
+
   // Resolve conversation display name for forwarding metadata
   const getConvName = (conv) => {
     if (!conv) return "";
