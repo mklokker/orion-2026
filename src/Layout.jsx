@@ -503,24 +503,36 @@ function LayoutContent({ children, currentPageName }) {
     const html = document.documentElement;
     // Apply data-theme attribute (primary mechanism)
     html.setAttribute("data-theme", currentTheme);
+    
     // Also apply .dark class for Tailwind compatibility
     if (currentTheme === "dark") {
       html.classList.add("dark");
     } else {
       html.classList.remove("dark");
     }
+    
+    // Force CSS recomputation by triggering a reflow
+    // This ensures Tailwind picks up the new CSS var values
+    void html.offsetHeight;
+    
     localStorage.setItem("orion_theme", currentTheme);
     
     // Diagnostic log
-    const styles = getComputedStyle(html);
-    const primaryHSL = styles.getPropertyValue('--primary').trim();
-    const backgroundHSL = styles.getPropertyValue('--background').trim();
-    console.log(`🎨 Theme changed: ${currentTheme}`, {
-      dataTheme: html.getAttribute("data-theme"),
-      darkClass: html.classList.contains("dark"),
-      "--primary (HSL)": primaryHSL,
-      "--background (HSL)": backgroundHSL,
-    });
+    setTimeout(() => {
+      const styles = getComputedStyle(html);
+      const primaryHSL = styles.getPropertyValue('--primary').trim();
+      const backgroundHSL = styles.getPropertyValue('--background').trim();
+      const foregroundHSL = styles.getPropertyValue('--foreground').trim();
+      const primaryComputedStyle = window.getComputedStyle(document.querySelector('[class*="bg-primary"]') || html);
+      console.log(`🎨 Theme changed to: ${currentTheme}`, {
+        dataTheme: html.getAttribute("data-theme"),
+        darkClass: html.classList.contains("dark"),
+        "--primary (HSL)": primaryHSL || "NOT_FOUND",
+        "--background (HSL)": backgroundHSL || "NOT_FOUND",
+        "--foreground (HSL)": foregroundHSL || "NOT_FOUND",
+        "globals.css loaded": document.styleSheets.length > 0,
+      });
+    }, 50);
   }, [currentTheme]);
 
   const toggleTheme = () => {
