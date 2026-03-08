@@ -617,6 +617,18 @@ function LayoutContent({ children, currentPageName }) {
   React.useEffect(() => { 
     loadInitialData(); 
     restoreSoundPreference();
+    
+    // Verify globals.css is loaded
+    const hasGlobalCSS = Array.from(document.styleSheets).some(sheet => {
+      try {
+        return sheet.href?.includes('globals') || false;
+      } catch {
+        return false;
+      }
+    });
+    if (!hasGlobalCSS) {
+      console.warn('⚠️ globals.css may not be loaded. Check import order in main.jsx');
+    }
   }, [restoreSoundPreference]);
 
   const loadInitialData = async () => {
