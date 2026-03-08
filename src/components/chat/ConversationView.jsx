@@ -49,6 +49,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { base44 } from "@/api/base44Client";
+import { useToast } from "@/components/ui/use-toast";
 
 const ChatMessage = base44.entities.ChatMessage;
 const CHUNK_SIZE = 20;
@@ -103,6 +104,7 @@ export default function ConversationView({
   const [showFavoritesModal, setShowFavoritesModal] = useState(false);
   const [showReadLaterModal, setShowReadLaterModal] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
+  const { toast } = useToast();
 
   // ── Bubble Colors ─────────────────────────────────────────────────────────────
   // Usar chatBgPrefs que já contém os campos bubble_* salvo no BD
@@ -135,6 +137,16 @@ export default function ConversationView({
   const handleFavorite = async (message) => {
     const convName = getConvName();
     await toggleFavorite(message, convName);
+  };
+
+  const handleReadLater = async (message) => {
+    await toggleMessageReadLater(message.id, conversation.id);
+    const isNowReadLater = !readLaterMessages.some(r => r.message_id === message.id);
+    toast({
+      title: isNowReadLater ? "📖 Marcado para ler depois" : "✓ Removido de ler depois",
+      description: isNowReadLater ? "Você pode acessar no botão Bookmark" : "Mensagem removida da sua lista",
+      duration: 2000,
+    });
   };
 
   // ── Selection mode ─────────────────────────────────────────────────────────
