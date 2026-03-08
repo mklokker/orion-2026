@@ -474,22 +474,22 @@ export default function ConversationView({
 
       {/* Selection Bar (sticky no mobile, replaces normal header actions when in selection mode) */}
       {selectionMode && (
-        <div className="sticky top-0 md:relative z-40">
+        <div className="sticky top-10 md:relative z-40">
           <SelectionBar
-          count={selectedIds.size}
-          onCancel={exitSelectionMode}
-          onDelete={() => setShowDeleteConfirm(true)}
-          onForward={() => setShowBatchForward(true)}
-          canDeleteAll={canDeleteSelected || isAdmin}
-          isAdmin={isAdmin}
-          taskRequestCount={selectedTaskRequestIds.length}
-          onBatchApprove={() => setShowBatchApprovalModal(true)}
+            count={selectedIds.size}
+            onCancel={exitSelectionMode}
+            onDelete={() => setShowDeleteConfirm(true)}
+            onForward={() => setShowBatchForward(true)}
+            canDeleteAll={canDeleteSelected || isAdmin}
+            isAdmin={isAdmin}
+            taskRequestCount={selectedTaskRequestIds.length}
+            onBatchApprove={() => setShowBatchApprovalModal(true)}
           />
         </div>
       )}
 
       {/* Pinned Messages - sticky no mobile */}
-      <div className="sticky top-10 md:relative z-30 shrink-0">
+      <div className="sticky top-10 md:relative z-20 shrink-0">
         <PinnedMessages
           pinnedMessages={pinnedMessages}
           users={users}
