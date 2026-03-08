@@ -501,7 +501,7 @@ export default function ConversationView({
 
       {/* Status Tag Filter - sticky no mobile */}
       {conversation && (
-        <div className="sticky top-16 md:relative z-20 flex items-center px-2 md:px-3 py-1.5 border-b border-border bg-card/80 backdrop-blur-sm shrink-0">
+        <div className="sticky top-20 md:relative z-10 flex items-center px-2 md:px-3 py-1.5 border-b border-border bg-card/80 backdrop-blur-sm shrink-0">
           <StatusTagFilter value={statusFilter} onChange={setStatusFilter} messages={messages} />
         </div>
       )}
