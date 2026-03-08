@@ -1221,20 +1221,10 @@ export default function Chat() {
         requestId={selectedTaskRequestId}
         currentUser={currentUser}
         departments={departments}
-        onApproved={(request, status) => {
-          // Send a message to the conversation about the result
-          if (request?.conversation_id) {
-            const statusText = status === "approved" 
-              ? "✅ Solicitação aprovada! As tarefas/serviços foram criados."
-              : "❌ Solicitação rejeitada.";
-            ChatMessage.create({
-               conversation_id: request.conversation_id,
-               sender_email: currentUser.email,
-               sender_name: currentUser.full_name || currentUser.display_name,
-               content: statusText,
-               type: "text",
-               read_by: [{ email: currentUser.email, read_at: new Date().toISOString() }]
-             }).catch(console.error);
+        onApproved={(request, newStatus) => {
+          // Update local taskRequestStatuses so button hides immediately
+          if (selectedTaskRequestId) {
+            setTaskRequestStatuses(prev => ({ ...prev, [selectedTaskRequestId]: newStatus }));
           }
         }}
       />
