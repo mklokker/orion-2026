@@ -100,7 +100,7 @@ export default function ConversationView({
   const [statusFilter, setStatusFilter] = useState("all");
 
   // ── Bubble Colors ─────────────────────────────────────────────────────────────
-  useBubbleColors(presenceMap?.[currentUser?.email]);
+  const bubbleColorVars = useBubbleColors(presenceMap?.[currentUser?.email]);
 
   // ── Favorites ────────────────────────────────────────────────────────────────
   const { isFavorited, toggleFavorite, records: favRecords, loading: favLoading, refresh: refreshFavs } = useFavorites(currentUser?.email);
@@ -400,7 +400,10 @@ export default function ConversationView({
   }
 
   return (
-    <div className="relative flex flex-col w-full min-w-0 h-full min-h-0 overflow-hidden">
+    <div 
+      className="relative flex flex-col w-full min-w-0 h-full min-h-0 overflow-hidden"
+      style={bubbleColorVars}
+    >
       {/* Background layer - estática, não rola */}
       <div className="absolute inset-0 pointer-events-none z-0">
         <ChatBackground chatBgPrefs={chatBgPrefs} />
