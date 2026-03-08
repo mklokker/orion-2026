@@ -1,22 +1,14 @@
 /* ========================================
    ORION THEME SYSTEM
-   5 Temas: Light / Dark / Pastel / Midnight / Forest
-   Paletas exatas conforme especificação
+   5 Temas via data-theme attribute:
+   light | dark | pastel | midnight | forest
    ======================================== */
 
 @layer base {
 
-  /* ─── CSS Variables para Bolhas Personalizadas ─── */
-  :root {
-    --bubble-my-bg: #4338CA;
-    --bubble-my-text: #FFFFFF;
-    --bubble-other-bg: #E5E7EB;
-    --bubble-other-text: #000000;
-    --bubble-meta-color: #999999;
-  }
-
-  /* ─── TEMA 1 — LIGHT (Clean / Profissional) ─── */
-  :root {
+  /* ─── Default: LIGHT THEME ─── */
+  :root,
+  html[data-theme="light"] {
     --background: 210 40% 98%;
     --foreground: 222 47% 11%;
     --card: 0 0% 100%;
@@ -53,10 +45,18 @@
     --sidebar-border: 214 32% 91%;
     --sidebar-ring: 217 91% 60%;
 
+    /* Bubble colors */
+    --bubble-my-bg: #4338CA;
+    --bubble-my-text: #FFFFFF;
+    --bubble-other-bg: #E5E7EB;
+    --bubble-other-text: #000000;
+    --bubble-meta-color: #999999;
+
     color-scheme: light;
   }
 
-  /* ─── TEMA 2 — DARK (Standard / Confortável) ─── */
+  /* ─── DARK THEME ─── */
+  html[data-theme="dark"],
   .dark {
     --background: 216 50% 8%;
     --foreground: 220 13% 91%;
@@ -93,11 +93,18 @@
     --sidebar-border: 217 33% 17%;
     --sidebar-ring: 213 94% 68%;
 
+    /* Bubble colors */
+    --bubble-my-bg: #2563EB;
+    --bubble-my-text: #FFFFFF;
+    --bubble-other-bg: #3F3F46;
+    --bubble-other-text: #FAFAFA;
+    --bubble-meta-color: #A1A1A1;
+
     color-scheme: dark;
   }
 
-  /* ─── TEMA 3 — PASTEL LIGHT (Suave / Moderno) ─── */
-  .theme-pastel {
+  /* ─── PASTEL LIGHT THEME ─── */
+  html[data-theme="pastel"] {
     --background: 240 100% 99%;
     --foreground: 222 47% 11%;
     --card: 0 0% 100%;
@@ -133,11 +140,18 @@
     --sidebar-border: 240 100% 93%;
     --sidebar-ring: 263 84% 58%;
 
+    /* Bubble colors */
+    --bubble-my-bg: #D8B4FE;
+    --bubble-my-text: #581C87;
+    --bubble-other-bg: #F3E8FF;
+    --bubble-other-text: #6B21A8;
+    --bubble-meta-color: #A78BFA;
+
     color-scheme: light;
   }
 
-  /* ─── TEMA 4 — MIDNIGHT (Dark Premium / Elegante) ─── */
-  .theme-midnight {
+  /* ─── MIDNIGHT DARK PREMIUM ─── */
+  html[data-theme="midnight"] {
     --background: 224 63% 5%;
     --foreground: 220 20% 93%;
     --card: 222 50% 8%;
@@ -173,11 +187,18 @@
     --sidebar-border: 218 40% 14%;
     --sidebar-ring: 142 71% 45%;
 
+    /* Bubble colors */
+    --bubble-my-bg: #10B981;
+    --bubble-my-text: #FFFFFF;
+    --bubble-other-bg: #1E293B;
+    --bubble-other-text: #E2E8F0;
+    --bubble-meta-color: #64748B;
+
     color-scheme: dark;
   }
 
-  /* ─── TEMA 5 — FOREST (Claro com Verde Elegante) ─── */
-  .theme-forest {
+  /* ─── FOREST LIGHT GREEN ─── */
+  html[data-theme="forest"] {
     --background: 140 38% 97%;
     --foreground: 140 100% 7%;
     --card: 0 0% 100%;
@@ -212,6 +233,13 @@
     --sidebar-accent-foreground: 140 100% 7%;
     --sidebar-border: 152 52% 86%;
     --sidebar-ring: 142 64% 34%;
+
+    /* Bubble colors */
+    --bubble-my-bg: #059669;
+    --bubble-my-text: #FFFFFF;
+    --bubble-other-bg: #D1FAE5;
+    --bubble-other-text: #065F46;
+    --bubble-meta-color: #34D399;
 
     color-scheme: light;
   }
@@ -266,8 +294,6 @@ svg,
    FOCUS / DISABLED / PLACEHOLDER
    ======================================== */
 
-/* Removed explicit focus/disabled states, relying on default browser/tailwind */
-
 ::placeholder {
   color: hsl(var(--muted-foreground));
   opacity: 0.7;
@@ -300,32 +326,37 @@ svg,
    DARK THEME TABLE / POPOVER FIXES
    ======================================== */
 
-.dark table,
-.theme-midnight table {
+html[data-theme="dark"] table,
+html[data-theme="midnight"] table,
+.dark table {
   background-color: hsl(var(--card));
 }
 
-.dark th,
-.theme-midnight th {
+html[data-theme="dark"] th,
+html[data-theme="midnight"] th,
+.dark th {
   background-color: hsl(var(--muted)) !important;
   color: hsl(var(--foreground)) !important;
   border-color: hsl(var(--border)) !important;
 }
 
-.dark td,
-.theme-midnight td {
+html[data-theme="dark"] td,
+html[data-theme="midnight"] td,
+.dark td {
   border-color: hsl(var(--border)) !important;
   color: hsl(var(--foreground));
 }
 
-.dark tbody tr:hover,
-.theme-midnight tbody tr:hover {
+html[data-theme="dark"] tbody tr:hover,
+html[data-theme="midnight"] tbody tr:hover,
+.dark tbody tr:hover {
   background-color: hsl(var(--accent)) !important;
 }
 
 /* Radix popovers in dark themes */
-.dark [data-radix-popper-content-wrapper] > div,
-.theme-midnight [data-radix-popper-content-wrapper] > div {
+html[data-theme="dark"] [data-radix-popper-content-wrapper] > div,
+html[data-theme="midnight"] [data-radix-popper-content-wrapper] > div,
+.dark [data-radix-popper-content-wrapper] > div {
   background-color: hsl(var(--popover)) !important;
   border-color: hsl(var(--border)) !important;
 }
@@ -334,19 +365,21 @@ svg,
    SHADOW ADJUSTMENTS PER COLOR-SCHEME
    ======================================== */
 
-/* Light mode shadows are removed, default or custom shadows should be applied directly */
-
+html[data-theme="dark"] .shadow-sm,
+html[data-theme="dark"] .shadow-md,
+html[data-theme="dark"] .shadow-lg,
+html[data-theme="midnight"] .shadow-sm,
+html[data-theme="midnight"] .shadow-md,
+html[data-theme="midnight"] .shadow-lg,
 .dark .shadow-sm,
 .dark .shadow-md,
-.dark .shadow-lg,
-.theme-midnight .shadow-sm,
-.theme-midnight .shadow-md,
-.theme-midnight .shadow-lg {
+.dark .shadow-lg {
   box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.3), 0 1px 2px -1px rgb(0 0 0 / 0.3);
 }
 
 /* Skeleton loading */
-.dark .animate-pulse,
-.theme-midnight .animate-pulse {
+html[data-theme="dark"] .animate-pulse,
+html[data-theme="midnight"] .animate-pulse,
+.dark .animate-pulse {
   opacity: 0.5;
 }
