@@ -151,15 +151,21 @@ export default function MessageBubble({
   // Mantém ações visíveis enquanto menu ou emoji estiver aberto
   const keepActionsVisible = menuOpen || emojiOpen;
 
-  // Detecta se a mensagem contém uma solicitação de tarefas
-  const extractTaskRequestId = (content) => {
-    if (!content) return null;
-    const match = content.match(/`ID: ([a-zA-Z0-9_-]+)`/);
+  // ── Task Request identification ──────────────────────────────────────────────
+  // Primary: use structured field task_request_id (set when message was created)
+  // Fallback: parse content for legacy messages that don't have the field yet
+  const taskRequestId = message.task_request_id || (() => {
+    const match = message.content?.match(/`ID:\s*([a-zA-Z0-9_-]+)`/);
     return match ? match[1] : null;
-  };
+  })();
+  const isTaskRequest = !!taskRequestId || message.content?.includes("📝 **Solicitação de Criação de Tarefas/Serviços**");
 
-  const taskRequestId = extractTaskRequestId(message.content);
-  const isTaskRequest = message.content?.includes("📝 **Solicitação de Criação de Tarefas/Serviços**");
+  // Fetch status with cache — hook always called (React rules)
+  const { status: fetchedStatus } = useTaskRequestStatus(
+    isTaskRequest ? taskRequestId : null,
+    taskRequestStatusOverride
+  );
+  const taskRequestStatus = isTaskRequest ? (fetchedStatus ?? null) : null;
   
   if (message.is_deleted) {
     return (
