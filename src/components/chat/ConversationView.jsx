@@ -484,7 +484,8 @@ export default function ConversationView({
           isAdmin={isAdmin}
           taskRequestCount={selectedTaskRequestIds.length}
           onBatchApprove={() => setShowBatchApprovalModal(true)}
-        />
+          />
+        </div>
       )}
 
       {/* Pinned Messages */}
