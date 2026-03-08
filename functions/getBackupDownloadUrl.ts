@@ -1,3 +1,4 @@
+// getBackupDownloadUrl - gera signed URL temporária (10 min) a partir do file_uri persistido no BackupMetadata
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.20';
 
 Deno.serve(async (req) => {
