@@ -1058,6 +1058,7 @@ export default function Chat() {
             hasMoreMessages={hasMoreMessages}
             isLoadingMore={isLoadingMore}
             autoFocusTrigger={selectedConversation?.id}
+            conversations={conversations}
           />
         </div>
       </div>
