@@ -89,6 +89,7 @@ export default function ConversationView({
   taskRequestStatuses = {},
   departments = [],
   onGoToFavorite,  // (fav) => void — cross-conversation navigation handled by parent
+  onShowReactions,  // (message) => void
   }) {
   const scrollRef = useRef(null);
   const [replyingTo, setReplyingTo] = useState(null);
@@ -585,6 +586,7 @@ export default function ConversationView({
                       const id = msg.task_request_id || msg.content?.match(/`ID:\s*([a-zA-Z0-9_-]+)`/)?.[1];
                       return id ? (taskRequestStatuses[id] ?? null) : null;
                     })()}
+                    onShowReactions={selectionMode ? undefined : onShowReactions}
                   />
                 </div>
               );
