@@ -620,25 +620,29 @@ export default function ConversationView({
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Batch Forward Modal */}
-      <ForwardMessageModal
-        open={showBatchForward}
-        onClose={() => setShowBatchForward(false)}
-        message={selectedMessagesOrdered}
-        conversations={[]}
-        users={users}
-        currentUser={currentUser}
-        onForward={onForward ? async (msgs, target) => {
-          setBatchProcessing(true);
-          for (const m of (Array.isArray(msgs) ? msgs : [msgs])) {
-            await onForward(m, target);
-          }
-          setBatchProcessing(false);
-          setShowBatchForward(false);
-          exitSelectionMode();
-        } : undefined}
-        isBatch={true}
-      />
+      {/* Batch Forward Modal — usa o onForward do pages/Chat mas iterando todas as msgs */}
+      {showBatchForward && (
+        <ForwardMessageModal
+          open={showBatchForward}
+          onClose={() => { setShowBatchForward(false); }}
+          message={selectedMessagesOrdered}
+          conversations={[]}
+          users={users}
+          currentUser={currentUser}
+          onForward={async (msgs, target) => {
+            if (!onForward) return;
+            setBatchProcessing(true);
+            const list = Array.isArray(msgs) ? msgs : [msgs];
+            for (const m of list) {
+              await onForward(m, target);
+            }
+            setBatchProcessing(false);
+            setShowBatchForward(false);
+            exitSelectionMode();
+          }}
+          isBatch={true}
+        />
+      )}
     </div>
   );
 }
