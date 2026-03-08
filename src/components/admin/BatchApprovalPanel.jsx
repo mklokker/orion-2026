@@ -281,10 +281,23 @@ export default function BatchApprovalPanel({ currentUser, departments = [] }) {
               <ScrollArea className="max-h-52 border rounded-md bg-background">
                 <div className="p-2 space-y-1.5">
                   {logs.map((log, i) => (
-                    <div key={i} className="flex items-start gap-2 text-xs">
+                    <div key={i} className="flex flex-wrap items-start gap-2 text-xs">
                       <StatusIcon status={log.status} />
                       <span className="flex-1 min-w-0 truncate font-medium">{log.requester}</span>
                       <Badge variant="outline" className="text-[10px] px-1.5 shrink-0">{log.itemCount} item(s)</Badge>
+                      {log.summary && (
+                        <div className="flex gap-1.5 flex-wrap">
+                          {log.summary.created > 0 && (
+                            <span className="text-green-600 dark:text-green-400">✅ {log.summary.created} criado(s)</span>
+                          )}
+                          {log.summary.skipped_active > 0 && (
+                            <span className="text-yellow-600 dark:text-yellow-400">⏭️ {log.summary.skipped_active} pulado(s)</span>
+                          )}
+                          {log.summary.failed > 0 && (
+                            <span className="text-red-500">❌ {log.summary.failed} falha(s)</span>
+                          )}
+                        </div>
+                      )}
                       {log.error && <span className="text-red-500 truncate max-w-[160px]" title={log.error}>{log.error}</span>}
                     </div>
                   ))}
