@@ -349,7 +349,7 @@ export default function BatchApprovalPanel({ currentUser, departments = [] }) {
                 )}
               </div>
 
-              <ScrollArea className="max-h-[480px]">
+              <ScrollArea className="h-[calc(100vh-320px)] min-h-[200px]">
                 <div className="divide-y">
                   {pending.map(req => {
                     const taskCount = (req.items || []).filter(i => i.type === "task").length;
