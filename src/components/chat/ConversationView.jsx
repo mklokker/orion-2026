@@ -427,6 +427,17 @@ export default function ConversationView({
         </DropdownMenu>
       </div>
 
+      {/* Selection Bar (replaces normal header actions when in selection mode) */}
+      {selectionMode && (
+        <SelectionBar
+          count={selectedIds.size}
+          onCancel={exitSelectionMode}
+          onDelete={() => setShowDeleteConfirm(true)}
+          onForward={() => setShowBatchForward(true)}
+          canDeleteAll={canDeleteSelected || isAdmin}
+        />
+      )}
+
       {/* Pinned Messages */}
       <div className="shrink-0">
         <PinnedMessages
