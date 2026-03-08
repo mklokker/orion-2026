@@ -511,18 +511,21 @@ export default function ConversationView({
                     showAvatar={showAvatar}
                     senderAvatar={getUserAvatar(msg.sender_email)}
                     isGroupChat={isGroup}
-                    onReply={setReplyingTo}
-                    onEdit={onEditMessage}
-                    onDelete={onDeleteMessage}
-                    onReaction={onReaction}
-                    onImageClick={onImageClick}
-                    onPin={onPinMessage}
-                    onStatusTag={onStatusTag}
-                    onForward={onForward}
-                    onScrollToMessage={scrollToMessage}
+                    onReply={selectionMode ? undefined : setReplyingTo}
+                    onEdit={selectionMode ? undefined : onEditMessage}
+                    onDelete={selectionMode ? undefined : onDeleteMessage}
+                    onReaction={selectionMode ? undefined : onReaction}
+                    onImageClick={selectionMode ? undefined : onImageClick}
+                    onPin={selectionMode ? undefined : onPinMessage}
+                    onStatusTag={selectionMode ? undefined : onStatusTag}
+                    onForward={selectionMode ? undefined : onForward}
+                    onScrollToMessage={selectionMode ? undefined : scrollToMessage}
                     isAdmin={isAdmin}
-                    onApproveTaskRequest={onApproveTaskRequest}
+                    onApproveTaskRequest={selectionMode ? undefined : onApproveTaskRequest}
                     users={users}
+                    selectionMode={selectionMode}
+                    isSelected={selectedIds.has(msg.id)}
+                    onToggleSelect={toggleSelect}
                   />
                 </div>
               );
