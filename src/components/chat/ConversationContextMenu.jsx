@@ -15,6 +15,8 @@ import {
   Trash2,
   Copy,
   Archive,
+  Eye,
+  EyeOff,
 } from "lucide-react";
 
 /**
@@ -25,11 +27,13 @@ export function ConversationContextMenu({
   conversation,
   isPinned = false,
   isReadLater = false,
+  isManualUnread = false,
   currentUser,
   onPin,
   onArchive,
   onDelete,
   onReadLater,
+  onMarkUnread,
   onCopy,
   trigger = null,
 }) {
@@ -78,6 +82,23 @@ export function ConversationContextMenu({
           <DropdownMenuItem onClick={() => onReadLater()}>
             <Bookmark className={`w-4 h-4 mr-2 ${isReadLater ? "fill-current" : ""}`} />
             {isReadLater ? "Remover de ler depois" : "Ler depois"}
+          </DropdownMenuItem>
+        )}
+
+        {/* Mark as Unread */}
+        {onMarkUnread && (
+          <DropdownMenuItem onClick={() => onMarkUnread()}>
+            {isManualUnread ? (
+              <>
+                <Eye className="w-4 h-4 mr-2" />
+                Marcar como lido
+              </>
+            ) : (
+              <>
+                <EyeOff className="w-4 h-4 mr-2" />
+                Marcar como não lido
+              </>
+            )}
           </DropdownMenuItem>
         )}
 
