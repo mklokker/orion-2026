@@ -52,6 +52,7 @@ export default function ConversationView({
   onImageClick,
   onPinMessage,
   onStatusTag,
+  onForward,
   typingUsers,
   presenceMap = {},
   isAdmin = false,
