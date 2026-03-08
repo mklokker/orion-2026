@@ -87,6 +87,63 @@ export default function ConversationView({
   const [showTaskRequestModal, setShowTaskRequestModal] = useState(false);
   const [showSearchModal, setShowSearchModal] = useState(false);
   const [statusFilter, setStatusFilter] = useState("all");
+
+  // ── Selection mode ─────────────────────────────────────────────────────────
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState(new Set());
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showBatchForward, setShowBatchForward] = useState(false);
+  const [batchProcessing, setBatchProcessing] = useState(false);
+
+  const enterSelectionMode = () => { setSelectionMode(true); setSelectedIds(new Set()); };
+  const exitSelectionMode  = () => { setSelectionMode(false); setSelectedIds(new Set()); };
+
+  const toggleSelect = (id) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  };
+
+  // Which selected messages can the current user delete?
+  const selectableForDelete = React.useMemo(() => {
+    if (!selectionMode) return new Set();
+    const ids = new Set();
+    (messages || []).forEach(m => {
+      if (selectedIds.has(m.id) && (m.sender_email === currentUser?.email || isAdmin)) {
+        ids.add(m.id);
+      }
+    });
+    return ids;
+  }, [selectedIds, messages, currentUser, isAdmin, selectionMode]);
+
+  const canDeleteSelected = selectableForDelete.size > 0 && selectableForDelete.size === selectedIds.size;
+
+  // Batch delete
+  const handleBatchDelete = async () => {
+    if (!selectedIds.size) return;
+    setBatchProcessing(true);
+    const ids = [...selectedIds];
+    for (let i = 0; i < ids.length; i += CHUNK_SIZE) {
+      const chunk = ids.slice(i, i + CHUNK_SIZE);
+      await Promise.all(chunk.map(id =>
+        ChatMessage.update(id, { is_deleted: true, content: "" }).catch(() => {})
+      ));
+      if (i + CHUNK_SIZE < ids.length) await sleep(150);
+    }
+    setBatchProcessing(false);
+    setShowDeleteConfirm(false);
+    exitSelectionMode();
+  };
+
+  // Sorted selected messages for forward (preserve order)
+  const selectedMessagesOrdered = React.useMemo(() => {
+    if (!selectionMode) return [];
+    return (messages || [])
+      .filter(m => selectedIds.has(m.id))
+      .sort((a, b) => new Date(a.created_date) - new Date(b.created_date));
+  }, [selectedIds, messages, selectionMode]);
   const messageRefs = useRef({});
   const bottomRef = useRef(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
