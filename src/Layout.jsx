@@ -467,6 +467,9 @@ function LayoutContent({ children, currentPageName }) {
     restoreSoundPreference
   } = useNotifications();
 
+  // UI V2 Preview
+  const { isUIv2Enabled, toggleUIv2 } = useUIv2Preview();
+
   // Sync notifications with real-time updates
   useNotificationSync(user?.email, !!user);
 
