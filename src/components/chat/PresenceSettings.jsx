@@ -14,6 +14,7 @@ import { playNotificationSound, SOUND_OPTIONS } from "./NotificationSounds";
 import { format, addHours, addMinutes, isPast } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import ChatBackgroundSettings from "./ChatBackgroundSettings";
+import BubbleAppearanceModal from "./BubbleAppearanceModal";
 
 const statusOptions = [
   { value: "auto", label: "Automático", description: "Detectar automaticamente", icon: Zap, color: "text-blue-500" },
