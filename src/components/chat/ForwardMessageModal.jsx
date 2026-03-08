@@ -21,6 +21,7 @@ export default function ForwardMessageModal({
   users,
   currentUser,
   onForward,
+  isBatch = false,
 }) {
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState(null);
