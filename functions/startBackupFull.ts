@@ -20,8 +20,26 @@ Deno.serve(async (req) => {
     options: {},
   });
 
-  // Dispara o worker assíncrono sem aguardar resposta
-  base44.asServiceRole.functions.invoke('processBackupJob', { jobId: job.id }).catch(() => {});
+  // Dispara o worker assíncrono sem aguardar resposta.
+  // Usa waitUntil-style: faz o invoke e ignora o resultado (fire-and-forget robusto).
+  // O worker atualiza BackupJob.status conforme avança.
+  const invokeWorker = async () => {
+    try {
+      await base44.asServiceRole.functions.invoke('processBackupJob', { jobId: job.id });
+    } catch (err) {
+      // Worker falhou ou timeout — marcar job como failed para que o UI mostre retry
+      try {
+        await base44.asServiceRole.entities.BackupJob.update(job.id, {
+          status: 'failed',
+          error_message: `Worker não respondeu: ${err?.message || 'timeout ou erro de rede'}`,
+          finished_at: new Date().toISOString(),
+        });
+      } catch (_) {}
+    }
+  };
+
+  // Dispara sem await (fire-and-forget)
+  invokeWorker();
 
   return Response.json({ jobId: job.id });
 });

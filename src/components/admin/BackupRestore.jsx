@@ -1,481 +1,391 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/components/ui/use-toast";
-import { 
-  Download, 
-  Upload, 
-  Database, 
-  CheckCircle2, 
+import {
+  Download,
+  Database,
+  CheckCircle2,
   AlertTriangle,
   Loader2,
-  FileJson,
-  HardDrive
+  HardDrive,
+  RefreshCw,
+  Clock,
+  XCircle,
+  Play,
+  FileDown,
 } from "lucide-react";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { base44 } from "@/api/base44Client";
+import { startBackupFull } from "@/functions/startBackupFull";
+import { getBackupDownloadUrl } from "@/functions/getBackupDownloadUrl";
 
-// Import all entities
-import { Department } from "@/entities/Department";
-import { Task } from "@/entities/Task";
-import { Service } from "@/entities/Service";
-import { TaskInteraction } from "@/entities/TaskInteraction";
-import { ServiceInteraction } from "@/entities/ServiceInteraction";
-import { UserStar } from "@/entities/UserStar";
-import { Notification } from "@/entities/Notification";
-import { UserColumnOrder } from "@/entities/UserColumnOrder";
-import { ChatConversation } from "@/entities/ChatConversation";
-import { ChatMessage } from "@/entities/ChatMessage";
-import { ChatTyping } from "@/entities/ChatTyping";
-import { Desk } from "@/entities/Desk";
-import { Sector } from "@/entities/Sector";
-import { AppSettings } from "@/entities/AppSettings";
-import { DocumentCategory } from "@/entities/DocumentCategory";
-import { Document } from "@/entities/Document";
-import { DocumentVersion } from "@/entities/DocumentVersion";
-import { DocumentFavorite } from "@/entities/DocumentFavorite";
-import { Course } from "@/entities/Course";
-import { CourseVideo } from "@/entities/CourseVideo";
+// ─── Helpers ──────────────────────────────────────────────────────────────────
 
-const ENTITIES_CONFIG = [
-  { name: "Department", entity: Department, label: "Departamentos" },
-  { name: "Task", entity: Task, label: "Tarefas" },
-  { name: "Service", entity: Service, label: "Serviços" },
-  { name: "TaskInteraction", entity: TaskInteraction, label: "Interações de Tarefas" },
-  { name: "ServiceInteraction", entity: ServiceInteraction, label: "Interações de Serviços" },
-  { name: "UserStar", entity: UserStar, label: "Estrelas (Ranking)" },
-  { name: "Notification", entity: Notification, label: "Notificações" },
-  { name: "UserColumnOrder", entity: UserColumnOrder, label: "Ordem de Colunas" },
-  { name: "ChatConversation", entity: ChatConversation, label: "Conversas de Chat" },
-  { name: "ChatMessage", entity: ChatMessage, label: "Mensagens de Chat" },
-  { name: "ChatTyping", entity: ChatTyping, label: "Status de Digitação" },
-  { name: "Desk", entity: Desk, label: "Mesas" },
-  { name: "Sector", entity: Sector, label: "Setores" },
-  { name: "AppSettings", entity: AppSettings, label: "Configurações do App" },
-  { name: "DocumentCategory", entity: DocumentCategory, label: "Categorias de Documentos" },
-  { name: "Document", entity: Document, label: "Documentos" },
-  { name: "DocumentVersion", entity: DocumentVersion, label: "Versões de Documentos" },
-  { name: "DocumentFavorite", entity: DocumentFavorite, label: "Favoritos de Documentos" },
-  { name: "Course", entity: Course, label: "Cursos" },
-  { name: "CourseVideo", entity: CourseVideo, label: "Vídeos de Cursos" },
-];
+const formatBytes = (bytes) => {
+  if (!bytes || bytes === 0) return null;
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(2)} MB`;
+};
 
+const formatDate = (iso) => {
+  if (!iso) return "—";
+  return new Date(iso).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" });
+};
+
+const totalRecords = (counts) => {
+  if (!counts) return 0;
+  return Object.values(counts).reduce((a, b) => a + (b || 0), 0);
+};
+
+const STATUS_LABELS = {
+  pending: { label: "Na fila", color: "bg-yellow-100 text-yellow-800 border-yellow-200" },
+  running: { label: "Em execução", color: "bg-blue-100 text-blue-800 border-blue-200" },
+  completed: { label: "Concluído", color: "bg-green-100 text-green-800 border-green-200" },
+  failed: { label: "Falhou", color: "bg-red-100 text-red-800 border-red-200" },
+  canceled: { label: "Cancelado", color: "bg-gray-100 text-gray-800 border-gray-200" },
+};
+
+// ─── ActiveJobCard ─────────────────────────────────────────────────────────────
+function ActiveJobCard({ job, onRetry }) {
+  if (!job) return null;
+  const s = STATUS_LABELS[job.status] || STATUS_LABELS.pending;
+  const isActive = job.status === "pending" || job.status === "running";
+
+  return (
+    <div className="border rounded-xl p-4 space-y-3 bg-muted/30">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <div className="flex items-center gap-2">
+          {isActive ? (
+            <Loader2 className="w-4 h-4 animate-spin text-blue-600 shrink-0" />
+          ) : job.status === "completed" ? (
+            <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
+          ) : (
+            <XCircle className="w-4 h-4 text-red-500 shrink-0" />
+          )}
+          <span className="text-sm font-semibold truncate">
+            Job <span className="font-mono text-xs text-muted-foreground">{job.id?.slice(-8)}</span>
+          </span>
+        </div>
+        <span className={`text-xs px-2 py-0.5 rounded-full border font-medium ${s.color}`}>
+          {s.label}
+        </span>
+      </div>
+
+      {/* Progress bar */}
+      {(isActive || job.status === "completed") && (
+        <div className="space-y-1">
+          <div className="flex justify-between text-xs text-muted-foreground">
+            <span>{job.current_step || "Aguardando..."}</span>
+            <span>{job.progress_percent || 0}%</span>
+          </div>
+          <Progress value={job.progress_percent || 0} className="h-2" />
+        </div>
+      )}
+
+      {/* Current entity */}
+      {isActive && job.current_entity && (
+        <p className="text-xs text-muted-foreground truncate">
+          Entidade atual: <span className="font-medium text-foreground">{job.current_entity}</span>
+        </p>
+      )}
+
+      {/* Processed count */}
+      {(job.processed_count > 0 || job.total_count > 0) && (
+        <p className="text-xs text-muted-foreground">
+          Registros: <span className="font-medium text-foreground">{job.processed_count?.toLocaleString("pt-BR") || 0}</span>
+          {job.total_count > 0 && ` / ${job.total_count.toLocaleString("pt-BR")}`}
+        </p>
+      )}
+
+      {/* Error */}
+      {job.status === "failed" && job.error_message && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-xs text-red-700 break-words">
+          <p className="font-medium mb-1">Erro:</p>
+          <p>{job.error_message}</p>
+        </div>
+      )}
+
+      {/* Completed summary */}
+      {job.status === "completed" && job.manifest_json && (
+        <div className="text-xs text-green-700 bg-green-50 border border-green-200 rounded-lg p-2">
+          ✅ {job.manifest_json.total_records?.toLocaleString("pt-BR") || 0} registros exportados com sucesso
+        </div>
+      )}
+
+      {/* Retry */}
+      {job.status === "failed" && (
+        <Button size="sm" variant="outline" onClick={onRetry} className="w-full gap-2 h-9">
+          <RefreshCw className="w-3.5 h-3.5" />
+          Tentar Novamente
+        </Button>
+      )}
+    </div>
+  );
+}
+
+// ─── BackupListItem ─────────────────────────────────────────────────────────
+function BackupListItem({ metadata, onDownload, downloading }) {
+  const total = totalRecords(metadata.entities_counts);
+  const size = formatBytes(metadata.file_size_bytes);
+
+  return (
+    <div className="flex flex-col sm:flex-row sm:items-center gap-3 p-3 rounded-xl border bg-card hover:bg-muted/30 transition-colors">
+      <div className="flex items-start gap-3 flex-1 min-w-0">
+        <div className="mt-0.5 p-2 rounded-lg bg-blue-50 shrink-0">
+          <HardDrive className="w-4 h-4 text-blue-600" />
+        </div>
+        <div className="min-w-0 flex-1 space-y-0.5">
+          <p className="font-medium text-sm truncate">{metadata.name || `Backup ${formatDate(metadata.snapshot_timestamp)}`}</p>
+          <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1">
+              <Clock className="w-3 h-3" />
+              {formatDate(metadata.snapshot_timestamp || metadata.created_date)}
+            </span>
+            {total > 0 && <span>{total.toLocaleString("pt-BR")} registros</span>}
+            {size && <span>{size}</span>}
+            {metadata.schema_version && (
+              <span className="font-mono">v{metadata.schema_version}</span>
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground truncate">
+            Por: {metadata.created_by_email || "—"}
+          </p>
+        </div>
+      </div>
+
+      <Button
+        size="sm"
+        variant="outline"
+        onClick={() => onDownload(metadata.id)}
+        disabled={!!downloading || !metadata.file_uri}
+        className="shrink-0 gap-1.5 h-9 w-full sm:w-auto"
+      >
+        {downloading === metadata.id ? (
+          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+        ) : (
+          <FileDown className="w-3.5 h-3.5" />
+        )}
+        Baixar
+      </Button>
+    </div>
+  );
+}
+
+// ─── Main Component ──────────────────────────────────────────────────────────
 export default function BackupRestore() {
   const { toast } = useToast();
-  const [isBackingUp, setIsBackingUp] = useState(false);
-  const [isRestoring, setIsRestoring] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [currentEntity, setCurrentEntity] = useState("");
-  const [showRestoreConfirm, setShowRestoreConfirm] = useState(false);
-  const [pendingRestoreFile, setPendingRestoreFile] = useState(null);
-  const [backupStats, setBackupStats] = useState(null);
+  const [activeJob, setActiveJob] = useState(null);
+  const [backups, setBackups] = useState([]);
+  const [loadingBackups, setLoadingBackups] = useState(true);
+  const [startingBackup, setStartingBackup] = useState(false);
+  const [downloadingId, setDownloadingId] = useState(null);
+  const pollingRef = useRef(null);
 
-  const handleBackup = async () => {
-    setIsBackingUp(true);
-    setProgress(0);
-    setBackupStats(null);
-
-    const backupData = {
-      version: "1.0",
-      created_at: new Date().toISOString(),
-      entities: {}
-    };
-
-    const stats = {};
-
+  // ── Load backup list ──────────────────────────────────────────────────────
+  const loadBackups = async () => {
     try {
-      for (let i = 0; i < ENTITIES_CONFIG.length; i++) {
-        const { name, entity, label } = ENTITIES_CONFIG[i];
-        setCurrentEntity(label);
-        setProgress(Math.round(((i + 1) / ENTITIES_CONFIG.length) * 100));
+      const list = await base44.entities.BackupMetadata.list("-created_date", 50);
+      setBackups(list || []);
+    } catch (_) {}
+    setLoadingBackups(false);
+  };
 
-        try {
-          const data = await entity.list();
-          backupData.entities[name] = data;
-          stats[label] = data.length;
-        } catch (error) {
-          console.error(`Erro ao fazer backup de ${name}:`, error);
-          backupData.entities[name] = [];
-          stats[label] = 0;
+  // ── Poll active job ───────────────────────────────────────────────────────
+  const pollJob = async (jobId) => {
+    try {
+      const jobs = await base44.entities.BackupJob.filter({ id: jobId });
+      const job = jobs?.[0];
+      if (!job) return;
+      setActiveJob(job);
+
+      const isDone = job.status === "completed" || job.status === "failed" || job.status === "canceled";
+      if (isDone) {
+        stopPolling();
+        if (job.status === "completed") {
+          toast({ title: "✅ Backup concluído!", description: `${job.manifest_json?.total_records?.toLocaleString("pt-BR") || 0} registros exportados.` });
+          loadBackups();
+        } else if (job.status === "failed") {
+          toast({ title: "Backup falhou", description: job.error_message || "Erro desconhecido.", variant: "destructive" });
         }
-
-        // Small delay to avoid rate limiting
-        await new Promise(resolve => setTimeout(resolve, 200));
       }
+    } catch (_) {}
+  };
 
-      // Create and download the file
-      const jsonString = JSON.stringify(backupData, null, 2);
-      const blob = new Blob([jsonString], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      
-      const date = new Date().toISOString().split('T')[0];
-      const filename = `backup_orion_${date}.json`;
-      
+  const startPolling = (jobId) => {
+    stopPolling();
+    pollingRef.current = setInterval(() => pollJob(jobId), 2000);
+  };
+
+  const stopPolling = () => {
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current);
+      pollingRef.current = null;
+    }
+  };
+
+  // ── On mount ──────────────────────────────────────────────────────────────
+  useEffect(() => {
+    loadBackups();
+
+    // Check if there's an active job stored in localStorage
+    const savedJobId = localStorage.getItem("orion_active_backup_job");
+    if (savedJobId) {
+      // Load the job immediately
+      base44.entities.BackupJob.filter({ id: savedJobId }).then((jobs) => {
+        const job = jobs?.[0];
+        if (!job) { localStorage.removeItem("orion_active_backup_job"); return; }
+        setActiveJob(job);
+        const isDone = job.status === "completed" || job.status === "failed" || job.status === "canceled";
+        if (!isDone) startPolling(savedJobId);
+        else localStorage.removeItem("orion_active_backup_job");
+      }).catch(() => localStorage.removeItem("orion_active_backup_job"));
+    }
+
+    return () => stopPolling();
+  }, []);
+
+  // ── Start backup ──────────────────────────────────────────────────────────
+  const handleStartBackup = async () => {
+    setStartingBackup(true);
+    try {
+      const response = await startBackupFull({});
+      const jobId = response?.data?.jobId;
+      if (!jobId) throw new Error("jobId não retornado");
+
+      localStorage.setItem("orion_active_backup_job", jobId);
+
+      // Load initial job state
+      const jobs = await base44.entities.BackupJob.filter({ id: jobId });
+      setActiveJob(jobs?.[0] || { id: jobId, status: "pending", progress_percent: 0, current_step: "queued" });
+      startPolling(jobId);
+
+      toast({ title: "Backup iniciado!", description: "Acompanhe o progresso abaixo." });
+    } catch (err) {
+      toast({ title: "Erro ao iniciar backup", description: err?.message || "Tente novamente.", variant: "destructive" });
+    }
+    setStartingBackup(false);
+  };
+
+  // ── Retry failed job ──────────────────────────────────────────────────────
+  const handleRetry = async () => {
+    setActiveJob(null);
+    localStorage.removeItem("orion_active_backup_job");
+    await handleStartBackup();
+  };
+
+  // ── Download backup ───────────────────────────────────────────────────────
+  const handleDownload = async (metadataId) => {
+    setDownloadingId(metadataId);
+    try {
+      const res = await getBackupDownloadUrl({ backupMetadataId: metadataId });
+      const { url, filename } = res?.data || {};
+      if (!url) throw new Error("URL não gerada");
+
       const a = document.createElement("a");
       a.href = url;
-      a.download = filename;
+      a.download = filename || "backup_orion.json";
+      a.target = "_blank";
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
-      URL.revokeObjectURL(url);
 
-      setBackupStats(stats);
-      
-      toast({
-        title: "Backup concluído!",
-        description: `Arquivo ${filename} baixado com sucesso.`,
-      });
-    } catch (error) {
-      console.error("Erro ao criar backup:", error);
-      toast({
-        title: "Erro no backup",
-        description: "Ocorreu um erro ao criar o backup.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsBackingUp(false);
-      setCurrentEntity("");
+      toast({ title: "Download iniciado!", description: "O link expira em 10 minutos." });
+    } catch (err) {
+      toast({ title: "Erro no download", description: err?.message || "Tente novamente.", variant: "destructive" });
     }
+    setDownloadingId(null);
   };
 
-  const handleFileSelect = (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    if (!file.name.endsWith('.json')) {
-      toast({
-        title: "Arquivo inválido",
-        description: "Por favor, selecione um arquivo JSON de backup.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const data = JSON.parse(e.target.result);
-        
-        if (!data.version || !data.entities) {
-          toast({
-            title: "Arquivo inválido",
-            description: "Este arquivo não parece ser um backup válido do sistema.",
-            variant: "destructive"
-          });
-          return;
-        }
-
-        setPendingRestoreFile(data);
-        setShowRestoreConfirm(true);
-      } catch (error) {
-        toast({
-          title: "Erro ao ler arquivo",
-          description: "O arquivo selecionado não é um JSON válido.",
-          variant: "destructive"
-        });
-      }
-    };
-    reader.readAsText(file);
-    
-    // Reset input
-    event.target.value = '';
-  };
-
-  const handleRestore = async () => {
-    if (!pendingRestoreFile) return;
-
-    setShowRestoreConfirm(false);
-    setIsRestoring(true);
-    setProgress(0);
-
-    const stats = { restored: 0, errors: 0 };
-
-    try {
-      const entitiesToRestore = ENTITIES_CONFIG.filter(
-        config => pendingRestoreFile.entities[config.name]?.length > 0
-      );
-
-      for (let i = 0; i < entitiesToRestore.length; i++) {
-        const { name, entity, label } = entitiesToRestore[i];
-        const records = pendingRestoreFile.entities[name];
-        
-        setCurrentEntity(`${label} (${records.length} registros)`);
-        setProgress(Math.round(((i + 1) / entitiesToRestore.length) * 100));
-
-        for (const record of records) {
-          try {
-            // Remove system fields that shouldn't be restored
-            const { id, created_date, updated_date, created_by, created_by_id, entity_name, app_id, is_sample, is_deleted, deleted_date, ...cleanRecord } = record;
-            
-            // Check if record already exists by a unique field (varies by entity)
-            let existingRecord = null;
-            
-            try {
-              if (name === "Department" && cleanRecord.name) {
-                const existing = await entity.filter({ name: cleanRecord.name });
-                existingRecord = existing[0];
-              } else if (name === "Task" && cleanRecord.protocol) {
-                const existing = await entity.filter({ protocol: cleanRecord.protocol });
-                existingRecord = existing[0];
-              } else if (name === "AppSettings") {
-                const existing = await entity.list();
-                existingRecord = existing[0];
-              }
-            } catch (filterError) {
-              // Ignore filter errors
-            }
-
-            if (existingRecord) {
-              // Update existing record
-              await entity.update(existingRecord.id, cleanRecord);
-            } else {
-              // Create new record
-              await entity.create(cleanRecord);
-            }
-            
-            stats.restored++;
-          } catch (recordError) {
-            console.error(`Erro ao restaurar registro de ${name}:`, recordError);
-            stats.errors++;
-          }
-        }
-
-        // Delay to avoid rate limiting
-        await new Promise(resolve => setTimeout(resolve, 300));
-      }
-
-      toast({
-        title: "Restauração concluída!",
-        description: `${stats.restored} registros restaurados. ${stats.errors > 0 ? `${stats.errors} erros.` : ''}`,
-      });
-    } catch (error) {
-      console.error("Erro na restauração:", error);
-      toast({
-        title: "Erro na restauração",
-        description: "Ocorreu um erro durante a restauração.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsRestoring(false);
-      setCurrentEntity("");
-      setPendingRestoreFile(null);
-    }
-  };
-
-  const getTotalRecords = (data) => {
-    if (!data?.entities) return 0;
-    return Object.values(data.entities).reduce((sum, arr) => sum + (arr?.length || 0), 0);
-  };
+  const isJobActive = activeJob && (activeJob.status === "pending" || activeJob.status === "running");
 
   return (
-    <>
-      <Card className="shadow-lg border-0 dark:bg-[#1a1a1a] dark:border-[#2e2e2e]">
-        <CardHeader className="border-b bg-gradient-to-r from-gray-50 to-blue-50 dark:from-[#121212] dark:to-[#121212] dark:border-[#2e2e2e]">
-          <CardTitle className="flex items-center gap-2 dark:text-white">
-            <Database className="w-5 h-5" />
-            Backup e Restauração
+    <div className="space-y-6">
+      {/* ── Start Backup Card ── */}
+      <Card>
+        <CardHeader className="border-b pb-4">
+          <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+            <Database className="w-5 h-5 text-primary shrink-0" />
+            Backup Full do Sistema
           </CardTitle>
         </CardHeader>
-        <CardContent className="pt-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Backup Section */}
-            <div className="space-y-4 p-4 border rounded-lg bg-green-50/50 dark:bg-[#22946E]/10 dark:border-[#22946E]/30">
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-green-100 dark:bg-[#22946E]/20 rounded-full">
-                  <Download className="w-6 h-6 text-green-600 dark:text-[#22946E]" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-lg dark:text-white">Criar Backup</h3>
-                  <p className="text-sm text-gray-600 dark:text-[#a1a1a1]">
-                    Exportar todos os dados do sistema
-                  </p>
-                </div>
-              </div>
+        <CardContent className="pt-5 space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Exporta todas as entidades do sistema para um arquivo JSON privado no servidor. O processo roda em background e pode levar alguns minutos dependendo do volume de dados.
+          </p>
 
-              {isBackingUp && (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-[#a1a1a1]">
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Exportando: {currentEntity}</span>
-                  </div>
-                  <Progress value={progress} className="h-2" />
-                </div>
-              )}
+          <Button
+            onClick={handleStartBackup}
+            disabled={startingBackup || !!isJobActive}
+            className="w-full sm:w-auto gap-2 h-10"
+          >
+            {startingBackup ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Play className="w-4 h-4" />
+            )}
+            {startingBackup ? "Iniciando..." : isJobActive ? "Backup em andamento..." : "Iniciar Backup Full"}
+          </Button>
 
-              {backupStats && !isBackingUp && (
-                <div className="bg-white dark:bg-[#121212] p-3 rounded-lg border dark:border-[#2e2e2e] space-y-1 max-h-40 overflow-y-auto">
-                  <p className="text-sm font-medium text-green-700 dark:text-[#22946E] flex items-center gap-1">
-                    <CheckCircle2 className="w-4 h-4" />
-                    Backup realizado com sucesso!
-                  </p>
-                  <div className="text-xs text-gray-600 dark:text-[#a1a1a1] space-y-0.5">
-                    {Object.entries(backupStats).map(([label, count]) => (
-                      <div key={label} className="flex justify-between">
-                        <span>{label}:</span>
-                        <span className="font-medium">{count}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <Button
-                onClick={handleBackup}
-                disabled={isBackingUp || isRestoring}
-                className="w-full gap-2 bg-green-600 hover:bg-green-700"
-              >
-                {isBackingUp ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    Criando backup...
-                  </>
-                ) : (
-                  <>
-                    <Download className="w-4 h-4" />
-                    Fazer Backup Agora
-                  </>
-                )}
-              </Button>
-            </div>
-
-            {/* Restore Section */}
-            <div className="space-y-4 p-4 border rounded-lg bg-orange-50/50 dark:bg-[#A87A2A]/10 dark:border-[#A87A2A]/30">
-              <div className="flex items-center gap-3">
-                <div className="p-3 bg-orange-100 dark:bg-[#A87A2A]/20 rounded-full">
-                  <Upload className="w-6 h-6 text-orange-600 dark:text-[#A87A2A]" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-lg dark:text-white">Restaurar Backup</h3>
-                  <p className="text-sm text-gray-600 dark:text-[#a1a1a1]">
-                    Importar dados de um arquivo de backup
-                  </p>
-                </div>
-              </div>
-
-              {isRestoring && (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-[#a1a1a1]">
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Restaurando: {currentEntity}</span>
-                  </div>
-                  <Progress value={progress} className="h-2" />
-                </div>
-              )}
-
-              <div className="bg-white dark:bg-[#121212] p-3 rounded-lg border dark:border-[#2e2e2e]">
-                <div className="flex items-start gap-2 text-sm text-orange-700 dark:text-[#A87A2A]">
-                  <AlertTriangle className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                  <p>
-                    A restauração pode sobrescrever dados existentes. 
-                    Recomendamos fazer um backup antes de restaurar.
-                  </p>
-                </div>
-              </div>
-
-              <label className="block">
-                <input
-                  type="file"
-                  accept=".json"
-                  onChange={handleFileSelect}
-                  disabled={isBackingUp || isRestoring}
-                  className="hidden"
-                />
-                <Button
-                  asChild
-                  disabled={isBackingUp || isRestoring}
-                  variant="outline"
-                  className="w-full gap-2 border-orange-300 dark:border-[#A87A2A] text-orange-700 dark:text-[#A87A2A] hover:bg-orange-100 dark:hover:bg-[#A87A2A]/20 cursor-pointer"
-                >
-                  <span>
-                    {isRestoring ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        Restaurando...
-                      </>
-                    ) : (
-                      <>
-                        <FileJson className="w-4 h-4" />
-                        Selecionar Arquivo de Backup
-                      </>
-                    )}
-                  </span>
-                </Button>
-              </label>
-            </div>
-          </div>
-
-          {/* Info Section */}
-          <div className="mt-6 p-4 bg-blue-50 dark:bg-[#21498A]/10 rounded-lg border border-blue-200 dark:border-[#21498A]/30">
-            <div className="flex items-start gap-3">
-              <HardDrive className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
-              <div className="text-sm text-blue-800 dark:text-blue-300">
-                <p className="font-medium mb-1">Dados incluídos no backup:</p>
-                <p className="text-blue-700 dark:text-blue-400">
-                  Departamentos, Tarefas, Serviços, Interações, Ranking (Estrelas), 
-                  Notificações, Conversas e Mensagens de Chat, Mesas, Setores, 
-                  Configurações do App, Documentos, Categorias, Versões, Cursos e Vídeos.
-                </p>
-                <p className="mt-2 text-blue-600 dark:text-blue-300 font-medium">
-                  Nota: Dados de usuários não são incluídos no backup por segurança.
-                </p>
-              </div>
-            </div>
-          </div>
+          {/* Active Job Progress */}
+          {activeJob && (
+            <ActiveJobCard job={activeJob} onRetry={handleRetry} />
+          )}
         </CardContent>
       </Card>
 
-      {/* Restore Confirmation Dialog */}
-      <AlertDialog open={showRestoreConfirm} onOpenChange={setShowRestoreConfirm}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle className="flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-orange-500" />
-              Confirmar Restauração
-            </AlertDialogTitle>
-            <AlertDialogDescription asChild>
-              <div className="space-y-3">
-                <p>
-                  Você está prestes a restaurar um backup do sistema. Esta ação pode sobrescrever dados existentes.
-                </p>
-                
-                {pendingRestoreFile && (
-                  <div className="bg-gray-50 p-3 rounded-lg text-sm">
-                    <p className="font-medium text-gray-900 mb-1">Detalhes do backup:</p>
-                    <p className="text-gray-600">
-                      Data: {new Date(pendingRestoreFile.created_at).toLocaleString('pt-BR')}
-                    </p>
-                    <p className="text-gray-600">
-                      Total de registros: {getTotalRecords(pendingRestoreFile)}
-                    </p>
-                  </div>
-                )}
+      {/* ── Backup List Card ── */}
+      <Card>
+        <CardHeader className="border-b pb-4 flex flex-row items-center justify-between gap-2">
+          <CardTitle className="flex items-center gap-2 text-base md:text-lg">
+            <HardDrive className="w-5 h-5 text-primary shrink-0" />
+            Backups Disponíveis
+          </CardTitle>
+          <Button variant="ghost" size="icon" onClick={loadBackups} className="h-8 w-8 shrink-0" title="Atualizar lista">
+            <RefreshCw className="w-4 h-4" />
+          </Button>
+        </CardHeader>
+        <CardContent className="pt-5">
+          {loadingBackups ? (
+            <div className="flex items-center justify-center py-10">
+              <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : backups.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-10 text-center gap-2">
+              <Database className="w-10 h-10 text-muted-foreground/40" />
+              <p className="text-sm text-muted-foreground">Nenhum backup disponível ainda.</p>
+              <p className="text-xs text-muted-foreground">Inicie um backup para vê-lo aqui.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {backups.map((bk) => (
+                <BackupListItem
+                  key={bk.id}
+                  metadata={bk}
+                  onDownload={handleDownload}
+                  downloading={downloadingId}
+                />
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
-                <p className="font-medium text-orange-600">
-                  Recomendamos fazer um backup dos dados atuais antes de continuar.
-                </p>
-              </div>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleRestore}
-              className="bg-orange-600 hover:bg-orange-700"
-            >
-              Restaurar Backup
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-    </>
+      {/* ── Info ── */}
+      <div className="p-4 bg-blue-50 dark:bg-blue-950/20 rounded-xl border border-blue-200 dark:border-blue-900 flex items-start gap-3">
+        <AlertTriangle className="w-4 h-4 text-blue-600 mt-0.5 shrink-0" />
+        <div className="text-xs text-blue-800 dark:text-blue-300 space-y-1">
+          <p className="font-medium">Informações importantes:</p>
+          <ul className="list-disc ml-3 space-y-0.5">
+            <li>O arquivo de backup fica armazenado de forma privada no servidor.</li>
+            <li>O link de download expira em 10 minutos após ser gerado.</li>
+            <li>Dados de usuários (senhas, tokens) não são incluídos por segurança.</li>
+            <li>Se o processo falhar, use "Tentar Novamente" para reiniciar.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
   );
 }
