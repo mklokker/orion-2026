@@ -283,6 +283,7 @@ export default function MessageBubble({
     
     return (
       <>
+        {forwardHeader}
         {replyPreview}
         <p className="text-sm whitespace-pre-wrap break-words overflow-wrap-anywhere" style={{ overflowWrap: 'anywhere', wordBreak: 'break-word' }}>
           {message.mentions && message.mentions.length > 0 ? (
