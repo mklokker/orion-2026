@@ -425,6 +425,13 @@ export default function Admin() {
             </Card>
           </TabsContent>
 
+          {/* Approvals Tab */}
+          <TabsContent value="approvals">
+            {isAdmin && (
+              <BatchApprovalPanel currentUser={currentUser} departments={departments} />
+            )}
+          </TabsContent>
+
           {/* Appearance Tab */}
           <TabsContent value="appearance">
             <AppearanceSettings />
