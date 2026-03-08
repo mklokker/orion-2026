@@ -289,7 +289,7 @@ svg,
 
 /* ========================================
    ORION UI V2 — DESIGN TOKENS & STYLES
-   Light + Dark only
+   Light + Dark only (SaaS Premium)
    ======================================== */
 
 :root.ui-v2 {
@@ -308,11 +308,14 @@ svg,
   --v2-text-secondary: #475569;
   --v2-text-tertiary: #94A3B8;
   --v2-border: #E2E8F0;
-  --v2-shadow-sm: 0 1px 2px 0 rgba(15, 23, 42, 0.05);
-  --v2-shadow-md: 0 4px 6px -1px rgba(15, 23, 42, 0.1), 0 2px 4px -2px rgba(15, 23, 42, 0.1);
-  --v2-shadow-lg: 0 10px 15px -3px rgba(15, 23, 42, 0.1), 0 4px 6px -4px rgba(15, 23, 42, 0.1);
-  --v2-radius-md: 10px;
-  --v2-radius-lg: 14px;
+  --v2-shadow-sm: 0 2px 4px rgba(15, 23, 42, 0.08);
+  --v2-shadow-md: 0 8px 16px rgba(15, 23, 42, 0.12);
+  --v2-shadow-lg: 0 20px 40px rgba(15, 23, 42, 0.15);
+  --v2-shadow-xl: 0 25px 50px rgba(15, 23, 42, 0.18);
+  --v2-radius-sm: 8px;
+  --v2-radius-md: 12px;
+  --v2-radius-lg: 16px;
+  --v2-radius-xl: 20px;
 }
 
 :root.ui-v2.dark {
@@ -330,45 +333,68 @@ svg,
   --v2-text-secondary: #CBD5E1;
   --v2-text-tertiary: #94A3B8;
   --v2-border: #334155;
-  --v2-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
-  --v2-shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.4);
-  --v2-shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -4px rgba(0, 0, 0, 0.4);
+  --v2-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.25);
+  --v2-shadow-md: 0 8px 16px rgba(0, 0, 0, 0.35);
+  --v2-shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.45);
+  --v2-shadow-xl: 0 25px 50px rgba(0, 0, 0, 0.50);
 }
 
+/* ── CARD COMPONENT ── */
 :root.ui-v2 .ui-v2-card {
   background-color: var(--v2-bg-primary);
   border: 1px solid var(--v2-border);
   border-radius: var(--v2-radius-lg);
   box-shadow: var(--v2-shadow-sm);
-  transition: all 250ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: all 280ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 :root.ui-v2 .ui-v2-card:hover {
   box-shadow: var(--v2-shadow-md);
-  transform: translateY(-2px);
+  transform: translateY(-3px);
   border-color: var(--v2-primary);
 }
 
+:root.ui-v2 .ui-v2-card-interactive {
+  cursor: pointer;
+}
+
+:root.ui-v2 .ui-v2-card-interactive:active {
+  transform: translateY(-1px);
+  box-shadow: var(--v2-shadow-sm);
+}
+
+/* ── BUTTON COMPONENT ── */
 :root.ui-v2 .ui-v2-button {
   border-radius: var(--v2-radius-md);
   font-weight: 600;
   transition: all 200ms cubic-bezier(0.22, 1, 0.36, 1);
   box-shadow: var(--v2-shadow-sm);
+  position: relative;
+  overflow: hidden;
 }
 
-:root.ui-v2 .ui-v2-button:hover {
-  transform: translateY(-1px);
+:root.ui-v2 .ui-v2-button:hover:not(:disabled) {
+  transform: translateY(-2px);
   box-shadow: var(--v2-shadow-md);
 }
 
-:root.ui-v2 .ui-v2-modal {
-  animation: v2-scale-in 300ms cubic-bezier(0.22, 1, 0.36, 1);
+:root.ui-v2 .ui-v2-button:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: var(--v2-shadow-sm);
 }
 
-@keyframes v2-scale-in {
+/* ── MODAL / DIALOG ── */
+:root.ui-v2 [data-state="open"] .ui-v2-modal,
+:root.ui-v2 .ui-v2-modal {
+  animation: v2-modal-in 280ms cubic-bezier(0.22, 1, 0.36, 1);
+  border-radius: var(--v2-radius-xl);
+  box-shadow: var(--v2-shadow-xl);
+}
+
+@keyframes v2-modal-in {
   from {
     opacity: 0;
-    transform: scale(0.95) translateY(-10px);
+    transform: scale(0.92) translateY(-20px);
   }
   to {
     opacity: 1;
@@ -376,20 +402,163 @@ svg,
   }
 }
 
+/* ── MODAL BACKDROP (BLUR) ── */
+:root.ui-v2 [role="dialog"] ~ [data-radix-dialog-overlay],
+:root.ui-v2 .dialog-overlay {
+  backdrop-filter: blur(10px);
+  background-color: rgba(0, 0, 0, 0.45);
+}
+
+:root.ui-v2.dark [role="dialog"] ~ [data-radix-dialog-overlay],
+:root.ui-v2.dark .dialog-overlay {
+  background-color: rgba(0, 0, 0, 0.55);
+}
+
+/* ── DROPDOWN MENU ── */
 :root.ui-v2 .ui-v2-dropdown {
   border-radius: var(--v2-radius-lg);
   box-shadow: var(--v2-shadow-lg);
-  animation: v2-slide-in 200ms ease-out;
+  animation: v2-dropdown-in 200ms ease-out;
+  border: 1px solid var(--v2-border);
+  background-color: var(--v2-bg-primary);
 }
 
-@keyframes v2-slide-in {
+@keyframes v2-dropdown-in {
   from {
     opacity: 0;
-    transform: translateY(-8px);
+    transform: translateY(-12px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* ── INPUT / TEXTAREA ── */
+:root.ui-v2 .ui-v2-input,
+:root.ui-v2 input[class*="ui-v2"],
+:root.ui-v2 textarea[class*="ui-v2"] {
+  border-radius: var(--v2-radius-md);
+  border: 1.5px solid var(--v2-border);
+  background-color: var(--v2-bg-primary);
+  color: var(--v2-text-primary);
+  transition: all 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+:root.ui-v2 .ui-v2-input:focus,
+:root.ui-v2 input[class*="ui-v2"]:focus,
+:root.ui-v2 textarea[class*="ui-v2"]:focus {
+  border-color: var(--v2-primary);
+  box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+  outline: none;
+}
+
+:root.ui-v2.dark .ui-v2-input:focus,
+:root.ui-v2.dark input[class*="ui-v2"]:focus,
+:root.ui-v2.dark textarea[class*="ui-v2"]:focus {
+  box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.1);
+}
+
+/* ── SIDEBAR ITEM (ACTIVE PILL) ── */
+:root.ui-v2 .ui-v2-sidebar-item-active {
+  background: linear-gradient(135deg, var(--v2-primary) 0%, var(--v2-primary-light) 100%);
+  color: white;
+  border-radius: var(--v2-radius-md);
+  box-shadow: 0 0 20px rgba(79, 70, 229, 0.3);
+  position: relative;
+}
+
+:root.ui-v2.dark .ui-v2-sidebar-item-active {
+  box-shadow: 0 0 20px rgba(129, 140, 248, 0.25);
+}
+
+/* ── SIDEBAR HOVER ── */
+:root.ui-v2 .ui-v2-sidebar-item:hover:not(.ui-v2-sidebar-item-active) {
+  background-color: var(--v2-bg-secondary);
+  transition: background-color 150ms ease-out;
+}
+
+/* ── MESSAGE BUBBLE (CHAT) ── */
+:root.ui-v2 .ui-v2-message-bubble {
+  border-radius: var(--v2-radius-lg);
+  box-shadow: var(--v2-shadow-sm);
+  animation: v2-bubble-in 200ms ease-out;
+}
+
+@keyframes v2-bubble-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ── CONVERSATION ITEM (CARD LIST) ── */
+:root.ui-v2 .ui-v2-conversation-item {
+  border-radius: var(--v2-radius-lg);
+  border: 1px solid var(--v2-border);
+  background-color: var(--v2-bg-secondary);
+  transition: all 200ms cubic-bezier(0.22, 1, 0.36, 1);
+  cursor: pointer;
+  padding: 12px 16px;
+  margin-bottom: 8px;
+}
+
+:root.ui-v2 .ui-v2-conversation-item:hover {
+  background-color: var(--v2-bg-tertiary);
+  border-color: var(--v2-primary);
+  box-shadow: var(--v2-shadow-sm);
+  transform: translateX(4px);
+}
+
+:root.ui-v2 .ui-v2-conversation-item.active {
+  background-color: var(--v2-bg-primary);
+  border-color: var(--v2-primary);
+  box-shadow: var(--v2-shadow-md);
+  font-weight: 600;
+}
+
+/* ── HEADER PREMIUM ── */
+:root.ui-v2 .ui-v2-header {
+  background: linear-gradient(135deg, var(--v2-bg-primary) 0%, var(--v2-bg-secondary) 100%);
+  border-bottom: 1px solid var(--v2-border);
+  box-shadow: var(--v2-shadow-sm);
+}
+
+/* ── COMPOSER ── */
+:root.ui-v2 .ui-v2-composer {
+  border-top: 1px solid var(--v2-border);
+  background-color: var(--v2-bg-secondary);
+  padding: 16px;
+}
+
+:root.ui-v2 .ui-v2-composer input,
+:root.ui-v2 .ui-v2-composer textarea {
+  border-radius: var(--v2-radius-md);
+  border: 1.5px solid var(--v2-border);
+  background-color: var(--v2-bg-primary);
+}
+
+/* ── BADGE ── */
+:root.ui-v2 .ui-v2-badge {
+  border-radius: var(--v2-radius-sm);
+  font-weight: 600;
+  box-shadow: var(--v2-shadow-sm);
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  :root.ui-v2 .ui-v2-card,
+  :root.ui-v2 .ui-v2-modal {
+    border-radius: var(--v2-radius-lg);
+  }
+  
+  :root.ui-v2 .ui-v2-conversation-item {
+    padding: 10px 12px;
+    margin-bottom: 6px;
   }
 }
 
