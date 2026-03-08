@@ -349,13 +349,15 @@ export default function ConversationView({
       </div>
 
       {/* Pinned Messages */}
-      <PinnedMessages
-        pinnedMessages={pinnedMessages}
-        users={users}
-        currentUser={currentUser}
-        onUnpin={onPinMessage}
-        onScrollToMessage={scrollToMessage}
-      />
+      <div className="shrink-0">
+        <PinnedMessages
+          pinnedMessages={pinnedMessages}
+          users={users}
+          currentUser={currentUser}
+          onUnpin={onPinMessage}
+          onScrollToMessage={scrollToMessage}
+        />
+      </div>
 
       {/* Status Tag Filter */}
       {conversation && (
