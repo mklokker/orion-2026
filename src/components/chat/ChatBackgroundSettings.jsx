@@ -260,6 +260,18 @@ export default function ChatBackgroundSettings({ chatBgPrefs, onSave, onOpenBubb
           </Button>
         )}
       </div>
+
+      {/* Bubble customization button */}
+      <div className="pt-4 border-t border-border">
+        <Button
+          onClick={onOpenBubbleSettings}
+          variant="outline"
+          className="w-full gap-2"
+        >
+          <Palette className="w-4 h-4" />
+          Personalizar Bolhas
+        </Button>
+      </div>
     </div>
   );
 }
