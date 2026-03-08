@@ -46,10 +46,11 @@ export function useTaskRequestStatus(requestId, overrideStatus = null) {
 
     // Deduplicate concurrent fetches for the same id
     if (!_pending[requestId]) {
-      _pending[requestId] = TaskRequest.filter({ id: requestId })
+      // Use list() and find by id, since filter({id}) doesn't work on the built-in id field
+      _pending[requestId] = TaskRequest.list()
         .catch(() => [])
         .then(results => {
-          const found = results?.[0];
+          const found = results?.find(r => r.id === requestId);
           const s = found ? found.status : "pending";
           _cache[requestId] = { status: s, fetchedAt: Date.now() };
           delete _pending[requestId];
