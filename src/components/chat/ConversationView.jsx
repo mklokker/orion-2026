@@ -628,7 +628,7 @@ export default function ConversationView({
                       return id ? (taskRequestStatuses[id] ?? null) : null;
                     })()}
                     onShowReactions={selectionMode ? undefined : onShowReactions}
-                    onReadLater={selectionMode ? undefined : (message) => toggleMessageReadLater(message.id, conversation.id)}
+                    onReadLater={selectionMode ? undefined : handleReadLater}
                     isReadLater={readLaterMessages.some(r => r.message_id === msg.id)}
                   />
                 </div>
