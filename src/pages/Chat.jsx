@@ -336,7 +336,7 @@ export default function Chat() {
       presences.forEach(p => {
         const lastSeen = p.last_seen ? new Date(p.last_seen) : null;
         const isRecent = lastSeen && (now - lastSeen) < 2 * 60 * 1000;
-        
+
         if (p.manual_status && p.manual_status !== "auto") {
           map[p.user_email] = p.status || p.manual_status;
         } else if (isRecent) {
@@ -344,8 +344,8 @@ export default function Chat() {
         } else {
           map[p.user_email] = "offline";
         }
-        
-        // Store my presence + global bg prefs
+
+        // Store my presence + all appearance/bg prefs (including bubble colors)
         if (p.user_email === currentUser?.email) {
           setMyPresence(p);
           setChatBgPrefs({
@@ -354,6 +354,15 @@ export default function Chat() {
             chat_bg_opacity: p.chat_bg_opacity ?? 0.15,
             chat_bg_blur: p.chat_bg_blur ?? 0,
             chat_bg_dim: p.chat_bg_dim ?? true,
+            // Preserve bubble colors
+            bubble_my_bg: p.bubble_my_bg || "",
+            bubble_my_text_mode: p.bubble_my_text_mode || "auto",
+            bubble_my_text_color: p.bubble_my_text_color || "",
+            bubble_other_bg: p.bubble_other_bg || "",
+            bubble_other_text_mode: p.bubble_other_text_mode || "auto",
+            bubble_other_text_color: p.bubble_other_text_color || "",
+            bubble_meta_color_mode: p.bubble_meta_color_mode || "auto",
+            bubble_meta_color: p.bubble_meta_color || "",
           });
         }
       });
@@ -368,18 +377,22 @@ export default function Chat() {
     if (!currentUser) return;
     try {
       const existing = await UserPresence.filter({ user_email: currentUser.email });
-      
+
       if (existing.length > 0) {
         const presence = existing[0];
         const newStatus = presence.manual_status && presence.manual_status !== "auto" 
           ? presence.manual_status 
           : "online";
-        
-        await UserPresence.update(presence.id, {
+
+        // Preserve bubble/bg preferences when updating (don't overwrite with defaults)
+        const updateData = {
           status: newStatus,
           last_seen: new Date().toISOString()
-        });
-        setMyPresence({ ...presence, status: newStatus, last_seen: new Date().toISOString() });
+        };
+
+        await UserPresence.update(presence.id, updateData);
+        // Merge update with existing data to preserve bubble colors and background settings
+        setMyPresence(prev => prev ? { ...prev, ...updateData } : { ...presence, ...updateData });
       } else {
         const newPresence = await UserPresence.create({
           user_email: currentUser.email,

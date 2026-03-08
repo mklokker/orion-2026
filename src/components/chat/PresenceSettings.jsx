@@ -419,9 +419,38 @@ export default function PresenceSettings({ open, onClose, currentUser, presence,
         onClose={() => setShowBubbleModal(false)}
         initialData={presence}
         onSave={async (bubbleData) => {
-          if (presence?.id) {
+          if (!presence?.id) {
+            console.error("Erro: Nenhum UserPresence id disponível");
+            return;
+          }
+
+          try {
+            // Log what we're saving
+            console.log("[BubbleAppearance] Salvando cores:", bubbleData);
+
+            // Save to database
             await UserPresence.update(presence.id, bubbleData);
+            console.log("[BubbleAppearance] Salvo com sucesso!");
+
+            // Verify persistence by reloading
+            const updated = await UserPresence.filter({ user_email: currentUser?.email });
+            if (updated.length > 0) {
+              console.log("[BubbleAppearance] Verificação - dados persistidos:", {
+                bubble_my_bg: updated[0].bubble_my_bg,
+                bubble_other_bg: updated[0].bubble_other_bg,
+              });
+            }
+
+            toast({ title: "✅ Cores salvas com sucesso!", description: "As mudanças foram aplicadas." });
             onUpdate?.();
+            setShowBubbleModal(false);
+          } catch (error) {
+            console.error("[BubbleAppearance] Erro ao salvar:", error);
+            toast({ 
+              title: "❌ Erro ao salvar", 
+              description: error?.message || "Tente novamente", 
+              variant: "destructive" 
+            });
           }
         }}
       />
