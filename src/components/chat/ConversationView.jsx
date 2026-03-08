@@ -472,9 +472,9 @@ export default function ConversationView({
         </DropdownMenu>
       </div>
 
-      {/* Selection Bar (sticky no mobile, replaces normal header actions when in selection mode) */}
+      {/* Selection Bar (sticky no mobile when active, replaces normal header) */}
       {selectionMode && (
-        <div className="sticky top-10 md:relative z-40">
+        <div className="sticky top-10 md:relative z-50 md:z-30">
           <SelectionBar
             count={selectedIds.size}
             onCancel={exitSelectionMode}
@@ -488,20 +488,22 @@ export default function ConversationView({
         </div>
       )}
 
-      {/* Pinned Messages - sticky no mobile */}
-      <div className="sticky top-10 md:relative z-20 shrink-0">
-        <PinnedMessages
-          pinnedMessages={pinnedMessages}
-          users={users}
-          currentUser={currentUser}
-          onUnpin={onPinMessage}
-          onScrollToMessage={scrollToMessage}
-        />
-      </div>
+      {/* Pinned Messages - sticky no mobile apenas se houver mensagens fixadas */}
+      {pinnedMessages.length > 0 && (
+        <div className="sticky top-10 md:relative z-30 md:z-20 shrink-0">
+          <PinnedMessages
+            pinnedMessages={pinnedMessages}
+            users={users}
+            currentUser={currentUser}
+            onUnpin={onPinMessage}
+            onScrollToMessage={scrollToMessage}
+          />
+        </div>
+      )}
 
-      {/* Status Tag Filter - sticky no mobile */}
+      {/* Status Tag Filter - sticky no mobile apenas se houver filtros */}
       {conversation && (
-        <div className="sticky top-20 md:relative z-10 flex items-center px-2 md:px-3 py-1.5 border-b border-border bg-card/80 backdrop-blur-sm shrink-0">
+        <div className="sticky top-10 md:relative z-20 md:z-10 flex items-center px-2 md:px-3 py-1.5 border-b border-border bg-card/80 backdrop-blur-sm shrink-0">
           <StatusTagFilter value={statusFilter} onChange={setStatusFilter} messages={messages} />
         </div>
       )}
