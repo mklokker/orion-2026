@@ -651,7 +651,7 @@ export default function ConversationView({
           onClose={() => setShowBatchApprovalModal(false)}
           taskRequestIds={selectedTaskRequestIds}
           currentUser={currentUser}
-          departments={[]}
+          departments={departments}
           onApproved={() => {
             setShowBatchApprovalModal(false);
             exitSelectionMode();
