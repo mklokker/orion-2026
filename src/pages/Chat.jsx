@@ -18,6 +18,7 @@ import PresenceSettings from "@/components/chat/PresenceSettings";
 import AudioPermissionBanner from "@/components/chat/AudioPermissionBanner";
 import TaskRequestApprovalModal from "@/components/chat/TaskRequestApprovalModal";
 import ForwardMessageModal from "@/components/chat/ForwardMessageModal";
+import MessageReactionsModal from "@/components/chat/MessageReactionsModal";
 import { useToast } from "@/components/ui/use-toast";
 import { playNotificationSound } from "@/components/chat/NotificationSounds";
 import { Department } from "@/entities/Department";
@@ -58,6 +59,8 @@ export default function Chat() {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [forwardingMessage, setForwardingMessage] = useState(null);
   const [taskRequestStatuses, setTaskRequestStatuses] = useState({}); // { [requestId]: "pending"|"approved"|"rejected" }
+  const [showReactionsModal, setShowReactionsModal] = useState(false);
+  const [selectedMessageForReactions, setSelectedMessageForReactions] = useState(null);
 
   const typingTimeoutRef = useRef(null);
   const notifiedMessagesRef = useRef(new Set());
@@ -977,6 +980,11 @@ export default function Chat() {
     setShowTaskApprovalModal(true);
   };
 
+  const handleShowReactions = (message) => {
+    setSelectedMessageForReactions(message);
+    setShowReactionsModal(true);
+  };
+
   const handleGoToFavorite = useCallback(async (fav) => {
     // Find target conversation
     const targetConv = conversations.find(c => c.id === fav.conversation_id);
@@ -1274,6 +1282,17 @@ export default function Chat() {
             setTaskRequestStatuses(prev => ({ ...prev, [selectedTaskRequestId]: newStatus }));
           }
         }}
+      />
+
+      {/* Message Reactions Modal */}
+      <MessageReactionsModal
+        open={showReactionsModal}
+        onClose={() => {
+          setShowReactionsModal(false);
+          setSelectedMessageForReactions(null);
+        }}
+        reactions={selectedMessageForReactions?.reactions}
+        users={users}
       />
     </div>
   );
