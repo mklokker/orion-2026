@@ -542,6 +542,10 @@ export default function MessageBubble({
                   <DropdownMenuItem onClick={() => { onForward?.(message); setMenuOpen(false); }}>
                     <Forward className="w-4 h-4 mr-2" /> Encaminhar
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => { onFavorite?.(message); setMenuOpen(false); }}>
+                    <Star className={`w-4 h-4 mr-2 ${isFavorited ? "fill-amber-400 text-amber-400" : ""}`} />
+                    {isFavorited ? "Remover favorito" : "Favoritar"}
+                  </DropdownMenuItem>
                   {message.type !== "system" && (
                     <>
                       {message.status_tag !== "feito" && (
