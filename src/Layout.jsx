@@ -54,7 +54,7 @@ import { useChatNotifications, useGlobalUnreadCount, setGlobalUnread } from "./c
 import { UserPresence } from "@/entities/UserPresence";
 import { NotificationProvider, useNotifications } from "./components/notifications/NotificationContext";
 import { useNotificationSync } from "./components/notifications/useNotificationSync";
-import ThemeDebugger from "./components/debug/ThemeDebugger";
+
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { refetchOnWindowFocus: false, retry: 1 } },
@@ -232,10 +232,8 @@ function SidebarContent({
   onShowProfile,
   onLogout,
   onNavClick,
-  currentTheme,
 }) {
-  const themeLabels = { light: "Claro", dark: "Escuro", pastel: "Pastel", midnight: "Midnight", forest: "Forest" };
-  const onGetThemeLabel = () => themeLabels[currentTheme] || "Claro";
+  const themeLabel = isDarkMode ? "Escuro" : "Claro";
   return (
     <div className="flex flex-col h-full">
       {/* Header / Logo */}
@@ -311,7 +309,7 @@ function SidebarContent({
               className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-foreground hover:bg-accent transition-colors"
             >
               <Moon className="w-4 h-4 shrink-0" />
-              <span className="truncate">Tema: {onGetThemeLabel()}</span>
+              <span className="truncate">Tema: {themeLabel}</span>
             </button>
           ) : (
             <Tooltip>
@@ -320,7 +318,7 @@ function SidebarContent({
                   <Moon className="w-4 h-4" />
                 </button>
               </TooltipTrigger>
-              <TooltipContent side="right">Tema: {onGetThemeLabel()}</TooltipContent>
+              <TooltipContent side="right">Tema: {themeLabel}</TooltipContent>
             </Tooltip>
           )}
 
@@ -493,16 +491,21 @@ function LayoutContent({ children, currentPageName }) {
     }
   }, [location.pathname, isMainTab]);
 
-  // Theme Management (Light/Dark/Pastel/Midnight/Forest)
+  // Theme Management (Light/Dark only)
   const [currentTheme, setCurrentTheme] = React.useState(() => {
     const saved = localStorage.getItem("orion_theme");
+    // Migrate old themes to light
+    if (saved && !["light", "dark"].includes(saved)) {
+      localStorage.setItem("orion_theme", "light");
+      return "light";
+    }
     return saved || "light";
   });
 
   React.useEffect(() => {
     const html = document.documentElement;
     
-    // Theme color mappings (must match globals.css)
+    // Theme color mappings (Light/Dark only)
     const themeTokens = {
       light: {
         "--background": "0 0% 100%",
@@ -515,24 +518,6 @@ function LayoutContent({ children, currentPageName }) {
         "--foreground": "210 40% 98%",
         "--primary": "217.2 91.2% 59.8%",
         "--primary-foreground": "222.2 84% 4.9%",
-      },
-      pastel: {
-        "--background": "230 100% 98%",
-        "--foreground": "222.2 84% 4.9%",
-        "--primary": "258 90% 66%",
-        "--primary-foreground": "0 0% 100%",
-      },
-      midnight: {
-        "--background": "220 60% 96%",
-        "--foreground": "222.2 84% 4.9%",
-        "--primary": "222 82% 46%",
-        "--primary-foreground": "0 0% 100%",
-      },
-      forest: {
-        "--background": "120 30% 97%",
-        "--foreground": "222.2 84% 4.9%",
-        "--primary": "142 71% 45%",
-        "--primary-foreground": "0 0% 100%",
       },
     };
     
@@ -556,29 +541,10 @@ function LayoutContent({ children, currentPageName }) {
     void html.offsetHeight;
     
     localStorage.setItem("orion_theme", currentTheme);
-    
-    // Diagnostic log
-    setTimeout(() => {
-      const styles = getComputedStyle(html);
-      const primaryHSL = styles.getPropertyValue('--primary').trim();
-      const backgroundHSL = styles.getPropertyValue('--background').trim();
-      const foregroundHSL = styles.getPropertyValue('--foreground').trim();
-      console.log(`🎨 Theme changed to: ${currentTheme}`, {
-        dataTheme: html.getAttribute("data-theme"),
-        darkClass: html.classList.contains("dark"),
-        "--primary (HSL)": primaryHSL || "NOT_FOUND",
-        "--background (HSL)": backgroundHSL || "NOT_FOUND",
-        "--foreground (HSL)": foregroundHSL || "NOT_FOUND",
-        "globals.css loaded": document.styleSheets.length > 0,
-      });
-    }, 50);
   }, [currentTheme]);
 
   const toggleTheme = () => {
-    const themes = ["light", "dark", "pastel", "midnight", "forest"];
-    const currentIndex = themes.indexOf(currentTheme);
-    const nextIndex = (currentIndex + 1) % themes.length;
-    setCurrentTheme(themes[nextIndex]);
+    setCurrentTheme(currentTheme === "light" ? "dark" : "light");
   };
 
   const { toast } = useToast();
@@ -714,7 +680,6 @@ function LayoutContent({ children, currentPageName }) {
     onLogout: () => User.logout(),
     pinned: sidebarPinned,
     onTogglePin: togglePin,
-    currentTheme,
   };
 
   return (
@@ -859,8 +824,6 @@ function LayoutContent({ children, currentPageName }) {
           </>
         )}
         <Toaster />
-        {/* Theme Debugger - Remove when themes are confirmed working */}
-        <ThemeDebugger />
       </TooltipProvider>
     </QueryClientProvider>
   );

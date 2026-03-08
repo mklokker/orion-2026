@@ -103,146 +103,7 @@
     color-scheme: dark;
   }
 
-  /* ─── PASTEL THEME (Lilás/violeta suave) ─── */
-  html[data-theme="pastel"] {
-    --background: 230 100% 98%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 258 90% 66%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 217 91% 60%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 236 100% 97%;
-    --muted-foreground: 220 9% 46%;
-    --accent: 230 60% 95%;
-    --accent-foreground: 258 90% 40%;
-    --destructive: 350 89% 60%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 230 60% 92%;
-    --input: 230 60% 92%;
-    --ring: 258 90% 66%;
 
-    --chart-1: 258 90% 66%;
-    --chart-2: 173 58% 39%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 350 89% 60%;
-
-    --sidebar-background: 230 100% 98%;
-    --sidebar-foreground: 222.2 84% 4.9%;
-    --sidebar-primary: 258 90% 66%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 230 60% 95%;
-    --sidebar-accent-foreground: 222.2 84% 4.9%;
-    --sidebar-border: 230 60% 92%;
-    --sidebar-ring: 258 90% 66%;
-
-    /* Bubble colors */
-    --bubble-my-bg: #D8B4FE;
-    --bubble-my-text: #581C87;
-    --bubble-other-bg: #F3E8FF;
-    --bubble-other-text: #6B21A8;
-    --bubble-meta-color: #A78BFA;
-
-    color-scheme: light;
-  }
-
-  /* ─── MIDNIGHT THEME (Azul profundo elegante) ─── */
-  html[data-theme="midnight"] {
-    --background: 220 60% 96%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 222 82% 46%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 199 95% 60%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 220 30% 90%;
-    --muted-foreground: 220 20% 30%;
-    --accent: 190 80% 90%;
-    --accent-foreground: 190 80% 30%;
-    --destructive: 350 75% 62%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 220 60% 88%;
-    --input: 220 60% 88%;
-    --ring: 222 82% 46%;
-
-    --chart-1: 222 82% 46%;
-    --chart-2: 199 95% 60%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 350 75% 62%;
-
-    --sidebar-background: 220 60% 96%;
-    --sidebar-foreground: 222.2 84% 4.9%;
-    --sidebar-primary: 222 82% 46%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 190 80% 90%;
-    --sidebar-accent-foreground: 222.2 84% 4.9%;
-    --sidebar-border: 220 60% 88%;
-    --sidebar-ring: 222 82% 46%;
-
-    /* Bubble colors */
-    --bubble-my-bg: #1E40AF;
-    --bubble-my-text: #FFFFFF;
-    --bubble-other-bg: #DBEAFE;
-    --bubble-other-text: #082F4F;
-    --bubble-meta-color: #3B82F6;
-
-    color-scheme: light;
-  }
-
-  /* ─── FOREST THEME (Verde elegante natural) ─── */
-  html[data-theme="forest"] {
-    --background: 120 30% 97%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 142 71% 45%;
-    --primary-foreground: 0 0% 100%;
-    --secondary: 173 80% 26%;
-    --secondary-foreground: 0 0% 100%;
-    --muted: 152 76% 96%;
-    --muted-foreground: 142 85% 16%;
-    --accent: 140 40% 92%;
-    --accent-foreground: 142 85% 16%;
-    --destructive: 0 72% 51%;
-    --destructive-foreground: 0 0% 100%;
-    --border: 152 52% 86%;
-    --input: 152 52% 86%;
-    --ring: 142 71% 45%;
-
-    --chart-1: 142 71% 45%;
-    --chart-2: 173 80% 26%;
-    --chart-3: 197 37% 24%;
-    --chart-4: 43 74% 66%;
-    --chart-5: 27 87% 67%;
-
-    --sidebar-background: 120 30% 97%;
-    --sidebar-foreground: 222.2 84% 4.9%;
-    --sidebar-primary: 142 71% 45%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 152 76% 96%;
-    --sidebar-accent-foreground: 222.2 84% 4.9%;
-    --sidebar-border: 152 52% 86%;
-    --sidebar-ring: 142 71% 45%;
-
-    /* Bubble colors */
-    --bubble-my-bg: #059669;
-    --bubble-my-text: #FFFFFF;
-    --bubble-other-bg: #D1FAE5;
-    --bubble-other-text: #065F46;
-    --bubble-meta-color: #34D399;
-
-    color-scheme: light;
-  }
 }
 
 /* ========================================
@@ -385,50 +246,19 @@ html[data-theme="midnight"] .animate-pulse,
 }
 
 /* ========================================
-   OVERRIDE FALLBACK - Garantir que temas específicos prevalecem
+   LIGHT/DARK THEME OVERRIDES
    ======================================== */
 
-/* Força Light theme para sobrescrever qualquer :root genérico */
-html[data-theme="light"],
-html[data-theme="light"] * {
-  --background: 0 0% 100% !important;
-  --foreground: 222.2 84% 4.9% !important;
-  --primary: 221.2 83.2% 53.3% !important;
-  --primary-foreground: 210 40% 98% !important;
+html[data-theme="light"] {
+  --background: 0 0% 100%;
+  --foreground: 222.2 84% 4.9%;
+  --primary: 221.2 83.2% 53.3%;
+  --primary-foreground: 210 40% 98%;
 }
 
-/* Força Pastel */
-html[data-theme="pastel"],
-html[data-theme="pastel"] * {
-  --background: 230 100% 98% !important;
-  --foreground: 222.2 84% 4.9% !important;
-  --primary: 258 90% 66% !important;
-  --primary-foreground: 0 0% 100% !important;
-}
-
-/* Força Midnight */
-html[data-theme="midnight"],
-html[data-theme="midnight"] * {
-  --background: 220 60% 96% !important;
-  --foreground: 222.2 84% 4.9% !important;
-  --primary: 222 82% 46% !important;
-  --primary-foreground: 0 0% 100% !important;
-}
-
-/* Força Forest */
-html[data-theme="forest"],
-html[data-theme="forest"] * {
-  --background: 120 30% 97% !important;
-  --foreground: 222.2 84% 4.9% !important;
-  --primary: 142 71% 45% !important;
-  --primary-foreground: 0 0% 100% !important;
-}
-
-/* Força Dark */
-html[data-theme="dark"],
-html[data-theme="dark"] * {
-  --background: 222.2 84% 4.9% !important;
-  --foreground: 210 40% 98% !important;
-  --primary: 217.2 91.2% 59.8% !important;
-  --primary-foreground: 222.2 84% 4.9% !important;
+html[data-theme="dark"] {
+  --background: 222.2 84% 4.9%;
+  --foreground: 210 40% 98%;
+  --primary: 217.2 91.2% 59.8%;
+  --primary-foreground: 222.2 84% 4.9%;
 }
