@@ -190,11 +190,11 @@ export default function ChatList({
                 <div
                   key={conv.id}
                   onClick={() => onSelect(conv)}
-                  className={`flex items-center gap-2.5 md:gap-3 p-2.5 md:p-3 cursor-pointer transition-all rounded-xl group min-h-[60px] ${
+                  className={`ui-v2-conversation-item ${
                     isSelected 
-                      ? "bg-primary/10 ring-2 ring-primary/30" 
-                      : "hover:bg-accent active:bg-accent"
-                  } ${isPinned && !isSelected ? "bg-amber-500/10" : ""}`}
+                      ? "active" 
+                      : ""
+                  } ${isPinned && !isSelected ? "ring-1 ring-amber-400/50" : ""}`}
                 >
                   <div className="relative shrink-0">
                     <Avatar className="w-11 h-11 md:w-12 md:h-12">
