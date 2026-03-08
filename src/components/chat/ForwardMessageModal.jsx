@@ -82,7 +82,9 @@ export default function ForwardMessageModal({
         <DialogHeader className="px-4 pt-4 pb-2">
           <DialogTitle className="flex items-center gap-2 text-base">
             <Forward className="w-4 h-4 text-primary" />
-            Encaminhar mensagem
+            {isBatch && Array.isArray(message)
+              ? `Encaminhar ${message.length} mensagem${message.length !== 1 ? "s" : ""}`
+              : "Encaminhar mensagem"}
           </DialogTitle>
         </DialogHeader>
 
