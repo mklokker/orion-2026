@@ -443,8 +443,8 @@ export default function MessageBubble({
               : "rounded-tl-sm shadow-md border border-border/50"
           }`}
           style={{
-            backgroundColor: isOwn ? "var(--bubble-my-bg, #4338CA)" : "var(--bubble-other-bg, #E5E7EB)",
-            color: isOwn ? "var(--bubble-my-text, #FFFFFF)" : "var(--bubble-other-text, #000000)",
+            backgroundColor: isOwn ? "var(--bubble-my-bg)" : "var(--bubble-other-bg)",
+            color: isOwn ? "var(--bubble-my-text)" : "var(--bubble-other-text)",
           }}
         >
           {renderContent()}
@@ -464,7 +464,7 @@ export default function MessageBubble({
           {/* Time and read status */}
           <div
             className="flex items-center justify-end gap-1 mt-1 opacity-70"
-            style={{ color: "var(--bubble-meta-color, inherit)" }}
+            style={{ color: "var(--bubble-meta-color)" }}
           >
             {message.is_pinned && <Pin className="w-3 h-3 text-amber-500" />}
             {message.is_edited && <span className="text-xs">editada</span>}
