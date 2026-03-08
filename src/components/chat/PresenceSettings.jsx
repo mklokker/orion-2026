@@ -400,6 +400,7 @@ export default function PresenceSettings({ open, onClose, currentUser, presence,
                   onUpdate?.();
                 }
               }}
+              onOpenBubbleSettings={() => setShowBubbleModal(true)}
             />
           </TabsContent>
         </Tabs>
