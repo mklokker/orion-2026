@@ -410,6 +410,7 @@ export default function MessageBubble({
                 : message.type === "image" ? "📷 Imagem"
                 : message.type === "gif"   ? "🎞 GIF"
                 : message.type === "file"  ? `📎 ${message.file_name || "Arquivo"}`
+                : message.type === "poll"  ? `📊 ${message.poll_data?.question || "Enquete"}`
                 : message.content || ""}
             </p>
           </div>
