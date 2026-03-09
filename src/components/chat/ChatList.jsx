@@ -225,77 +225,77 @@ export default function ChatList({
               return (
                 <ContextMenu key={conv.id}>
                   <ContextMenuTrigger asChild>
-                <div
-                  onClick={() => onSelect(conv)}
-                  className={`flex items-center gap-2.5 md:gap-3 p-2.5 md:p-3 cursor-pointer transition-all rounded-xl group min-h-[60px] ${
-                    isSelected 
-                      ? "bg-primary/10 ring-2 ring-primary/30" 
-                      : "hover:bg-accent active:bg-accent"
-                  } ${isPinned && !isSelected ? "bg-amber-500/10" : ""}`}
-                >
-                  <div className="relative shrink-0">
-                    <Avatar className="w-11 h-11 md:w-12 md:h-12">
-                      <AvatarImage src={display.avatar} />
-                      <AvatarFallback className={`${display.isSelf ? "bg-purple-100 text-purple-700" : display.isGroup ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"}`}>
-                        {display.isSelf ? <FileText className="w-5 h-5" /> : display.isGroup ? <Users className="w-5 h-5" /> : getInitials(display.name)}
-                      </AvatarFallback>
-                    </Avatar>
-                    {!display.isGroup && !display.isSelf && display.otherEmail && (
-                      <PresenceIndicator 
-                        status={presenceMap[display.otherEmail] || "offline"}
-                        size="md"
-                        className="absolute bottom-0 right-0"
-                      />
-                    )}
-                  </div>
+                    <div
+                      onClick={() => onSelect(conv)}
+                      className={`flex items-center gap-2.5 md:gap-3 p-2.5 md:p-3 cursor-pointer transition-all rounded-xl group min-h-[60px] ${
+                        isSelected
+                          ? "bg-primary/10 ring-2 ring-primary/30"
+                          : "hover:bg-accent active:bg-accent"
+                      } ${isPinned && !isSelected ? "bg-amber-500/10" : ""}`}
+                    >
+                      <div className="relative shrink-0">
+                        <Avatar className="w-11 h-11 md:w-12 md:h-12">
+                          <AvatarImage src={display.avatar} />
+                          <AvatarFallback className={`${display.isSelf ? "bg-purple-100 text-purple-700" : display.isGroup ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700"}`}>
+                            {display.isSelf ? <FileText className="w-5 h-5" /> : display.isGroup ? <Users className="w-5 h-5" /> : getInitials(display.name)}
+                          </AvatarFallback>
+                        </Avatar>
+                        {!display.isGroup && !display.isSelf && display.otherEmail && (
+                          <PresenceIndicator
+                            status={presenceMap[display.otherEmail] || "offline"}
+                            size="md"
+                            className="absolute bottom-0 right-0"
+                          />
+                        )}
+                      </div>
 
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1 min-w-0">
-                               {isPinned && <Pin className="w-3 h-3 text-amber-500 shrink-0" />}
-                               {isManualUnread(conv.id) && <EyeOff className="w-3 h-3 text-red-500 shrink-0" title="Marcado como não lido" />}
-                               {conv.is_public && <Globe className="w-3 h-3 text-blue-500 shrink-0" />}
-                               <span className="font-semibold text-foreground truncate">{display.name}</span>
-                             </div>
-                      <div className="flex items-center gap-1 shrink-0">
-                        <span className="text-xs text-muted-foreground">
-                          {formatMessageTime(conv.last_message_at)}
-                        </span>
-                        <ConversationContextMenu
-                          conversation={conv}
-                          isPinned={isPinned}
-                          isManualUnread={isManualUnread(conv.id)}
-                          currentUser={currentUser}
-                          onPin={(shouldPin) => onPinConversation?.(conv, shouldPin)}
-                          onMarkUnread={() => toggleUnreadStatus(conv.id)}
-                          trigger={
-                            <button
-                              onClick={(e) => e.stopPropagation()}
-                              className="p-1 rounded-lg hover:bg-accent transition-opacity opacity-0 group-hover:opacity-100"
-                              title="Menu"
-                            >
-                              <MoreVertical className="w-4 h-4 text-gray-400" />
-                            </button>
-                          }
-                        />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-1 min-w-0">
+                            {isPinned && <Pin className="w-3 h-3 text-amber-500 shrink-0" />}
+                            {isManualUnread(conv.id) && <EyeOff className="w-3 h-3 text-red-500 shrink-0" title="Marcado como não lido" />}
+                            {conv.is_public && <Globe className="w-3 h-3 text-blue-500 shrink-0" />}
+                            <span className="font-semibold text-foreground truncate">{display.name}</span>
+                          </div>
+                          <div className="flex items-center gap-1 shrink-0">
+                            <span className="text-xs text-muted-foreground">
+                              {formatMessageTime(conv.last_message_at)}
+                            </span>
+                            <ConversationContextMenu
+                              conversation={conv}
+                              isPinned={isPinned}
+                              isManualUnread={isManualUnread(conv.id)}
+                              currentUser={currentUser}
+                              onPin={(shouldPin) => onPinConversation?.(conv, shouldPin)}
+                              onMarkUnread={() => toggleUnreadStatus(conv.id)}
+                              trigger={
+                                <button
+                                  onClick={(e) => e.stopPropagation()}
+                                  className="p-1 rounded-lg hover:bg-accent transition-opacity opacity-0 group-hover:opacity-100"
+                                  title="Menu"
+                                >
+                                  <MoreVertical className="w-4 h-4 text-gray-400" />
+                                </button>
+                              }
+                            />
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <p className={`text-sm truncate ${unread > 0 ? "text-foreground font-medium" : "text-muted-foreground"}`}>
+                            {isTyping ? (
+                              <span className="text-green-600 italic">digitando...</span>
+                            ) : (
+                              conv.last_message || "Nenhuma mensagem"
+                            )}
+                          </p>
+                          {unread > 0 && (
+                            <Badge className="ml-2 bg-green-500 hover:bg-green-500 text-white rounded-full h-5 min-w-[20px] flex items-center justify-center">
+                              {unread > 99 ? "99+" : unread}
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <p className={`text-sm truncate ${unread > 0 ? "text-foreground font-medium" : "text-muted-foreground"}`}>
-                        {isTyping ? (
-                          <span className="text-green-600 italic">digitando...</span>
-                        ) : (
-                          conv.last_message || "Nenhuma mensagem"
-                        )}
-                      </p>
-                      {unread > 0 && (
-                        <Badge className="ml-2 bg-green-500 hover:bg-green-500 text-white rounded-full h-5 min-w-[20px] flex items-center justify-center">
-                          {unread > 99 ? "99+" : unread}
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
-                </div>
                   </ContextMenuTrigger>
                   <ContextMenuContent className="w-48">
                     <ContextMenuItem onClick={() => onPinConversation?.(conv, !isPinned)}>
