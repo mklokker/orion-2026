@@ -210,26 +210,11 @@ export default function BatchApprovalPanel({ currentUser, departments = [] }) {
         </div>
       </div>
 
-      {/* Department selector */}
-      {!isProcessing && !isDone && (
-        <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
-          <span className="text-sm font-medium shrink-0">Departamento (opcional):</span>
-          <Select value={departmentId} onValueChange={setDepartmentId}>
-            <SelectTrigger className="w-full sm:w-64">
-              <SelectValue placeholder="Sem departamento" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={null}>Sem departamento</SelectItem>
-              {[...departments].sort((a, b) => {
-                const ORDER = ["Registro","Conferencia","Certidão","ONR","Cadastro","Finalização","Arquivo","Atendimento","Administrativo"];
-                const ai = ORDER.findIndex(n => a.name?.toLowerCase() === n.toLowerCase());
-                const bi = ORDER.findIndex(n => b.name?.toLowerCase() === n.toLowerCase());
-                return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
-              }).map(d => (
-                <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+      {/* Info: cada solicitação já carrega seu departamento */}
+      {!isProcessing && !isDone && pending.length > 0 && (
+        <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/40 rounded-lg px-3 py-2">
+          <Building2 className="w-3.5 h-3.5 shrink-0" />
+          Cada solicitação será enviada ao departamento escolhido pelo solicitante na criação.
         </div>
       )}
 
