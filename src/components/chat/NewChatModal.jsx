@@ -3,9 +3,10 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Search, Users, X, UserPlus } from "lucide-react";
+import { Search, Users, X, UserPlus, Megaphone } from "lucide-react";
 
 const getInitials = (name) => {
   if (!name) return "?";
@@ -23,11 +24,13 @@ export default function NewChatModal({
   currentUser,
   onCreateDirect,
   onCreateGroup,
-  isGroupMode
+  isGroupMode,
+  isAdmin = false
 }) {
   const [search, setSearch] = useState("");
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [groupName, setGroupName] = useState("");
+  const [adminOnlyPosting, setAdminOnlyPosting] = useState(false);
 
   const availableUsers = users.filter(u => u.email !== currentUser?.email);
   
@@ -51,7 +54,7 @@ export default function NewChatModal({
 
   const handleCreateGroup = () => {
     if (selectedUsers.length < 1) return;
-    onCreateGroup(groupName || "Novo Grupo", selectedUsers.map(u => u.email));
+    onCreateGroup(groupName || "Novo Grupo", selectedUsers.map(u => u.email), adminOnlyPosting);
     handleClose();
   };
 
@@ -67,6 +70,7 @@ export default function NewChatModal({
     setSearch("");
     setSelectedUsers([]);
     setGroupName("");
+    setAdminOnlyPosting(false);
     onClose();
   };
 
@@ -88,6 +92,28 @@ export default function NewChatModal({
               value={groupName}
               onChange={(e) => setGroupName(e.target.value)}
             />
+          )}
+
+          {/* Admin-only posting toggle (visible only for system admins) */}
+          {isGroupMode && isAdmin && (
+            <div className="flex items-start gap-3 p-3 rounded-lg border border-border bg-muted/40">
+              <Megaphone className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between gap-2">
+                  <Label htmlFor="admin-only-posting" className="font-semibold text-sm cursor-pointer">
+                    Canal de comunicação
+                  </Label>
+                  <Switch
+                    id="admin-only-posting"
+                    checked={adminOnlyPosting}
+                    onCheckedChange={setAdminOnlyPosting}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  Somente admins poderão postar. Usuários podem reagir e interagir com as mensagens.
+                </p>
+              </div>
+            </div>
           )}
 
           {/* Select all / Deselect all buttons */}
