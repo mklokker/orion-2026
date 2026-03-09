@@ -480,7 +480,7 @@ export default function MessageBubble({
           {/* Time and read status */}
           <div
             className="flex items-center justify-end gap-1 mt-1 opacity-70"
-            style={{ color: "var(--bubble-meta-color)" }}
+            style={{ color: isOwn ? "var(--bubble-my-meta-color)" : "var(--bubble-other-meta-color)" }}
           >
             {message.is_pinned && <Pin className="w-3 h-3 text-amber-500" />}
             {message.is_edited && <span className="text-xs">editada</span>}
