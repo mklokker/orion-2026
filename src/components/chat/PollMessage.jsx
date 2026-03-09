@@ -1,10 +1,12 @@
-import React from "react";
-import { Check, Lock } from "lucide-react";
+import React, { useState } from "react";
+import { Check, Lock, Users } from "lucide-react";
 import { base44 } from "@/api/base44Client";
+import PollVotersModal from "./PollVotersModal";
 
 const ChatMessageEntity = base44.entities.ChatMessage;
 
-export default function PollMessage({ message, currentUser, isOwn }) {
+export default function PollMessage({ message, currentUser, isOwn, allUsers }) {
+  const [showVoters, setShowVoters] = useState(false);
   const pollData = message.poll_data;
   if (!pollData || !pollData.options) {
     return <p className="text-sm italic opacity-70">Enquete inválida</p>;
