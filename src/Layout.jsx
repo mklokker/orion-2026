@@ -704,7 +704,7 @@ function LayoutContent({ children, currentPageName }) {
             className="hidden md:flex flex-col shrink-0 bg-card border-r border-border overflow-hidden z-30"
             style={{
               width: expanded ? 260 : 64,
-              transition: "width 350ms cubic-bezier(0.22, 1, 0.36, 1)",
+              transition: `width ${appSettings?.sidebar_animation_ms ?? 1050}ms cubic-bezier(0.22, 1, 0.36, 1)`,
               boxShadow: expanded && !sidebarPinned ? "2px 0 8px rgba(0, 0, 0, 0.08)" : "none",
             }}
             onMouseEnter={handleSidebarMouseEnter}
