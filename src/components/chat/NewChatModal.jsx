@@ -142,23 +142,6 @@ export default function NewChatModal({
             </div>
           )}
 
-          {/* Selected users chips */}
-          {isGroupMode && selectedUsers.length > 0 && (
-            <div className="flex flex-wrap gap-2">
-              {selectedUsers.map(user => (
-                <div
-                  key={user.email}
-                  className="flex items-center gap-1 bg-green-100 text-green-700 px-2 py-1 rounded-full text-sm"
-                >
-                  <span>{user.full_name?.split(" ")[0]}</span>
-                  <button onClick={() => toggleUser(user)}>
-                    <X className="w-3 h-3" />
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-
           {/* Search */}
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
