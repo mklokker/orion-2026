@@ -255,6 +255,7 @@ export default function ChatList({
                             {isPinned && <Pin className="w-3 h-3 text-amber-500 shrink-0" />}
                             {isManualUnread(conv.id) && <EyeOff className="w-3 h-3 text-red-500 shrink-0" title="Marcado como não lido" />}
                             {conv.is_public && <Globe className="w-3 h-3 text-blue-500 shrink-0" />}
+                            {conv.admin_only_posting && <Megaphone className="w-3 h-3 text-amber-500 shrink-0" title="Canal de comunicação" />}
                             <span className="font-semibold text-foreground truncate">{display.name}</span>
                           </div>
                           <div className="flex items-center gap-1 shrink-0">
