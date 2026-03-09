@@ -37,7 +37,7 @@ export default function TaskRequestApprovalModal({
   const { toast } = useToast();
   const [request, setRequest]             = useState(null);
   const [loading, setLoading]             = useState(true);
-  const [selectedDepartmentId, setSelectedDepartmentId] = useState("");
+  const [selectedDepartmentId, setSelectedDepartmentId] = useState(""); // não usado na nova lógica — mantido para compatibilidade
   const [rejectionReason, setRejectionReason] = useState("");
   const [showRejectForm, setShowRejectForm]   = useState(false);
 
@@ -91,9 +91,10 @@ export default function TaskRequestApprovalModal({
     setProcessedCount(0);
 
     try {
+      // Passa "" como departmentId — approveRequestWithValidation usará request.department_id automaticamente
       await approveRequestWithValidation(
         request,
-        selectedDepartmentId,
+        "",
         currentUser,
         (result, doneCount) => {
           if (cancelRef.current) return;
