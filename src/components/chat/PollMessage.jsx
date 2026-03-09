@@ -60,6 +60,13 @@ export default function PollMessage({ message, currentUser, isOwn, allUsers }) {
   const showResults = hasVoted || closed;
 
   return (
+    <>
+    <PollVotersModal
+      open={showVoters}
+      onClose={() => setShowVoters(false)}
+      pollData={pollData}
+      allUsers={allUsers}
+    />
     <div className="space-y-3" style={{ minWidth: "min(240px, 60vw)" }}>
       {/* Question */}
       <p className="font-semibold text-sm leading-snug">{question}</p>
