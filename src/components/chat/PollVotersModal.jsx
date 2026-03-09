@@ -15,7 +15,8 @@ export default function PollVotersModal({ open, onClose, pollData, allUsers }) {
   }, [open, options]);
 
   const getDisplayName = (email) => {
-    const user = allUsers?.find(u => u.email === email);
+    const lower = email?.toLowerCase();
+    const user = allUsers?.find(u => u.email?.toLowerCase() === lower);
     return user?.display_name || user?.full_name || email;
   };
 
