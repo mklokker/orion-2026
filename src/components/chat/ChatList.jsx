@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Search, Plus, Users, Check, CheckCheck, Settings, Pin, PinOff, Globe, RefreshCw, FileText, ListChecks, Eye, EyeOff, MoreVertical } from "lucide-react";
+import { Search, Plus, Users, Check, CheckCheck, Settings, Pin, PinOff, Globe, RefreshCw, FileText, ListChecks, Eye, EyeOff, MoreVertical, Megaphone } from "lucide-react";
 import { useUnreadStatus } from "./useUnreadStatus";
 import { ConversationContextMenu } from "./ConversationContextMenu";
 import {
