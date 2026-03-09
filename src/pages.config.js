@@ -63,6 +63,8 @@ import ProdutividadeGeral from './pages/ProdutividadeGeral';
 import Ranking from './pages/Ranking';
 import Relatorios from './pages/Relatorios';
 import Removedor from './pages/Removedor';
+import ColabProjeto from './pages/ColabProjeto';
+import Colaboracao from './pages/Colaboracao';
 import __Layout from './Layout.jsx';
 
 
@@ -83,6 +85,8 @@ export const PAGES = {
     "Ranking": Ranking,
     "Relatorios": Relatorios,
     "Removedor": Removedor,
+    "ColabProjeto": ColabProjeto,
+    "Colaboracao": Colaboracao,
 }
 
 export const pagesConfig = {
