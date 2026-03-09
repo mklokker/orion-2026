@@ -299,6 +299,7 @@ export default function ChatInput({
 
   // Handle drag and drop
   const [isDragging, setIsDragging] = useState(false);
+  const [showPollModal, setShowPollModal] = useState(false);
   const [expandLevel, setExpandLevel] = useState(0); // 0=compact, 1=medium, 2=half
   const [customHeight, setCustomHeight] = useState(null); // manual drag height
   const dragRef = useRef(null);
