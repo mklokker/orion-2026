@@ -15,13 +15,13 @@ export function useBubbleColors(myPresence) {
 
     if (!hasCustomization) {
       // Sem personalização — usar tokens do tema (Light/Dark reage automaticamente)
-      // Usa var() com fallback para hsl() dos tokens de tema
       return {
         "--bubble-my-bg": "hsl(var(--primary))",
         "--bubble-my-text": "hsl(var(--primary-foreground))",
         "--bubble-other-bg": "hsl(var(--muted))",
         "--bubble-other-text": "hsl(var(--foreground))",
-        "--bubble-meta-color": "hsl(var(--muted-foreground))",
+        "--bubble-my-meta-color": "hsl(var(--primary-foreground))",
+        "--bubble-other-meta-color": "hsl(var(--muted-foreground))",
       };
     }
 
@@ -34,16 +34,23 @@ export function useBubbleColors(myPresence) {
       ? getAutoTextColor(myPresence.bubble_other_bg || "#E5E7EB")
       : (myPresence.bubble_other_text_color || "#000000");
 
-    const getMetaColor = myPresence.bubble_meta_color_mode === "auto"
-      ? "#999999"
-      : (myPresence.bubble_meta_color || "#999999");
+    // Meta color: se auto, segue a cor do texto da bolha (opacity cuidada pelo CSS)
+    // Se manual, usa a cor definida pelo usuário
+    const myMetaColor = myPresence.bubble_meta_color_mode === "auto"
+      ? getMyTextColor
+      : (myPresence.bubble_meta_color || getMyTextColor);
+
+    const otherMetaColor = myPresence.bubble_meta_color_mode === "auto"
+      ? getOtherTextColor
+      : (myPresence.bubble_meta_color || getOtherTextColor);
 
     return {
       "--bubble-my-bg": myPresence.bubble_my_bg || "hsl(var(--primary))",
       "--bubble-my-text": getMyTextColor,
       "--bubble-other-bg": myPresence.bubble_other_bg || "hsl(var(--muted))",
       "--bubble-other-text": getOtherTextColor,
-      "--bubble-meta-color": getMetaColor,
+      "--bubble-my-meta-color": myMetaColor,
+      "--bubble-other-meta-color": otherMetaColor,
     };
   }, [
     myPresence?.bubble_my_bg,
