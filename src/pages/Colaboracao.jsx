@@ -109,9 +109,17 @@ export default function Colaboracao() {
   };
 
   const handleStatusChange = async (projectId, newStatus) => {
+    // Save previous status for rollback
+    const previousStatus = projects.find(p => p.id === projectId)?.status;
     // Optimistic update
     setProjects(prev => prev.map(p => p.id === projectId ? { ...p, status: newStatus } : p));
-    await updateProject(projectId, { status: newStatus });
+    try {
+      await updateProject(projectId, { status: newStatus });
+    } catch (e) {
+      // Rollback on failure
+      setProjects(prev => prev.map(p => p.id === projectId ? { ...p, status: previousStatus } : p));
+      console.error("[Colaboracao] Falha ao atualizar status, revertendo:", e);
+    }
   };
 
   // ─── Filtered projects ──────────────────────────────────────────────────────
@@ -119,18 +127,23 @@ export default function Colaboracao() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
+    const getNameLocal = (email) => {
+      const u = users.find(u => u.email === email);
+      return u?.display_name || u?.full_name || email || "";
+    };
+
     return projects.filter(p => {
       // Search (case-insensitive)
       if (search) {
         const q = search.toLowerCase();
         const matchTitle = p.title.toLowerCase().includes(q);
         const matchDesc  = (p.description || "").toLowerCase().includes(q);
-        const matchResp  = getName(p.responsible_email || "").toLowerCase().includes(q);
+        const matchResp  = getNameLocal(p.responsible_email || "").toLowerCase().includes(q);
         if (!matchTitle && !matchDesc && !matchResp) return false;
       }
 
-      // Status filter
-      if (filterStatus !== "all" && p.status !== filterStatus) return false;
+      // Status filter — skip in kanban view (board already organizes by status)
+      if (view === "list" && filterStatus !== "all" && p.status !== filterStatus) return false;
 
       // Responsible filter
       if (filterResponsible !== "all" && p.responsible_email !== filterResponsible) return false;
@@ -152,7 +165,7 @@ export default function Colaboracao() {
 
       return true;
     });
-  }, [projects, search, filterStatus, filterResponsible, filterMine, filterOverdue, currentUser, participantsMap, getName]);
+  }, [projects, search, view, filterStatus, filterResponsible, filterMine, filterOverdue, currentUser, participantsMap, users]);
 
   const activeFilterCount = [
     filterStatus !== "all",
