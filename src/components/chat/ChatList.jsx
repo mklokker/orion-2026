@@ -52,6 +52,7 @@ export default function ChatList({
   departments = [],
 }) {
   const [search, setSearch] = React.useState("");
+  const [unreadFilter, setUnreadFilter] = React.useState("all"); // "all" | "unread"
   const [showBatchApproval, setShowBatchApproval] = React.useState(false);
   const { toast } = useToast();
   const isAdmin = currentUser?.role === "admin";
