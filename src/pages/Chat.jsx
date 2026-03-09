@@ -1098,6 +1098,18 @@ export default function Chat() {
     setSelectedConversation(null);
   };
 
+  // ESC key: deselect conversation
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape" && selectedConversation) {
+        setSelectedConversation(null);
+        setShowConversation(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedConversation]);
+
   return (
     <div className="relative flex bg-background overflow-hidden" style={{ height: '100dvh' }}>
       {/* Desktop: padding e gap normais */}
