@@ -722,13 +722,14 @@ export default function Chat() {
     }
   };
 
-  const handleCreateGroup = async (name, participantEmails) => {
+  const handleCreateGroup = async (name, participantEmails, adminOnlyPosting = false) => {
     try {
       const newConv = await ChatConversation.create({
         type: "group",
         name,
         participants: [currentUser.email, ...participantEmails],
-        admins: [currentUser.email]
+        admins: [currentUser.email],
+        admin_only_posting: adminOnlyPosting
       });
 
       // System message
@@ -1245,6 +1246,7 @@ export default function Chat() {
         onCreateDirect={handleCreateDirect}
         onCreateGroup={handleCreateGroup}
         isGroupMode={isGroupMode}
+        isAdmin={isAdmin}
       />
 
       <GroupSettingsModal

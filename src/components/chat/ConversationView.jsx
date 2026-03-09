@@ -674,6 +674,8 @@ export default function ConversationView({
           participants={conversation?.participants || []}
           allUsers={users}
           autoFocusTrigger={autoFocusTrigger}
+          adminOnlyPosting={!!conversation?.admin_only_posting}
+          isAdmin={isAdmin}
         />
       )}
 

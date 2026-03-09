@@ -12,7 +12,8 @@ import {
   AlertCircle,
   Maximize2,
   Minimize2,
-  BarChart2
+  BarChart2,
+  Megaphone
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { detectGiphyMessage } from "./GiphyUtils";
@@ -52,6 +53,8 @@ export default function ChatInput({
   participants = [],
   allUsers = [],
   autoFocusTrigger,
+  adminOnlyPosting = false,
+  isAdmin = false,
 }) {
   const { toast } = useToast();
   const [message, setMessage] = useState("");
@@ -365,6 +368,18 @@ export default function ChatInput({
       setFiles(prev => [...prev, ...newFiles]);
     }
   };
+
+  // Se é canal somente-admin e o usuário não é admin, exibir banner bloqueado
+  if (adminOnlyPosting && !isAdmin) {
+    return (
+      <div className="border-t border-border bg-card px-4 py-3 flex items-center gap-3">
+        <Megaphone className="w-5 h-5 text-amber-500 shrink-0" />
+        <p className="text-sm text-muted-foreground">
+          Este é um canal de comunicação. Somente administradores podem enviar mensagens.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div 

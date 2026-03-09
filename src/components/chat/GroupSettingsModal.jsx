@@ -7,6 +7,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { 
   Users, 
   Pencil, 
@@ -16,7 +18,8 @@ import {
   Crown,
   Camera,
   Search,
-  X
+  X,
+  Megaphone
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import {
@@ -315,6 +318,28 @@ export default function GroupSettingsModal({
                   </TabsContent>
                 )}
               </Tabs>
+            )}
+
+            {/* Admin-only posting toggle */}
+            {isGroup && isAdmin && (
+              <div className="flex items-start gap-3 p-3 rounded-lg border border-border bg-muted/40">
+                <Megaphone className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <Label htmlFor="admin-only-posting-settings" className="font-semibold text-sm cursor-pointer">
+                      Canal de comunicação
+                    </Label>
+                    <Switch
+                      id="admin-only-posting-settings"
+                      checked={!!conversation.admin_only_posting}
+                      onCheckedChange={(val) => onUpdate({ admin_only_posting: val })}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Somente admins podem postar. Usuários podem reagir e interagir.
+                  </p>
+                </div>
+              </div>
             )}
 
             {/* Actions */}
