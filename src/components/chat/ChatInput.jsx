@@ -11,7 +11,8 @@ import {
   Smile,
   AlertCircle,
   Maximize2,
-  Minimize2
+  Minimize2,
+  BarChart2
 } from "lucide-react";
 import { base44 } from "@/api/base44Client";
 import { detectGiphyMessage } from "./GiphyUtils";
@@ -22,6 +23,7 @@ import {
 } from "@/components/ui/popover";
 import { useToast } from "@/components/ui/use-toast";
 import MentionModal from "./MentionModal";
+import PollCreatorModal from "./PollCreatorModal";
 
 // Padrão de detecção de @ trigger
 const AT_TRIGGER_PATTERN = /@$/;
