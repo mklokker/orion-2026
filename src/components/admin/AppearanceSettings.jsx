@@ -254,6 +254,32 @@ export default function AppearanceSettings() {
           </div>
         </div>
 
+        {/* Seção de Animação da Sidebar */}
+        <div className="space-y-4">
+          <h3 className="font-semibold text-lg text-foreground">Animação da Sidebar</h3>
+          <div className="space-y-2">
+            <Label htmlFor="sidebar-animation">Velocidade da animação (ms)</Label>
+            <div className="flex items-center gap-4">
+              <input
+                id="sidebar-animation"
+                type="range"
+                min={150}
+                max={2000}
+                step={50}
+                value={settings.sidebar_animation_ms ?? 1050}
+                onChange={(e) => setSettings({ ...settings, sidebar_animation_ms: Number(e.target.value) })}
+                className="w-48 accent-primary"
+              />
+              <span className="text-sm text-muted-foreground w-16">
+                {settings.sidebar_animation_ms ?? 1050}ms
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Controla a velocidade de abertura/fechamento da sidebar lateral. Valores maiores = mais lento. Padrão: 1050ms.
+            </p>
+          </div>
+        </div>
+
         {/* Nova Seção de Notificações */}
         <div className="space-y-4">
           <h3 className="font-semibold text-lg text-foreground">Sons de Notificação</h3>
