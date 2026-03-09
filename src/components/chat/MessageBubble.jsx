@@ -42,6 +42,7 @@ import ReadReceipt from "./ReadReceipt";
 import ReadReceiptBadge from "./ReadReceiptBadge";
 import MentionRenderer from "./MentionRenderer";
 import { useTaskRequestStatus } from "./useTaskRequestStatus";
+import PollMessage from "./PollMessage";
 
 // GIF inline com fallback e responsividade mobile
 function GifMessage({ src, isOwn }) {
