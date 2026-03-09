@@ -206,7 +206,7 @@ export default function ChatBackgroundSettings({ chatBgPrefs, onSave, onOpenBubb
             <Slider
               value={[themeOpacity]}
               min={0.05}
-              max={0.5}
+              max={1.0}
               step={0.05}
               onValueChange={([v]) => setThemeOpacity(v)}
             />
