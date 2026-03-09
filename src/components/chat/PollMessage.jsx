@@ -119,7 +119,11 @@ export default function PollMessage({ message, currentUser, isOwn, allUsers }) {
 
       {/* Footer */}
       <div className="flex items-center justify-between gap-2">
-        <p className="text-xs opacity-60 flex items-center gap-1">
+        <button
+          onClick={() => setShowVoters(true)}
+          className="text-xs opacity-60 hover:opacity-100 flex items-center gap-1 transition-opacity"
+        >
+          <Users className="w-3 h-3" />
           {closed ? (
             <>
               <Lock className="w-3 h-3" />
@@ -128,7 +132,7 @@ export default function PollMessage({ message, currentUser, isOwn, allUsers }) {
           ) : (
             `${totalVotes} voto${totalVotes !== 1 ? "s" : ""}${multiple_choice ? " · múltipla escolha" : ""}`
           )}
-        </p>
+        </button>
         {isOwn && !closed && (
           <button
             onClick={handleClosePoll}
@@ -139,5 +143,6 @@ export default function PollMessage({ message, currentUser, isOwn, allUsers }) {
         )}
       </div>
     </div>
+    </>
   );
 }
