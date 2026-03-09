@@ -582,7 +582,14 @@ export default function ConversationView({
         {hasMoreMessages && (
           <div className="flex justify-center py-3">
             <button
-              onClick={onLoadMore}
+              onClick={() => {
+                const el = scrollRef.current;
+                if (el) {
+                  scrollHeightBeforeLoadRef.current = el.scrollHeight;
+                  shouldAnchorScrollRef.current = true;
+                }
+                onLoadMore();
+              }}
               disabled={isLoadingMore}
               className="text-xs px-4 py-2 rounded-full bg-card border border-border shadow-sm text-muted-foreground hover:text-foreground hover:bg-accent transition-colors disabled:opacity-50"
             >
