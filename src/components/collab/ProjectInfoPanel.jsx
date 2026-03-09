@@ -65,6 +65,8 @@ export default function ProjectInfoPanel({
     onReload();
   };
 
+  const [showEditModal, setShowEditModal] = useState(false);
+
   const canAct = canEdit &&
     project.status !== "concluido" &&
     project.status !== "arquivado";
@@ -91,7 +93,7 @@ export default function ProjectInfoPanel({
             {project.title}
           </h1>
           {canEdit && (
-            <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0">
+            <Button variant="ghost" size="icon" className="h-8 w-8 shrink-0" onClick={() => setShowEditModal(true)}>
               <Edit2 className="w-4 h-4" />
             </Button>
           )}
