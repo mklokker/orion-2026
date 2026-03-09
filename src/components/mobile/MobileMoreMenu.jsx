@@ -19,6 +19,7 @@ import {
   TrendingUp,
   BarChart3,
   Users,
+  Briefcase,
 } from "lucide-react";
 
 const menuItems = [

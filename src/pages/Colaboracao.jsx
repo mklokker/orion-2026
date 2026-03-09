@@ -166,7 +166,9 @@ export default function Colaboracao() {
         onClose={() => setShowCreate(false)}
         currentUser={currentUser}
         users={users}
-        onCreated={loadData}
+        onCreated={(project) => {
+          window.location.href = `${createPageUrl("ColabProjeto")}?id=${project.id}`;
+        }}
       />
     </div>
   );
