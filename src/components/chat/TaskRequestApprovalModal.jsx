@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle2, XCircle, Clock, User, Calendar, ListChecks, AlertTriangle, ChevronDown, ChevronUp, RefreshCw, SkipForward } from "lucide-react";
+import { CheckCircle2, XCircle, Clock, User, Calendar, ListChecks, AlertTriangle, ChevronDown, ChevronUp, RefreshCw, SkipForward, Building2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { base44 } from "@/api/base44Client";
 import { format } from "date-fns";
@@ -223,25 +223,16 @@ export default function TaskRequestApprovalModal({
             )}
           </div>
 
-          {/* Departamento */}
+          {/* Departamento de destino — somente leitura, já escolhido pelo solicitante */}
           {phase === "idle" && !showRejectForm && (
-            <div className="space-y-1.5">
-              <label className="text-sm font-medium">Departamento (opcional)</label>
-              <Select value={selectedDepartmentId} onValueChange={setSelectedDepartmentId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione um departamento..." />
-                </SelectTrigger>
-                <SelectContent>
-                 {[...departments].sort((a, b) => {
-                   const ORDER = ["Registro","Conferencia","Certidão","ONR","Cadastro","Finalização","Arquivo","Atendimento","Administrativo"];
-                   const ai = ORDER.findIndex(n => a.name?.toLowerCase() === n.toLowerCase());
-                   const bi = ORDER.findIndex(n => b.name?.toLowerCase() === n.toLowerCase());
-                   return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
-                 }).map(dept => (
-                   <SelectItem key={dept.id} value={dept.id}>{dept.name}</SelectItem>
-                 ))}
-                </SelectContent>
-              </Select>
+            <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 rounded-lg text-sm">
+              <Building2 className="w-4 h-4 text-muted-foreground shrink-0" />
+              <span className="text-muted-foreground">Departamento de destino:</span>
+              {request.department_name ? (
+                <span className="font-semibold text-foreground">{request.department_name}</span>
+              ) : (
+                <span className="text-muted-foreground italic">Não informado</span>
+              )}
             </div>
           )}
 
