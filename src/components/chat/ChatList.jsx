@@ -223,8 +223,9 @@ export default function ChatList({
               const isPinned = conv.is_pinned_by?.includes(currentUser?.email);
 
               return (
+                <ContextMenu key={conv.id}>
+                  <ContextMenuTrigger asChild>
                 <div
-                  key={conv.id}
                   onClick={() => onSelect(conv)}
                   className={`flex items-center gap-2.5 md:gap-3 p-2.5 md:p-3 cursor-pointer transition-all rounded-xl group min-h-[60px] ${
                     isSelected 
