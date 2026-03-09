@@ -426,6 +426,65 @@ export default function MessageBubble({
     );
   }
 
+  const contextMenuItems = (
+    <>
+      <ContextMenuItem onClick={() => onPin?.(message)}>
+        <Pin className="w-4 h-4 mr-2" />
+        {message.is_pinned ? "Desafixar" : "Fixar mensagem"}
+      </ContextMenuItem>
+      <ContextMenuItem onClick={() => onReply?.(message)}>
+        <Reply className="w-4 h-4 mr-2" /> Responder
+      </ContextMenuItem>
+      <ContextMenuItem onClick={() => onForward?.(message)}>
+        <Forward className="w-4 h-4 mr-2" /> Encaminhar
+      </ContextMenuItem>
+      <ContextMenuItem onClick={() => onFavorite?.(message)}>
+        <Star className={`w-4 h-4 mr-2 ${isFavorited ? "fill-amber-400 text-amber-400" : ""}`} />
+        {isFavorited ? "Remover favorito" : "Favoritar"}
+      </ContextMenuItem>
+      <ContextMenuItem onClick={() => onReadLater?.(message)}>
+        <Bookmark className={`w-4 h-4 mr-2 ${isReadLater ? "fill-current" : ""}`} />
+        {isReadLater ? "Remover de ler depois" : "Ler depois"}
+      </ContextMenuItem>
+      {message.type !== "system" && (
+        <>
+          <ContextMenuSeparator />
+          {message.status_tag !== "feito" && (
+            <ContextMenuItem onClick={() => onStatusTag?.(message, "feito")}>
+              <CheckCircle2 className="w-4 h-4 mr-2 text-blue-600" /> Marcar como Feito
+            </ContextMenuItem>
+          )}
+          {message.status_tag !== "realizado" && (
+            <ContextMenuItem onClick={() => onStatusTag?.(message, "realizado")}>
+              <CircleCheck className="w-4 h-4 mr-2 text-green-600" /> Marcar como Realizado
+            </ContextMenuItem>
+          )}
+          {message.status_tag !== "conciliado" && (
+            <ContextMenuItem onClick={() => onStatusTag?.(message, "conciliado")}>
+              <FileCheck className="w-4 h-4 mr-2 text-amber-600" /> Marcar como Conciliado
+            </ContextMenuItem>
+          )}
+          {message.status_tag && message.status_tag !== "none" && (
+            <ContextMenuItem onClick={() => onStatusTag?.(message, "none")}>
+              <XCircle className="w-4 h-4 mr-2 text-muted-foreground" /> Remover marcação
+            </ContextMenuItem>
+          )}
+        </>
+      )}
+      {isOwn && (
+        <>
+          <ContextMenuSeparator />
+          <ContextMenuItem onClick={() => onEdit?.(message)}>
+            <Pencil className="w-4 h-4 mr-2" /> Editar
+          </ContextMenuItem>
+          <ContextMenuItem onClick={() => onDelete?.(message)} className="text-red-600 focus:text-red-600">
+            <Trash2 className="w-4 h-4 mr-2" /> Excluir
+          </ContextMenuItem>
+        </>
+      )}
+    </>
+  );
+
   return (
     <div 
       className={`flex w-full min-w-0 ${isOwn ? "justify-end" : "justify-start"} mb-3 group px-1`}
@@ -459,6 +518,8 @@ export default function MessageBubble({
         )}
 
         {/* Message bubble */}
+        <ContextMenu>
+          <ContextMenuTrigger asChild>
         <div
           className={`relative px-3 md:px-4 py-2 md:py-3 rounded-2xl min-w-0 overflow-hidden ${
             isOwn
