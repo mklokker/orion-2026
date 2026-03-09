@@ -117,6 +117,7 @@ function NavItem({ item, isActive, expanded, onClick }) {
         }}
       >
         {item.title}
+
       </span>
       {item.badge > 0 && expanded && (
         <Badge className="ml-auto bg-red-500 text-white text-xs shrink-0">
