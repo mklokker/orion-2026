@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -13,6 +13,7 @@ import ProjectParticipants   from "./ProjectParticipants";
 import ProjectStatusUpdates  from "./ProjectStatusUpdates";
 import ProjectFiles          from "./ProjectFiles";
 import ProjectReminders      from "./ProjectReminders";
+import EditProjectModal      from "./EditProjectModal";
 
 const STATUS_LABELS = {
   rascunho: "Rascunho", ativo: "Ativo", em_andamento: "Em Andamento",
