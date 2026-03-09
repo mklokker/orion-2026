@@ -296,6 +296,25 @@ export default function ChatList({
                     </div>
                   </div>
                 </div>
+                  </ContextMenuTrigger>
+                  <ContextMenuContent className="w-48">
+                    <ContextMenuItem onClick={() => onPinConversation?.(conv, !isPinned)}>
+                      {isPinned ? (
+                        <><PinOff className="w-4 h-4 mr-2" />Desafixar</>
+                      ) : (
+                        <><Pin className="w-4 h-4 mr-2" />Fixar no topo</>
+                      )}
+                    </ContextMenuItem>
+                    <ContextMenuSeparator />
+                    <ContextMenuItem onClick={() => toggleUnreadStatus(conv.id)}>
+                      {isManualUnread(conv.id) ? (
+                        <><Eye className="w-4 h-4 mr-2" />Marcar como lido</>
+                      ) : (
+                        <><EyeOff className="w-4 h-4 mr-2" />Marcar como não lido</>
+                      )}
+                    </ContextMenuItem>
+                  </ContextMenuContent>
+                </ContextMenu>
               );
             })}
           </div>
