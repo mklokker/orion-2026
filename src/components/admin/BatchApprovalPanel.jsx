@@ -377,6 +377,11 @@ export default function BatchApprovalPanel({ currentUser, departments = [] }) {
                               <Calendar className="w-3 h-3" />
                               {req.created_date ? format(new Date(req.created_date), "dd/MM/yyyy HH:mm") : "—"}
                             </span>
+                            {req.department_name && (
+                              <span className="flex items-center gap-1 text-primary font-medium">
+                                <Building2 className="w-3 h-3" /> {req.department_name}
+                              </span>
+                            )}
                           </div>
                         </div>
                       </div>
