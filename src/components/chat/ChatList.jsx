@@ -7,6 +7,13 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Search, Plus, Users, Check, CheckCheck, Settings, Pin, PinOff, Globe, RefreshCw, FileText, ListChecks, Eye, EyeOff, MoreVertical } from "lucide-react";
 import { useUnreadStatus } from "./useUnreadStatus";
 import { ConversationContextMenu } from "./ConversationContextMenu";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuSeparator,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
 
 // Inline scroll area to avoid react-router indirect import
 const ScrollArea = ({ children, className }) => (
