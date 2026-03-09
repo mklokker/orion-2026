@@ -287,5 +287,13 @@ export default function ProjectInfoPanel({
         </TabsContent>
       </Tabs>
     </div>
+
+    <EditProjectModal
+      open={showEditModal}
+      onClose={() => setShowEditModal(false)}
+      project={project}
+      users={users}
+      onUpdated={() => { setShowEditModal(false); onReload(); }}
+    />
   );
 }
