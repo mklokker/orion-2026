@@ -568,6 +568,11 @@ export default function MessageBubble({
             </div>
           )}
         </div>
+          </ContextMenuTrigger>
+          <ContextMenuContent className="z-50 w-52">
+            {contextMenuItems}
+          </ContextMenuContent>
+        </ContextMenu>
 
         {/* Reactions */}
         {hasReactions && (
