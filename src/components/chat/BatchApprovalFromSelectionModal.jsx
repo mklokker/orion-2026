@@ -7,7 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Progress } from "@/components/ui/progress";
 import {
   CheckCircle2, XCircle, Clock, ListChecks, AlertTriangle,
-  ChevronDown, ChevronUp, SkipForward, Users
+  ChevronDown, ChevronUp, SkipForward, Users, Building2
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { base44 } from "@/api/base44Client";
@@ -39,7 +39,6 @@ export default function BatchApprovalFromSelectionModal({
   const { toast } = useToast();
   const [requests, setRequests]         = useState([]);
   const [loading, setLoading]           = useState(true);
-  const [selectedDepartmentId, setSelectedDepartmentId] = useState("");
   const [phase, setPhase]               = useState("idle");
   const [itemLogs, setItemLogs]         = useState([]);
   const [processedCount, setProcessedCount] = useState(0);
@@ -53,7 +52,6 @@ export default function BatchApprovalFromSelectionModal({
       setItemLogs([]);
       setProcessedCount(0);
       setShowDetails(false);
-      setSelectedDepartmentId("");
       cancelRef.current = false;
     }
   }, [open, taskRequestIds.join(",")]);
@@ -108,7 +106,8 @@ export default function BatchApprovalFromSelectionModal({
         const reqResults = [];
         for (const item of reqItems) {
           if (cancelRef.current) break;
-          const result = await processItemWithValidation(item, req, selectedDepartmentId, currentUser, taskMap, serviceMap);
+          // Usa o department_id salvo na request (escolhido pelo solicitante na criação)
+          const result = await processItemWithValidation(item, req, req.department_id || "", currentUser, taskMap, serviceMap);
           reqResults.push(result);
           doneCount++;
 
