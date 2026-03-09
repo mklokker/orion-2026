@@ -114,7 +114,9 @@ export default function ChatList({
 
   const filteredConversations = conversations.filter(conv => {
     const display = getConversationDisplay(conv);
-    return display.name.toLowerCase().includes(search.toLowerCase());
+    const matchesSearch = display.name.toLowerCase().includes(search.toLowerCase());
+    const matchesUnread = unreadFilter === "all" || (unreadCounts[conv.id] > 0) || isManualUnread(conv.id);
+    return matchesSearch && matchesUnread;
   });
 
   // Sort: pinned first, then by last message
