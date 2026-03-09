@@ -255,7 +255,7 @@ export default function MessageBubble({
         <>
           {forwardHeader}
           {replyPreview}
-          <PollMessage message={message} currentUser={message._currentUser} isOwn={isOwn} />
+          <PollMessage message={message} currentUser={message._currentUser} isOwn={isOwn} allUsers={users} />
         </>
       );
     }
