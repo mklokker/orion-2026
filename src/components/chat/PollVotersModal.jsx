@@ -16,7 +16,7 @@ export default function PollVotersModal({ open, onClose, pollData, allUsers }) {
 
   const getDisplayName = (email) => {
     const user = allUsers?.find(u => u.email === email);
-    return user?.full_name || user?.display_name || email;
+    return user?.display_name || user?.full_name || email;
   };
 
   const totalVotes = Object.values(votes).reduce((acc, v) => acc + (v?.length || 0), 0);
