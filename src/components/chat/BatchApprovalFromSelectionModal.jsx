@@ -259,25 +259,20 @@ export default function BatchApprovalFromSelectionModal({
                 )}
               </div>
 
-              {/* Departamento — só no idle */}
+              {/* Departamentos — somente leitura (escolhidos pelos solicitantes na criação) */}
               {phase === "idle" && (
-                <div className="space-y-1.5">
-                  <label className="text-sm font-medium">Departamento (opcional — aplica a todos)</label>
-                  <Select value={selectedDepartmentId} onValueChange={setSelectedDepartmentId}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione um departamento..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                     {[...departments].sort((a, b) => {
-                       const ORDER = ["Registro","Conferencia","Certidão","ONR","Cadastro","Finalização","Arquivo","Atendimento","Administrativo"];
-                       const ai = ORDER.findIndex(n => a.name?.toLowerCase() === n.toLowerCase());
-                       const bi = ORDER.findIndex(n => b.name?.toLowerCase() === n.toLowerCase());
-                       return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
-                     }).map(dept => (
-                       <SelectItem key={dept.id} value={dept.id}>{dept.name}</SelectItem>
-                     ))}
-                    </SelectContent>
-                  </Select>
+                <div className="flex items-start gap-2 px-3 py-2 bg-muted/50 rounded-lg text-sm">
+                  <Building2 className="w-4 h-4 text-muted-foreground shrink-0 mt-0.5" />
+                  <div className="flex-1 min-w-0">
+                    <span className="text-muted-foreground block mb-1">Departamentos de destino:</span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {requests.map(r => (
+                        <span key={r.id} className="inline-flex items-center gap-1 text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium">
+                          {r.requester_name || r.requester_email}: <strong>{r.department_name || "Não informado"}</strong>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               )}
 
