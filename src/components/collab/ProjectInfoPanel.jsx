@@ -72,6 +72,7 @@ export default function ProjectInfoPanel({
     project.status !== "arquivado";
 
   return (
+    <>
     <div className="flex flex-col">
       {/* Back link (desktop only) */}
       <div className="hidden md:flex items-center gap-1 px-4 pt-3 pb-1">
@@ -295,5 +296,6 @@ export default function ProjectInfoPanel({
       users={users}
       onUpdated={() => { setShowEditModal(false); onReload(); }}
     />
+    </>
   );
 }
