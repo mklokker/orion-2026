@@ -325,6 +325,18 @@ export default function ConversationView({
     const messagesAdded = currentLength > prevLength;
     prevMessagesLengthRef.current = currentLength;
 
+    // Restore scroll anchor after load more (messages prepended at top)
+    if (shouldAnchorScrollRef.current && messagesAdded) {
+      shouldAnchorScrollRef.current = false;
+      const el = scrollRef.current;
+      if (el) {
+        requestAnimationFrame(() => {
+          el.scrollTop = el.scrollHeight - scrollHeightBeforeLoadRef.current;
+        });
+      }
+      return;
+    }
+
     if (!messagesAdded) {
       // Messages were updated (reaction/pin/status/edit) — never scroll
       lastActionRef.current = "update";
