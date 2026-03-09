@@ -10,7 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import {
   CheckCircle2, XCircle, Clock, AlertTriangle, RefreshCw,
-  ListChecks, ChevronDown, ChevronUp, User, Calendar, Layers, SkipForward
+  ListChecks, ChevronDown, ChevronUp, User, Calendar, Layers, SkipForward, Building2
 } from "lucide-react";
 import { format } from "date-fns";
 import { approveRequestWithValidation } from "@/components/chat/approvalUtils";
@@ -40,7 +40,6 @@ export default function BatchApprovalPanel({ currentUser, departments = [] }) {
 
   // Selection
   const [selected, setSelected] = useState(new Set());
-  const [departmentId, setDepartmentId] = useState("");
 
   // Processing
   const [phase, setPhase] = useState("idle"); // idle | processing | done
@@ -141,7 +140,8 @@ export default function BatchApprovalPanel({ currentUser, departments = [] }) {
         });
 
         try {
-          const { summary } = await approveRequestWithValidation(req, departmentId, currentUser);
+          // Usa o departmentId salvo na própria request (novo fluxo — escolhido na criação)
+          const { summary } = await approveRequestWithValidation(req, "", currentUser);
           setLogs(prev => {
             const next = [...prev];
             next[idx] = { ...next[idx], status: "success", summary };
