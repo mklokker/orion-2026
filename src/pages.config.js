@@ -52,6 +52,8 @@ import Admin from './pages/Admin';
 import AtasAlinhamentos from './pages/AtasAlinhamentos';
 import CargaDiaria from './pages/CargaDiaria';
 import Chat from './pages/Chat';
+import ColabProjeto from './pages/ColabProjeto';
+import Colaboracao from './pages/Colaboracao';
 import Cursos from './pages/Cursos';
 import Dashboard from './pages/Dashboard';
 import GestaoTarefas from './pages/GestaoTarefas';
@@ -63,8 +65,6 @@ import ProdutividadeGeral from './pages/ProdutividadeGeral';
 import Ranking from './pages/Ranking';
 import Relatorios from './pages/Relatorios';
 import Removedor from './pages/Removedor';
-import ColabProjeto from './pages/ColabProjeto';
-import Colaboracao from './pages/Colaboracao';
 import __Layout from './Layout.jsx';
 
 
@@ -74,6 +74,8 @@ export const PAGES = {
     "AtasAlinhamentos": AtasAlinhamentos,
     "CargaDiaria": CargaDiaria,
     "Chat": Chat,
+    "ColabProjeto": ColabProjeto,
+    "Colaboracao": Colaboracao,
     "Cursos": Cursos,
     "Dashboard": Dashboard,
     "GestaoTarefas": GestaoTarefas,
@@ -85,8 +87,6 @@ export const PAGES = {
     "Ranking": Ranking,
     "Relatorios": Relatorios,
     "Removedor": Removedor,
-    "ColabProjeto": ColabProjeto,
-    "Colaboracao": Colaboracao,
 }
 
 export const pagesConfig = {

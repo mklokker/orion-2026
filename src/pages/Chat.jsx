@@ -1137,6 +1137,7 @@ export default function Chat() {
         {/* Conversa - Desktop */}
         <div className="flex-1 flex flex-col bg-card rounded-2xl border border-border shadow-sm overflow-hidden min-w-0">
           <ConversationView
+            key={selectedConversation?.id}
             conversation={selectedConversation}
             messages={messages}
             currentUser={currentUser}
@@ -1203,6 +1204,7 @@ export default function Chat() {
            }`}
          >
            <ConversationView
+             key={selectedConversation?.id}
              conversation={selectedConversation}
              messages={messages}
              currentUser={currentUser}
