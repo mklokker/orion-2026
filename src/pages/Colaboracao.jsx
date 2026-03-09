@@ -1,41 +1,49 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { User } from "@/entities/User";
 import { getPublicUsers } from "@/functions/getPublicUsers";
-import { listProjects } from "@/components/collab/collabService";
+import {
+  listProjects, updateProject,
+  listParticipants, listChecklistItems, listChecklists,
+} from "@/components/collab/collabService";
 import CreateProjectModal from "@/components/collab/CreateProjectModal";
+import CollabProjectCard from "@/components/collab/CollabProjectCard";
+import CollabKanbanBoard from "@/components/collab/CollabKanbanBoard";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, Briefcase, Calendar, User as UserIcon } from "lucide-react";
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
+import {
+  Plus, Search, Briefcase, LayoutGrid, List, SlidersHorizontal, X,
+} from "lucide-react";
 import { createPageUrl } from "@/utils";
-import { format } from "date-fns";
 
+// ─── Constants ────────────────────────────────────────────────────────────────
 const STATUS_LABELS = {
   rascunho: "Rascunho", ativo: "Ativo", em_andamento: "Em Andamento",
   concluido: "Concluído", arquivado: "Arquivado",
 };
-const STATUS_COLORS = {
-  rascunho:    "bg-gray-100 text-gray-700 border-0",
-  ativo:       "bg-blue-100 text-blue-700 border-0",
-  em_andamento:"bg-yellow-100 text-yellow-700 border-0",
-  concluido:   "bg-green-100 text-green-700 border-0",
-  arquivado:   "bg-red-100 text-red-700 border-0",
-};
-const PRIORITY_COLORS = {
-  baixa:   "bg-green-50 text-green-700 border-0",
-  media:   "bg-yellow-50 text-yellow-700 border-0",
-  alta:    "bg-orange-50 text-orange-700 border-0",
-  urgente: "bg-red-50 text-red-700 border-0",
-};
-const PRIORITY_LABELS = { baixa: "Baixa", media: "Média", alta: "Alta", urgente: "Urgente" };
 
 export default function Colaboracao() {
-  const [projects, setProjects]     = useState([]);
-  const [currentUser, setCurrentUser] = useState(null);
-  const [users, setUsers]           = useState([]);
-  const [loading, setLoading]       = useState(true);
-  const [search, setSearch]         = useState("");
-  const [showCreate, setShowCreate] = useState(false);
+  const [projects, setProjects]         = useState([]);
+  const [currentUser, setCurrentUser]   = useState(null);
+  const [users, setUsers]               = useState([]);
+  const [loading, setLoading]           = useState(true);
+  const [view, setView]                 = useState("kanban"); // "list" | "kanban"
+  const [showCreate, setShowCreate]     = useState(false);
+  const [showFilters, setShowFilters]   = useState(false);
+
+  // Filters
+  const [search, setSearch]                       = useState("");
+  const [filterStatus, setFilterStatus]           = useState("all");
+  const [filterResponsible, setFilterResponsible] = useState("all");
+  const [filterMine, setFilterMine]               = useState(false);
+  const [filterOverdue, setFilterOverdue]         = useState(false);
+
+  // Kanban auxiliary data (participantes + checklist items por projeto)
+  const [participantsMap, setParticipantsMap]       = useState({}); // { projectId: [] }
+  const [checklistItemsMap, setChecklistItemsMap]   = useState({}); // { projectId: [] }
 
   useEffect(() => { loadData(); }, []);
 
@@ -47,9 +55,48 @@ export default function Colaboracao() {
     ]);
     setCurrentUser(userData);
     setUsers(usersData || []);
+
     const projs = await listProjects(userData.email, userData.role === "admin");
     setProjects(projs);
     setLoading(false);
+
+    // Load participants + checklist items for all projects in background
+    if (projs.length > 0) {
+      loadAuxData(projs);
+    }
+  };
+
+  const loadAuxData = async (projs) => {
+    // Load participants for all projects in parallel (batched)
+    const participantResults = await Promise.allSettled(
+      projs.map(p => listParticipants(p.id).then(parts => ({ id: p.id, parts })))
+    );
+    const pMap = {};
+    participantResults.forEach(r => {
+      if (r.status === "fulfilled") pMap[r.value.id] = r.value.parts;
+    });
+    setParticipantsMap(pMap);
+
+    // Load all checklist items (checklists first, then items)
+    const checklistResults = await Promise.allSettled(
+      projs.map(p => listChecklists(p.id).then(cls => ({ id: p.id, cls })))
+    );
+    const itemMap = {};
+    const itemFetches = [];
+    checklistResults.forEach(r => {
+      if (r.status === "fulfilled") {
+        itemMap[r.value.id] = [];
+        r.value.cls.forEach(cl => {
+          itemFetches.push(
+            listChecklistItems(cl.id).then(items => {
+              itemMap[r.value.id] = [...(itemMap[r.value.id] || []), ...items];
+            })
+          );
+        });
+      }
+    });
+    await Promise.allSettled(itemFetches);
+    setChecklistItemsMap({ ...itemMap });
   };
 
   const getName = (email) => {
@@ -57,106 +104,265 @@ export default function Colaboracao() {
     return u?.display_name || u?.full_name || email;
   };
 
-  const filtered = projects.filter(p => {
-    const q = search.toLowerCase();
-    return (
-      p.title.toLowerCase().includes(q) ||
-      (p.description || "").toLowerCase().includes(q)
-    );
-  });
-
   const openProject = (id) => {
     window.location.href = `${createPageUrl("ColabProjeto")}?id=${id}`;
   };
 
+  const handleStatusChange = async (projectId, newStatus) => {
+    // Optimistic update
+    setProjects(prev => prev.map(p => p.id === projectId ? { ...p, status: newStatus } : p));
+    await updateProject(projectId, { status: newStatus });
+  };
+
+  // ─── Filtered projects ──────────────────────────────────────────────────────
+  const filtered = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    return projects.filter(p => {
+      // Search (case-insensitive)
+      if (search) {
+        const q = search.toLowerCase();
+        const matchTitle = p.title.toLowerCase().includes(q);
+        const matchDesc  = (p.description || "").toLowerCase().includes(q);
+        const matchResp  = getName(p.responsible_email || "").toLowerCase().includes(q);
+        if (!matchTitle && !matchDesc && !matchResp) return false;
+      }
+
+      // Status filter
+      if (filterStatus !== "all" && p.status !== filterStatus) return false;
+
+      // Responsible filter
+      if (filterResponsible !== "all" && p.responsible_email !== filterResponsible) return false;
+
+      // Mine filter (owner or participant)
+      if (filterMine) {
+        const myParts = participantsMap[p.id] || [];
+        const isMine = p.owner_email === currentUser?.email ||
+          myParts.some(pt => pt.user_email === currentUser?.email);
+        if (!isMine) return false;
+      }
+
+      // Overdue filter
+      if (filterOverdue) {
+        if (!p.due_date) return false;
+        const due = new Date(p.due_date + "T23:59:59");
+        if (due >= today || ["concluido", "arquivado"].includes(p.status)) return false;
+      }
+
+      return true;
+    });
+  }, [projects, search, filterStatus, filterResponsible, filterMine, filterOverdue, currentUser, participantsMap, getName]);
+
+  const activeFilterCount = [
+    filterStatus !== "all",
+    filterResponsible !== "all",
+    filterMine,
+    filterOverdue,
+  ].filter(Boolean).length;
+
+  const clearFilters = () => {
+    setSearch("");
+    setFilterStatus("all");
+    setFilterResponsible("all");
+    setFilterMine(false);
+    setFilterOverdue(false);
+  };
+
+  // Unique responsibles for filter dropdown
+  const responsibleOptions = useMemo(() => {
+    const emails = [...new Set(projects.map(p => p.responsible_email).filter(Boolean))];
+    return emails.map(email => ({ email, name: getName(email) }));
+  }, [projects, users]);
+
   return (
-    <div className="h-full overflow-auto bg-background">
-      <div className="max-w-5xl mx-auto p-4 md:p-6">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-6 gap-3">
+    <div className="h-full overflow-auto bg-background flex flex-col">
+      {/* ── Header ── */}
+      <div className="px-4 md:px-6 pt-4 md:pt-6 pb-3 border-b border-border bg-background/95 backdrop-blur sticky top-0 z-10 shrink-0">
+        <div className="flex items-center justify-between gap-3 mb-3">
           <div>
-            <h1 className="text-xl md:text-2xl font-bold text-foreground">Colaboração</h1>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              Projetos colaborativos da equipe
+            <h1 className="text-lg md:text-2xl font-bold text-foreground leading-tight">Colaboração</h1>
+            <p className="text-xs md:text-sm text-muted-foreground mt-0.5">
+              {loading ? "Carregando..." : `${projects.length} projeto${projects.length !== 1 ? "s" : ""}`}
             </p>
           </div>
-          <Button onClick={() => setShowCreate(true)} className="gap-1.5 shrink-0">
-            <Plus className="w-4 h-4" />
-            <span className="hidden sm:inline">Novo Projeto</span>
-            <span className="sm:hidden">Novo</span>
-          </Button>
+          <div className="flex items-center gap-2 shrink-0">
+            {/* View toggle */}
+            <div className="flex items-center bg-muted rounded-lg p-0.5 gap-0.5">
+              <button
+                onClick={() => setView("list")}
+                className={`p-2 rounded-md transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center ${
+                  view === "list" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+                }`}
+                title="Lista"
+              >
+                <List className="w-4 h-4" />
+              </button>
+              <button
+                onClick={() => setView("kanban")}
+                className={`p-2 rounded-md transition-colors min-w-[36px] min-h-[36px] flex items-center justify-center ${
+                  view === "kanban" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+                }`}
+                title="Kanban"
+              >
+                <LayoutGrid className="w-4 h-4" />
+              </button>
+            </div>
+            <Button onClick={() => setShowCreate(true)} size="sm" className="gap-1.5 h-9">
+              <Plus className="w-4 h-4" />
+              <span className="hidden sm:inline">Novo Projeto</span>
+              <span className="sm:hidden">Novo</span>
+            </Button>
+          </div>
         </div>
 
-        {/* Search */}
-        <div className="relative mb-6">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar projetos..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="pl-9"
-          />
+        {/* ── Search + Filter row ── */}
+        <div className="flex gap-2 items-center">
+          <div className="relative flex-1 min-w-0">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar projetos..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="pl-9 h-9"
+            />
+          </div>
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className={`relative flex items-center gap-1.5 px-3 py-2 rounded-lg border text-sm transition-colors min-h-[36px] shrink-0 ${
+              showFilters || activeFilterCount > 0
+                ? "bg-primary text-primary-foreground border-primary"
+                : "bg-card border-border text-muted-foreground hover:text-foreground hover:bg-accent"
+            }`}
+          >
+            <SlidersHorizontal className="w-4 h-4" />
+            <span className="hidden sm:inline">Filtros</span>
+            {activeFilterCount > 0 && (
+              <span className="bg-white/30 text-inherit text-xs rounded-full px-1.5 py-0 font-medium">
+                {activeFilterCount}
+              </span>
+            )}
+          </button>
+          {(activeFilterCount > 0 || search) && (
+            <button
+              onClick={clearFilters}
+              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors px-2 py-2 min-h-[36px] shrink-0"
+              title="Limpar filtros"
+            >
+              <X className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Limpar</span>
+            </button>
+          )}
         </div>
 
-        {/* States */}
+        {/* ── Expanded filters ── */}
+        {showFilters && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {/* Status */}
+            <Select value={filterStatus} onValueChange={setFilterStatus}>
+              <SelectTrigger className="h-8 text-xs w-auto min-w-[130px]">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os status</SelectItem>
+                {Object.entries(STATUS_LABELS).map(([k, v]) => (
+                  <SelectItem key={k} value={k}>{v}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Responsible */}
+            {responsibleOptions.length > 0 && (
+              <Select value={filterResponsible} onValueChange={setFilterResponsible}>
+                <SelectTrigger className="h-8 text-xs w-auto min-w-[150px]">
+                  <SelectValue placeholder="Responsável" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os responsáveis</SelectItem>
+                  {responsibleOptions.map(o => (
+                    <SelectItem key={o.email} value={o.email}>{o.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+
+            {/* Quick filters */}
+            <button
+              onClick={() => setFilterMine(!filterMine)}
+              className={`px-3 py-1.5 text-xs rounded-lg border transition-colors min-h-[32px] ${
+                filterMine
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-card border-border text-foreground hover:bg-accent"
+              }`}
+            >
+              Meus projetos
+            </button>
+            <button
+              onClick={() => setFilterOverdue(!filterOverdue)}
+              className={`px-3 py-1.5 text-xs rounded-lg border transition-colors min-h-[32px] ${
+                filterOverdue
+                  ? "bg-red-500 text-white border-red-500"
+                  : "bg-card border-border text-foreground hover:bg-accent"
+              }`}
+            >
+              Atrasados
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* ── Content ── */}
+      <div className="flex-1 overflow-auto">
         {loading ? (
           <div className="flex items-center justify-center py-20 text-muted-foreground text-sm">
             Carregando projetos...
           </div>
         ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center">
+          <div className="flex flex-col items-center justify-center py-20 text-center px-6">
             <Briefcase className="w-14 h-14 text-muted-foreground/20 mb-4" />
             <p className="text-muted-foreground text-sm mb-4">
-              {search ? "Nenhum projeto encontrado para esta busca." : "Nenhum projeto ainda."}
+              {search || activeFilterCount > 0
+                ? "Nenhum projeto corresponde aos filtros."
+                : "Nenhum projeto ainda."}
             </p>
-            {!search && (
+            {!search && activeFilterCount === 0 && (
               <Button variant="outline" onClick={() => setShowCreate(true)}>
                 <Plus className="w-4 h-4 mr-1" /> Criar primeiro projeto
               </Button>
             )}
+            {(search || activeFilterCount > 0) && (
+              <Button variant="outline" size="sm" onClick={clearFilters}>
+                <X className="w-3.5 h-3.5 mr-1" /> Limpar filtros
+              </Button>
+            )}
+          </div>
+        ) : view === "list" ? (
+          // ── LIST VIEW ──
+          <div className="p-4 md:p-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-6xl mx-auto">
+              {filtered.map(p => (
+                <CollabProjectCard
+                  key={p.id}
+                  project={p}
+                  participants={participantsMap[p.id] || []}
+                  checklistItems={checklistItemsMap[p.id] || []}
+                  users={users}
+                  onClick={() => openProject(p.id)}
+                />
+              ))}
+            </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filtered.map(p => (
-              <div
-                key={p.id}
-                onClick={() => openProject(p.id)}
-                className="bg-card border border-border rounded-xl p-4 cursor-pointer hover:shadow-md hover:border-primary/30 transition-all group"
-                style={{ borderLeft: `4px solid ${p.color_tag || "#4338CA"}` }}
-              >
-                <div className="flex items-start gap-2 mb-2">
-                  <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-2 flex-1 text-sm md:text-base">
-                    {p.title}
-                  </h3>
-                  <Badge className={`text-xs shrink-0 mt-0.5 ${PRIORITY_COLORS[p.priority]}`}>
-                    {PRIORITY_LABELS[p.priority]}
-                  </Badge>
-                </div>
-
-                {p.description && (
-                  <p className="text-xs text-muted-foreground line-clamp-2 mb-3">
-                    {p.description}
-                  </p>
-                )}
-
-                <div className="flex items-center justify-between gap-2 flex-wrap">
-                  <Badge className={`text-xs ${STATUS_COLORS[p.status]}`}>
-                    {STATUS_LABELS[p.status]}
-                  </Badge>
-                  {p.due_date && (
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <Calendar className="w-3 h-3" />
-                      {format(new Date(p.due_date + "T00:00:00"), "dd/MM/yy")}
-                    </div>
-                  )}
-                </div>
-
-                <div className="mt-3 flex items-center gap-1 text-xs text-muted-foreground border-t border-border pt-2">
-                  <UserIcon className="w-3 h-3 shrink-0" />
-                  <span className="truncate">{getName(p.owner_email)}</span>
-                </div>
-              </div>
-            ))}
+          // ── KANBAN VIEW ──
+          <div className="p-4 md:p-6">
+            <CollabKanbanBoard
+              projects={filtered}
+              participantsMap={participantsMap}
+              checklistItemsMap={checklistItemsMap}
+              users={users}
+              onStatusChange={handleStatusChange}
+              onProjectClick={openProject}
+            />
           </div>
         )}
       </div>
