@@ -373,6 +373,14 @@ export default function ChatInput({
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
+      {/* Poll Creator Modal */}
+      <PollCreatorModal
+        open={showPollModal}
+        onClose={() => setShowPollModal(false)}
+        onSubmit={(pollData) => {
+          onSend({ content: pollData.question, type: "poll", poll_data: pollData });
+        }}
+      />
       {/* Mention Modal */}
       <MentionModal
         open={showMentionModal}
