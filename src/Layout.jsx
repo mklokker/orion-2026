@@ -607,6 +607,7 @@ function LayoutContent({ children, currentPageName }) {
     { title: "Atas e Alinhamentos", url: createPageUrl("AtasAlinhamentos"), icon: ScrollText },
     { title: "Removedor", url: createPageUrl("Removedor"), icon: Eraser },
     { title: "Ranking", url: createPageUrl("Ranking"), icon: Star },
+    { title: "Colaboração", url: createPageUrl("Colaboracao"), icon: Briefcase },
   ];
 
   const gestaoRIItems = isAdmin ? [
