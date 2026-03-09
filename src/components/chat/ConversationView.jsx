@@ -232,6 +232,8 @@ export default function ConversationView({
   const lastActionRef = useRef("initial_load"); // "initial_load" | "send" | "realtime_new" | "update"
   const prevMessagesLengthRef = useRef(0);
   const prevConversationIdRef = useRef(null);
+  const scrollHeightBeforeLoadRef = useRef(0);   // âncora para load more
+  const shouldAnchorScrollRef = useRef(false);    // flag: restaurar posição após load more
 
   const BOTTOM_THRESHOLD = 60; // px from bottom = "at bottom"
 
