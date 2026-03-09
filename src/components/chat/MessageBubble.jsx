@@ -249,6 +249,17 @@ export default function MessageBubble({
       </div>
     );
 
+    // Poll
+    if (message.type === "poll") {
+      return (
+        <>
+          {forwardHeader}
+          {replyPreview}
+          <PollMessage message={message} currentUser={message._currentUser} isOwn={isOwn} />
+        </>
+      );
+    }
+
     // GIF (Giphy)
     if (message.type === "gif" && (message.gif_url || message.content)) {
       const gifSrc = message.gif_url || message.content;
