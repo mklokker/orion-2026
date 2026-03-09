@@ -175,6 +175,29 @@ export default function ChatList({
             className="pl-9 bg-muted/50 rounded-xl h-10"
           />
         </div>
+        {/* Filtros */}
+        <div className="flex gap-1.5 mt-2">
+          <button
+            onClick={() => setUnreadFilter("all")}
+            className={`flex-1 text-xs font-medium py-1.5 rounded-lg transition-colors ${
+              unreadFilter === "all"
+                ? "bg-primary text-primary-foreground"
+                : "bg-muted text-muted-foreground hover:bg-accent"
+            }`}
+          >
+            Todas
+          </button>
+          <button
+            onClick={() => setUnreadFilter("unread")}
+            className={`flex-1 text-xs font-medium py-1.5 rounded-lg transition-colors ${
+              unreadFilter === "unread"
+                ? "bg-primary text-primary-foreground"
+                : "bg-muted text-muted-foreground hover:bg-accent"
+            }`}
+          >
+            Não lidas
+          </button>
+        </div>
       </div>
 
       {/* Conversations List */}
