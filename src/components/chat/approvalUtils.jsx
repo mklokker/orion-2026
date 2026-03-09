@@ -189,6 +189,8 @@ export async function processItemWithValidation(item, request, departmentId, cur
  * Retorna relatório detalhado por item + resumo.
  */
 export async function approveRequestWithValidation(request, departmentId, currentUser, onItemDone = null) {
+  // Prioriza o departmentId passado; fallback para o salvo na própria request (novo fluxo)
+  const effectiveDeptId = departmentId || request.department_id || "";
   const items = request.items || [];
 
   // Build existence maps once for the whole request (efficient)
@@ -197,7 +199,7 @@ export async function approveRequestWithValidation(request, departmentId, curren
   const itemResults = [];
 
   for (const item of items) {
-    const result = await processItemWithValidation(item, request, departmentId, currentUser, taskMap, serviceMap);
+    const result = await processItemWithValidation(item, request, effectiveDeptId, currentUser, taskMap, serviceMap);
     itemResults.push(result);
     if (onItemDone) onItemDone(result, itemResults.length);
   }

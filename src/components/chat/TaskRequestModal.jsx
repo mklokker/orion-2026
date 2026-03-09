@@ -1,16 +1,24 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { AlertCircle, CheckCircle2, ArrowRight, Trash2, Send, ListPlus } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { AlertCircle, CheckCircle2, ArrowRight, Trash2, Send, ListPlus, Building2 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import { base44 } from "@/api/base44Client";
 
 const TaskRequest = base44.entities.TaskRequest;
-const ChatMessage = base44.entities.ChatMessage;
+const Department  = base44.entities.Department;
+
+const DEPT_ORDER = ["Registro","Conferencia","Certidão","ONR","Cadastro","Finalização","Arquivo","Atendimento","Administrativo"];
+const sortDepts = (arr) => [...arr].sort((a, b) => {
+  const ai = DEPT_ORDER.findIndex(n => a.name?.toLowerCase() === n.toLowerCase());
+  const bi = DEPT_ORDER.findIndex(n => b.name?.toLowerCase() === n.toLowerCase());
+  return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+});
 
 const parseDate = (dateStr) => {
   const [day, month] = dateStr.split("/").map(Number);
@@ -24,15 +32,43 @@ export default function TaskRequestModal({
   onClose, 
   currentUser,
   conversationId,
-  onSendMessage 
+  onSendMessage,
+  departments: deptsProp = null,
 }) {
   const { toast } = useToast();
-  const [text, setText] = useState("");
+  const [text, setText]               = useState("");
   const [parsedItems, setParsedItems] = useState([]);
-  const [step, setStep] = useState("input");
-  const [sending, setSending] = useState(false);
+  const [step, setStep]               = useState("input");
+  const [sending, setSending]         = useState(false);
+
+  // Department — obrigatório na criação
+  const [departments, setDepartments]   = useState([]);
+  const [loadingDepts, setLoadingDepts] = useState(false);
+  const [departmentId, setDepartmentId] = useState("");
+
+  useEffect(() => {
+    if (!open) return;
+    if (deptsProp) {
+      setDepartments(sortDepts(deptsProp));
+    } else {
+      setLoadingDepts(true);
+      Department.list()
+        .then(d => setDepartments(sortDepts(d)))
+        .catch(() => {})
+        .finally(() => setLoadingDepts(false));
+    }
+  }, [open]);
 
   const handleProcess = () => {
+    if (!departmentId) {
+      toast({ 
+        title: "Departamento obrigatório", 
+        description: "Selecione o departamento de destino antes de continuar.", 
+        variant: "destructive" 
+      });
+      return;
+    }
+
     const lines = text.split("\n").filter(l => l.trim());
     const items = [];
     
@@ -102,47 +138,55 @@ export default function TaskRequestModal({
       toast({ title: "Erro", description: "Nenhum item válido para enviar.", variant: "destructive" });
       return;
     }
+    if (!departmentId) {
+      toast({ title: "Departamento obrigatório", description: "Selecione o departamento de destino.", variant: "destructive" });
+      setStep("input");
+      return;
+    }
 
     setSending(true);
     try {
-      // Criar solicitação
+      const deptName = departments.find(d => d.id === departmentId)?.name || "";
+
       const request = await TaskRequest.create({
-        requester_email: currentUser.email,
-        requester_name: currentUser.full_name || currentUser.display_name || currentUser.email,
-        conversation_id: conversationId,
+        requester_email:  currentUser.email,
+        requester_name:   currentUser.display_name || currentUser.full_name || currentUser.email,
+        conversation_id:  conversationId,
+        department_id:    departmentId,
+        department_name:  deptName,
         items: validItems.map(item => ({
-          type: item.type,
-          identifier: item.identifier,
+          type:        item.type,
+          identifier:  item.identifier,
           description: item.description,
-          end_date: item.formattedDate
+          end_date:    item.formattedDate
         })),
         status: "pending"
       });
 
-      // Enviar mensagem no chat com detalhes
-      const taskCount = validItems.filter(i => i.type === "task").length;
+      const taskCount    = validItems.filter(i => i.type === "task").length;
       const serviceCount = validItems.filter(i => i.type === "service").length;
       
-      let itemsList = validItems.map(item => 
+      const itemsList = validItems.map(item => 
         `• ${item.type === "task" ? "📋" : "🔧"} ${item.identifier}${item.description ? ` - ${item.description}` : ""} (${item.dateStr})`
       ).join("\n");
 
       const messageContent = `📝 **Solicitação de Criação de Tarefas/Serviços**\n\n` +
         `${taskCount > 0 ? `**Tarefas:** ${taskCount}\n` : ""}` +
-        `${serviceCount > 0 ? `**Serviços:** ${serviceCount}\n` : ""}\n` +
+        `${serviceCount > 0 ? `**Serviços:** ${serviceCount}\n` : ""}` +
+        `**Departamento:** ${deptName}\n\n` +
         `**Itens:**\n${itemsList}\n\n` +
         `_Aguardando aprovação de um administrador._\n` +
         `\`ID: ${request.id}\``;
 
       await onSendMessage({
-        content: messageContent,
-        type: "text",
+        content:         messageContent,
+        type:            "text",
         task_request_id: request.id
       });
 
       toast({ 
         title: "Solicitação enviada!", 
-        description: `${validItems.length} item(s) enviado(s) para aprovação.`
+        description: `${validItems.length} item(s) enviado(s) para ${deptName}.`
       });
 
       handleClose();
@@ -161,15 +205,17 @@ export default function TaskRequestModal({
     setText("");
     setParsedItems([]);
     setStep("input");
+    setDepartmentId("");
     onClose();
   };
 
-  const validCount = parsedItems.filter(i => i.valid).length;
+  const validCount   = parsedItems.filter(i => i.valid).length;
   const invalidCount = parsedItems.filter(i => !i.valid).length;
+  const deptName     = departments.find(d => d.id === departmentId)?.name || "";
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col">
+      <DialogContent className="w-full max-w-2xl max-h-[90vh] flex flex-col mx-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <ListPlus className="w-5 h-5" />
@@ -178,36 +224,70 @@ export default function TaskRequestModal({
         </DialogHeader>
         
         {step === "input" ? (
-          <div className="flex-1 flex flex-col gap-4 min-h-[250px]">
+          <div className="flex-1 flex flex-col gap-4 overflow-y-auto min-h-[250px]">
             <div className="bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg text-sm">
               <p className="text-blue-800 dark:text-blue-300">
                 📝 Envie uma solicitação para os administradores criarem tarefas ou serviços para você.
               </p>
             </div>
 
-            <div className="flex-1 flex flex-col gap-2">
+            {/* Departamento — obrigatório */}
+            <div className="space-y-1.5">
+              <label className="text-sm font-medium flex items-center gap-1.5">
+                <Building2 className="w-4 h-4 text-muted-foreground" />
+                Departamento de destino
+                <span className="text-red-500 ml-0.5">*</span>
+              </label>
+              {loadingDepts ? (
+                <div className="h-9 bg-muted animate-pulse rounded-md" />
+              ) : (
+                <Select value={departmentId} onValueChange={setDepartmentId}>
+                  <SelectTrigger className={!departmentId ? "border-amber-300 dark:border-amber-600" : ""}>
+                    <SelectValue placeholder="Selecione o departamento..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {departments.map(d => (
+                      <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              {!departmentId && !loadingDepts && (
+                <p className="text-xs text-amber-600 dark:text-amber-400">
+                  Obrigatório — escolha o departamento que irá receber e processar esta solicitação.
+                </p>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-2">
               <label className="text-sm font-medium">Lista de Itens</label>
-              <p className="text-xs text-gray-500">
-                Formato: <span className="font-mono bg-gray-100 dark:bg-gray-800 px-1 rounded">Protocolo dd/mm</span> ou <span className="font-mono bg-gray-100 dark:bg-gray-800 px-1 rounded">Serviço-Descrição dd/mm</span>
+              <p className="text-xs text-muted-foreground">
+                Formato: <span className="font-mono bg-muted px-1 rounded">Protocolo dd/mm</span> ou <span className="font-mono bg-muted px-1 rounded">Serviço-Descrição dd/mm</span>
               </p>
               <Textarea 
                 value={text}
                 onChange={(e) => setText(e.target.value)}
-                className="flex-1 font-mono text-sm min-h-[150px]"
+                className="font-mono text-sm min-h-[150px]"
                 placeholder={`Exemplos:\n123.456 12/03\nS25110760575D-02/03\n339323-Busca para indisponibilidade-03/03`}
               />
             </div>
           </div>
         ) : (
-          <div className="flex-1 overflow-hidden flex flex-col min-h-[250px]">
-            <div className="mb-2 flex justify-between items-center">
+          <div className="flex-1 overflow-hidden flex flex-col min-h-[250px] gap-3">
+            {/* Confirmação de departamento */}
+            <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 rounded-lg text-sm shrink-0">
+              <Building2 className="w-4 h-4 text-muted-foreground shrink-0" />
+              <span className="text-muted-foreground">Departamento:</span>
+              <span className="font-medium">{deptName}</span>
+            </div>
+
+            <div className="flex justify-between items-center shrink-0">
               <span className="text-sm font-medium">Pré-visualização ({validCount} item(s))</span>
               {invalidCount > 0 && (
-                <Badge variant="destructive" className="text-xs">
-                  {invalidCount} inválido(s)
-                </Badge>
+                <Badge variant="destructive" className="text-xs">{invalidCount} inválido(s)</Badge>
               )}
             </div>
+
             <ScrollArea className="flex-1 border rounded-md">
               <Table>
                 <TableHeader>
@@ -215,7 +295,7 @@ export default function TaskRequestModal({
                     <TableHead className="w-10"></TableHead>
                     <TableHead>Tipo</TableHead>
                     <TableHead>Identificador</TableHead>
-                    <TableHead>Descrição</TableHead>
+                    <TableHead className="hidden sm:table-cell">Descrição</TableHead>
                     <TableHead>Data</TableHead>
                     <TableHead className="w-10"></TableHead>
                   </TableRow>
@@ -224,15 +304,16 @@ export default function TaskRequestModal({
                   {parsedItems.map((item, idx) => (
                     <TableRow key={idx} className={!item.valid ? "bg-red-50 dark:bg-red-900/20" : ""}>
                       <TableCell>
-                        {item.valid ? (
-                          <CheckCircle2 className="w-4 h-4 text-green-500" />
-                        ) : (
-                          <AlertCircle className="w-4 h-4 text-red-500" />
-                        )}
+                        {item.valid
+                          ? <CheckCircle2 className="w-4 h-4 text-green-500" />
+                          : <AlertCircle className="w-4 h-4 text-red-500" />}
                       </TableCell>
                       <TableCell>
                         {item.valid ? (
-                          <Badge variant="outline" className={item.type === 'task' ? "bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300" : "bg-orange-50 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300"}>
+                          <Badge variant="outline" className={item.type === 'task'
+                            ? "bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
+                            : "bg-orange-50 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300"
+                          }>
                             {item.type === 'task' ? 'Tarefa' : 'Serviço'}
                           </Badge>
                         ) : (
@@ -240,13 +321,13 @@ export default function TaskRequestModal({
                         )}
                       </TableCell>
                       <TableCell className="font-mono text-xs">{item.identifier}</TableCell>
-                      <TableCell className="text-xs text-gray-500 truncate max-w-[120px]">{item.description || "-"}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground truncate max-w-[120px] hidden sm:table-cell">{item.description || "-"}</TableCell>
                       <TableCell className="text-xs">{item.dateStr || "-"}</TableCell>
                       <TableCell>
                         <Button 
                           variant="ghost" 
                           size="icon" 
-                          className="h-7 w-7 text-gray-400 hover:text-red-500"
+                          className="h-7 w-7 text-muted-foreground hover:text-red-500"
                           onClick={() => handleRemoveItem(idx)}
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -260,21 +341,25 @@ export default function TaskRequestModal({
           </div>
         )}
         
-        <DialogFooter>
+        <DialogFooter className="flex-col sm:flex-row gap-2 pt-2 border-t">
           {step === "input" ? (
             <>
-              <Button variant="outline" onClick={handleClose}>Cancelar</Button>
-              <Button onClick={handleProcess} disabled={!text.trim()} className="bg-primary text-primary-foreground hover:bg-primary/90">
+              <Button variant="outline" onClick={handleClose} className="w-full sm:w-auto">Cancelar</Button>
+              <Button 
+                onClick={handleProcess} 
+                disabled={!text.trim() || !departmentId || loadingDepts}
+                className="bg-primary text-primary-foreground hover:bg-primary/90 w-full sm:w-auto"
+              >
                 Processar <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
             </>
           ) : (
             <>
-              <Button variant="outline" onClick={() => setStep("input")}>Voltar</Button>
+              <Button variant="outline" onClick={() => setStep("input")} className="w-full sm:w-auto">Voltar</Button>
               <Button 
                 onClick={handleSendRequest} 
                 disabled={validCount === 0 || sending}
-                className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90"
+                className="gap-2 bg-primary text-primary-foreground hover:bg-primary/90 w-full sm:w-auto"
               >
                 <Send className="w-4 h-4" />
                 {sending ? "Enviando..." : `Enviar Solicitação (${validCount})`}
