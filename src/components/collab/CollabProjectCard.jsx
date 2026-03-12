@@ -12,7 +12,7 @@ const PRIORITY_COLORS = {
 };
 const PRIORITY_LABELS = { baixa: "Baixa", media: "Média", alta: "Alta", urgente: "Urgente" };
 
-export default function CollabProjectCard({ project, participants = [], checklistItems = [], users = [], onClick, isDragging = false }) {
+export default function CollabProjectCard({ project, participants = [], checklistItems = [], users = [], onClick, isDragging = false, isLoadingData = false }) {
   const getUser    = (email) => users.find(u => u.email === email);
   const getName    = (email) => { const u = getUser(email); return u?.display_name || u?.full_name || email; };
   const getAvatar  = (email) => getUser(email)?.profile_picture;
@@ -32,6 +32,9 @@ export default function CollabProjectCard({ project, participants = [], checklis
   const extraCount           = Math.max(0, nonOwnerParticipants.length - 3);
 
   const responsible = project.responsible_email ? getName(project.responsible_email) : null;
+
+  // Exibe loading apenas se os dados ainda estão sendo carregados
+  const showLoadingState = isLoadingData && participants.length === 0 && checklistItems.length === 0;
 
   return (
     <div
@@ -68,7 +71,11 @@ export default function CollabProjectCard({ project, participants = [], checklis
       )}
 
       {/* Checklist progress */}
-      {progress !== null && (
+      {showLoadingState ? (
+        <div className="mb-2.5">
+          <div className="h-1 bg-muted rounded-full overflow-hidden animate-pulse" />
+        </div>
+      ) : progress !== null && (
         <div className="mb-2.5">
           <div className="flex items-center justify-between text-[10px] text-muted-foreground mb-1">
             <span className="flex items-center gap-1">
@@ -90,7 +97,12 @@ export default function CollabProjectCard({ project, participants = [], checklis
       <div className="flex items-center justify-between gap-2 pt-2 border-t border-border/60">
         {/* Participant avatars */}
         <div className="flex items-center">
-          {visibleParticipants.length > 0 ? (
+          {showLoadingState ? (
+            <div className="flex -space-x-1.5">
+              <div className="w-5 h-5 rounded-full bg-muted animate-pulse" />
+              <div className="w-5 h-5 rounded-full bg-muted animate-pulse" />
+            </div>
+          ) : visibleParticipants.length > 0 ? (
             <div className="flex -space-x-1.5">
               {visibleParticipants.map(p => (
                 <Avatar key={p.id} className="w-5 h-5 border border-background">

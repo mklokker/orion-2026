@@ -42,8 +42,10 @@ export default function Colaboracao() {
   const [filterOverdue, setFilterOverdue]         = useState(false);
 
   // Kanban auxiliary data (participantes + checklist items por projeto)
+  // Agora carregados sob demanda (lazy load) ao invés de tudo na inicialização
   const [participantsMap, setParticipantsMap]       = useState({}); // { projectId: [] }
   const [checklistItemsMap, setChecklistItemsMap]   = useState({}); // { projectId: [] }
+  const [loadingAuxData, setLoadingAuxData]         = useState({}); // { projectId: boolean }
 
   useEffect(() => { loadData(); }, []);
 
@@ -59,45 +61,47 @@ export default function Colaboracao() {
     const projs = await listProjects(userData.email, userData.role === "admin");
     setProjects(projs);
     setLoading(false);
+    // Removido: loadAuxData() — agora lazy load sob demanda
+  };
 
-    // Load participants + checklist items for all projects in background
-    if (projs.length > 0) {
-      loadAuxData(projs);
+  // Lazy load: carrega dados auxiliares de um projeto específico apenas quando necessário
+  const loadProjectAuxData = async (projectId) => {
+    // Evita recarregar se já temos os dados
+    if (participantsMap[projectId] && checklistItemsMap[projectId]) return;
+    // Evita chamadas duplicadas simultâneas
+    if (loadingAuxData[projectId]) return;
+
+    setLoadingAuxData(prev => ({ ...prev, [projectId]: true }));
+
+    try {
+      const [parts, checklists] = await Promise.all([
+        listParticipants(projectId),
+        listChecklists(projectId),
+      ]);
+
+      // Carrega itens de todas as checklists
+      const allItems = [];
+      for (const cl of checklists) {
+        const items = await listChecklistItems(cl.id);
+        allItems.push(...items);
+      }
+
+      setParticipantsMap(prev => ({ ...prev, [projectId]: parts }));
+      setChecklistItemsMap(prev => ({ ...prev, [projectId]: allItems }));
+    } catch (e) {
+      console.error(`[Colaboracao] Erro ao carregar dados auxiliares do projeto ${projectId}:`, e);
+    } finally {
+      setLoadingAuxData(prev => ({ ...prev, [projectId]: false }));
     }
   };
 
-  const loadAuxData = async (projs) => {
-    // Load participants for all projects in parallel (batched)
-    const participantResults = await Promise.allSettled(
-      projs.map(p => listParticipants(p.id).then(parts => ({ id: p.id, parts })))
-    );
-    const pMap = {};
-    participantResults.forEach(r => {
-      if (r.status === "fulfilled") pMap[r.value.id] = r.value.parts;
-    });
-    setParticipantsMap(pMap);
-
-    // Load all checklist items (checklists first, then items)
-    const checklistResults = await Promise.allSettled(
-      projs.map(p => listChecklists(p.id).then(cls => ({ id: p.id, cls })))
-    );
-    const itemMap = {};
-    const itemFetches = [];
-    checklistResults.forEach(r => {
-      if (r.status === "fulfilled") {
-        itemMap[r.value.id] = [];
-        r.value.cls.forEach(cl => {
-          itemFetches.push(
-            listChecklistItems(cl.id).then(items => {
-              itemMap[r.value.id] = [...(itemMap[r.value.id] || []), ...items];
-            })
-          );
-        });
-      }
-    });
-    await Promise.allSettled(itemFetches);
-    setChecklistItemsMap({ ...itemMap });
-  };
+  // Pré-carrega dados auxiliares para projetos visíveis (apenas os filtrados)
+  useEffect(() => {
+    if (!loading && filtered.length > 0) {
+      // Carrega em background apenas para os projetos visíveis
+      filtered.slice(0, 20).forEach(p => loadProjectAuxData(p.id));
+    }
+  }, [filtered, loading]);
 
   const getName = (email) => {
     const u = users.find(u => u.email === email);
@@ -105,6 +109,8 @@ export default function Colaboracao() {
   };
 
   const openProject = (id) => {
+    // Garante que dados auxiliares estejam carregados antes de abrir
+    loadProjectAuxData(id);
     window.location.href = `${createPageUrl("ColabProjeto")}?id=${id}`;
   };
 
@@ -361,6 +367,7 @@ export default function Colaboracao() {
                   checklistItems={checklistItemsMap[p.id] || []}
                   users={users}
                   onClick={() => openProject(p.id)}
+                  isLoadingData={loadingAuxData[p.id]}
                 />
               ))}
             </div>
@@ -381,6 +388,7 @@ export default function Colaboracao() {
               users={users}
               onStatusChange={handleStatusChange}
               onProjectClick={openProject}
+              loadingAuxData={loadingAuxData}
             />
           </div>
         )}

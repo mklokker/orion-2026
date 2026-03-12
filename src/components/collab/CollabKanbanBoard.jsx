@@ -13,7 +13,7 @@ const KANBAN_COLUMNS = [
 
 export default function CollabKanbanBoard({
   projects, participantsMap, checklistItemsMap, users,
-  onStatusChange, onProjectClick,
+  onStatusChange, onProjectClick, loadingAuxData = {},
 }) {
   const onDragEnd = (result) => {
     const { source, destination, draggableId } = result;
@@ -82,6 +82,7 @@ export default function CollabKanbanBoard({
                                 users={users}
                                 onClick={() => onProjectClick(project.id)}
                                 isDragging={snapshot.isDragging}
+                                isLoadingData={loadingAuxData[project.id]}
                               />
                             </div>
                           )}
