@@ -445,8 +445,11 @@ export default function ConversationView({
 
   return (
     <div 
-      className="relative flex flex-col w-full min-w-0 h-full min-h-0 overflow-hidden"
-      style={bubbleColorVars}
+      className="relative flex flex-col w-full min-w-0 overflow-hidden"
+      style={{ 
+        height: '100%',
+        ...bubbleColorVars 
+      }}
     >
       {/* Background layer - estática, não rola */}
       <div className="absolute inset-0 pointer-events-none z-0">
@@ -454,9 +457,11 @@ export default function ConversationView({
       </div>
 
       {/* Conteúdo acima do background */}
-      <div className="relative z-10 flex flex-col w-full h-full min-h-0">
-      {/* Header */}
-      <div className="flex items-center gap-2 md:gap-3 px-2 md:px-3 py-2 md:py-3 bg-card border-b border-border z-30 shrink-0">
+      <div className="relative z-10 flex flex-col w-full h-full">
+      {/* Header - fixo no topo */}
+      <div className="flex items-center gap-2 md:gap-3 px-2 md:px-3 py-2.5 md:py-3 bg-card border-b border-border z-30 shrink-0"
+        style={{ paddingTop: 'max(env(safe-area-inset-top, 0px), 10px)' }}
+      >
         <Button variant="ghost" size="icon" className="md:hidden shrink-0 h-10 w-10" onClick={onBack}>
           <ArrowLeft className="w-5 h-5" />
         </Button>
@@ -573,8 +578,12 @@ export default function ConversationView({
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        className="flex-1 min-h-0 overflow-y-auto overscroll-contain overflow-x-hidden w-full bg-transparent"
-        style={{ isolation: "isolate" }}
+        className="flex-1 overflow-y-auto overscroll-contain overflow-x-hidden w-full bg-transparent"
+        style={{ 
+          isolation: "isolate",
+          minHeight: 0,
+          paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 0px)'
+        }}
       >
         {/* Messages layer */}
         <div className="px-2 md:px-4 py-2 md:py-4 bg-transparent">
@@ -686,19 +695,21 @@ export default function ConversationView({
       )}
 
       {/* Input - fixo no rodapé (oculto em modo seleção) */}
-      {!selectionMode && (
-        <ChatInput
-          onSend={handleSend}
-          onTyping={onTyping}
-          replyingTo={replyingTo}
-          onCancelReply={() => setReplyingTo(null)}
-          participants={conversation?.participants || []}
-          allUsers={users}
-          autoFocusTrigger={autoFocusTrigger}
-          adminOnlyPosting={!!conversation?.admin_only_posting}
-          isAdmin={isAdmin}
-        />
-      )}
+      <div className="shrink-0" style={{ paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 0px)' }}>
+        {!selectionMode && (
+          <ChatInput
+            onSend={handleSend}
+            onTyping={onTyping}
+            replyingTo={replyingTo}
+            onCancelReply={() => setReplyingTo(null)}
+            participants={conversation?.participants || []}
+            allUsers={users}
+            autoFocusTrigger={autoFocusTrigger}
+            adminOnlyPosting={!!conversation?.admin_only_posting}
+            isAdmin={isAdmin}
+          />
+        )}
+      </div>
 
       {/* Files Modal */}
       <ConversationFilesModal

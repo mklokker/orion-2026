@@ -1112,7 +1112,7 @@ export default function Chat() {
   }, [selectedConversation]);
 
   return (
-    <div className="relative flex bg-background overflow-hidden" style={{ height: '100dvh' }}>
+    <div className="relative flex bg-background overflow-hidden" style={{ height: '100%' }}>
       {/* Desktop: padding e gap normais */}
       <div className="hidden md:flex w-full h-full p-3 gap-3">
         {/* Lista - Desktop */}
@@ -1172,7 +1172,11 @@ export default function Chat() {
       </div>
 
       {/* Mobile: Master/Detail - apenas uma tela por vez */}
-      <div className="flex md:hidden w-full h-full relative overflow-hidden">
+      <div className="flex md:hidden w-full h-full relative overflow-hidden"
+        style={{
+          paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 60px)'
+        }}
+      >
         {/* Lista - Mobile (visível quando não há conversa selecionada) */}
         <div
           className={`absolute inset-0 flex flex-col bg-card transition-transform duration-300 ${

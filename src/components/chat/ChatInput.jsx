@@ -63,6 +63,7 @@ export default function ChatInput({
   const [uploadProgress, setUploadProgress] = useState(0);
   const [currentUploadFile, setCurrentUploadFile] = useState("");
   const fileInputRef = useRef(null);
+  const cameraInputRef = useRef(null);
   const textareaRef = useRef(null);
   
   // Mention modal
@@ -521,16 +522,43 @@ export default function ChatInput({
           <BarChart2 className="w-5 h-5 text-muted-foreground" />
         </Button>
 
-        {/* Attachment */}
-        <Button
-          variant="ghost"
-          size="icon"
-          className="shrink-0 h-10 w-10"
-          onClick={() => fileInputRef.current?.click()}
-          disabled={disabled || uploading}
-        >
-          <Paperclip className="w-5 h-5 text-muted-foreground" />
-        </Button>
+        {/* Attachment Options */}
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="shrink-0 h-10 w-10"
+              disabled={disabled || uploading}
+            >
+              <Paperclip className="w-5 h-5 text-muted-foreground" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-52 p-2" side="top" align="start">
+            <div className="space-y-1">
+              <button
+                onClick={() => {
+                  fileInputRef.current?.click();
+                }}
+                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent text-sm text-foreground transition-colors"
+              >
+                <FileText className="w-4 h-4 text-blue-600" />
+                Arquivo / Galeria
+              </button>
+              <button
+                onClick={() => {
+                  cameraInputRef.current?.click();
+                }}
+                className="w-full flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-accent text-sm text-foreground transition-colors"
+              >
+                <ImageIcon className="w-4 h-4 text-green-600" />
+                Tirar Foto
+              </button>
+            </div>
+          </PopoverContent>
+        </Popover>
+
+        {/* File input - gallery/files */}
         <input
           type="file"
           ref={fileInputRef}
@@ -538,6 +566,16 @@ export default function ChatInput({
           multiple
           onChange={handleFileSelect}
           accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+        />
+
+        {/* Camera input - direct camera capture */}
+        <input
+          type="file"
+          ref={cameraInputRef}
+          className="hidden"
+          accept="image/*"
+          capture="environment"
+          onChange={handleFileSelect}
         />
 
         {/* Text input */}
