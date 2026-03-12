@@ -41,6 +41,10 @@ export default function Colaboracao() {
   const [filterMine, setFilterMine]               = useState(false);
   const [filterOverdue, setFilterOverdue]         = useState(false);
 
+  // Pagination / incremental rendering
+  const [displayLimit, setDisplayLimit]           = useState(20); // Quantos projetos renderizar inicialmente
+  const INCREMENT_SIZE = 20; // Quantos mais projetos carregar por vez
+
   // Kanban auxiliary data (participantes + checklist items por projeto)
   // Agora carregados sob demanda (lazy load) ao invés de tudo na inicialização
   const [participantsMap, setParticipantsMap]       = useState({}); // { projectId: [] }
@@ -178,6 +182,7 @@ export default function Colaboracao() {
     setFilterResponsible("all");
     setFilterMine(false);
     setFilterOverdue(false);
+    setDisplayLimit(20); // Reset pagination
   };
 
   // Unique responsibles for filter dropdown
@@ -186,13 +191,29 @@ export default function Colaboracao() {
     return emails.map(email => ({ email, name: getName(email) }));
   }, [projects, users]);
 
-  // Pré-carrega dados auxiliares para projetos visíveis (apenas os filtrados)
+  // Projetos visíveis (com limitação incremental para renderização)
+  const visibleProjects = useMemo(() => {
+    return filtered.slice(0, displayLimit);
+  }, [filtered, displayLimit]);
+
+  const hasMore = filtered.length > displayLimit;
+
+  const loadMore = () => {
+    setDisplayLimit(prev => prev + INCREMENT_SIZE);
+  };
+
+  // Reset display limit quando filtros mudarem
   useEffect(() => {
-    if (!loading && filtered.length > 0) {
-      // Carrega em background apenas para os primeiros 20 projetos visíveis
-      filtered.slice(0, 20).forEach(p => loadProjectAuxData(p.id));
+    setDisplayLimit(20);
+  }, [search, filterStatus, filterResponsible, filterMine, filterOverdue]);
+
+  // Pré-carrega dados auxiliares para projetos visíveis (apenas os renderizados)
+  useEffect(() => {
+    if (!loading && visibleProjects.length > 0) {
+      // Carrega em background apenas para os projetos atualmente visíveis
+      visibleProjects.forEach(p => loadProjectAuxData(p.id));
     }
-  }, [filtered, loading]);
+  }, [visibleProjects, loading]);
 
   return (
     <div className="h-full overflow-auto bg-background flex flex-col">
@@ -336,7 +357,7 @@ export default function Colaboracao() {
           <div className="flex items-center justify-center py-20 text-muted-foreground text-sm">
             Carregando projetos...
           </div>
-        ) : filtered.length === 0 ? (
+        ) : visibleProjects.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-center px-6">
             <Briefcase className="w-14 h-14 text-muted-foreground/20 mb-4" />
             <p className="text-muted-foreground text-sm mb-4">
@@ -359,7 +380,7 @@ export default function Colaboracao() {
           // ── LIST VIEW ──
           <div className="p-4 md:p-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 max-w-6xl mx-auto">
-              {filtered.map(p => (
+              {visibleProjects.map(p => (
                 <CollabProjectCard
                   key={p.id}
                   project={p}
@@ -371,6 +392,22 @@ export default function Colaboracao() {
                 />
               ))}
             </div>
+
+            {/* Load More button */}
+            {hasMore && (
+              <div className="flex justify-center mt-6">
+                <Button
+                  onClick={loadMore}
+                  variant="outline"
+                  className="gap-2 min-h-[44px] px-6"
+                >
+                  <span>Carregar mais</span>
+                  <Badge variant="secondary" className="ml-1 bg-muted text-foreground">
+                    +{Math.min(INCREMENT_SIZE, filtered.length - displayLimit)}
+                  </Badge>
+                </Button>
+              </div>
+            )}
           </div>
         ) : (
           // ── KANBAN VIEW ──
@@ -382,13 +419,17 @@ export default function Colaboracao() {
               </div>
             )}
             <CollabKanbanBoard
-              projects={filtered}
+              projects={visibleProjects}
               participantsMap={participantsMap}
               checklistItemsMap={checklistItemsMap}
               users={users}
               onStatusChange={handleStatusChange}
               onProjectClick={openProject}
               loadingAuxData={loadingAuxData}
+              hasMore={hasMore}
+              onLoadMore={loadMore}
+              totalFiltered={filtered.length}
+              displayLimit={displayLimit}
             />
           </div>
         )}

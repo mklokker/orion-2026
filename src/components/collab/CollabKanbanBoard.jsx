@@ -14,6 +14,7 @@ const KANBAN_COLUMNS = [
 export default function CollabKanbanBoard({
   projects, participantsMap, checklistItemsMap, users,
   onStatusChange, onProjectClick, loadingAuxData = {},
+  hasMore = false, onLoadMore, totalFiltered = 0, displayLimit = 0,
 }) {
   const onDragEnd = (result) => {
     const { source, destination, draggableId } = result;
@@ -22,8 +23,25 @@ export default function CollabKanbanBoard({
     onStatusChange(draggableId, destination.droppableId);
   };
 
+  const INCREMENT_SIZE = 20;
+
   return (
     <DragDropContext onDragEnd={onDragEnd}>
+      {/* Load More info banner */}
+      {hasMore && (
+        <div className="mb-4 px-3 py-2.5 bg-muted/50 border border-border rounded-lg flex items-center justify-between gap-3 text-sm max-w-6xl mx-auto">
+          <span className="text-muted-foreground">
+            Exibindo <span className="font-semibold text-foreground">{displayLimit}</span> de <span className="font-semibold text-foreground">{totalFiltered}</span> projetos
+          </span>
+          <button
+            onClick={onLoadMore}
+            className="px-3 py-1.5 bg-primary text-primary-foreground rounded-md text-xs font-medium hover:bg-primary/90 transition-colors min-h-[32px]"
+          >
+            Carregar mais +{Math.min(INCREMENT_SIZE, totalFiltered - displayLimit)}
+          </button>
+        </div>
+      )}
+
       {/* Horizontal scroll container — enables mobile scroll without breaking layout */}
       <div className="overflow-x-auto overflow-y-hidden pb-4" style={{ minHeight: "calc(100vh - 260px)" }}>
         <div className="flex gap-3 min-w-max px-1 pb-2 items-start">
