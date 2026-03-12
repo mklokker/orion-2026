@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
+import { useAuth } from "@/lib/AuthContext";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -52,6 +54,8 @@ const statusColors = {
 };
 
 export default function Oficios() {
+  const { user } = useAuth();
+  const navigate = useNavigate();
   const [oficios, setOficios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
@@ -68,9 +72,19 @@ export default function Oficios() {
   const [selectedOficio, setSelectedOficio] = useState(null);
   const { toast } = useToast();
 
+  const canAccessOficios = user?.role === "admin" || user?.can_access_oficios === true;
+
   useEffect(() => {
-    loadOficios();
-  }, []);
+    if (!user || !canAccessOficios) {
+      navigate("/Dashboard", { replace: true });
+    }
+  }, [user, canAccessOficios, navigate]);
+
+  useEffect(() => {
+    if (canAccessOficios) {
+      loadOficios();
+    }
+  }, [canAccessOficios]);
 
   const loadOficios = async () => {
     try {
@@ -202,6 +216,10 @@ export default function Oficios() {
 
   const hasActiveFilters = searchTerm || filterAno !== "todos" || filterStatus !== "todos" || 
     filterDataEnvioInicio || filterDataEnvioFim || filterDataRetornoInicio || filterDataRetornoFim || showDuplicates;
+
+  if (!user || !canAccessOficios) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-background p-3 md:p-6">

@@ -599,6 +599,8 @@ function LayoutContent({ children, currentPageName }) {
 
   const totalChatUnread = globalUnreadBadge || Object.values(chatUnreadCounts).reduce((a, b) => a + b, 0);
 
+  const canAccessOficios = user?.role === "admin" || user?.can_access_oficios === true;
+
   const navigationItems = [
     { title: "Dashboard", url: createPageUrl("Dashboard"), icon: LayoutDashboard },
     { title: "Gestão de Tarefas", url: createPageUrl("GestaoTarefas"), icon: ClipboardList },
@@ -610,7 +612,7 @@ function LayoutContent({ children, currentPageName }) {
     { title: "Removedor", url: createPageUrl("Removedor"), icon: Eraser },
     { title: "Ranking", url: createPageUrl("Ranking"), icon: Star },
     { title: "Colaboração", url: createPageUrl("Colaboracao"), icon: Briefcase },
-    { title: "Ofícios", url: createPageUrl("Oficios"), icon: Scale },
+    ...(canAccessOficios ? [{ title: "Ofícios", url: createPageUrl("Oficios"), icon: Scale }] : []),
   ];
 
   const gestaoRIItems = isAdmin ? [
