@@ -95,14 +95,6 @@ export default function Colaboracao() {
     }
   };
 
-  // Pré-carrega dados auxiliares para projetos visíveis (apenas os filtrados)
-  useEffect(() => {
-    if (!loading && filtered.length > 0) {
-      // Carrega em background apenas para os projetos visíveis
-      filtered.slice(0, 20).forEach(p => loadProjectAuxData(p.id));
-    }
-  }, [filtered, loading]);
-
   const getName = (email) => {
     const u = users.find(u => u.email === email);
     return u?.display_name || u?.full_name || email;
@@ -193,6 +185,14 @@ export default function Colaboracao() {
     const emails = [...new Set(projects.map(p => p.responsible_email).filter(Boolean))];
     return emails.map(email => ({ email, name: getName(email) }));
   }, [projects, users]);
+
+  // Pré-carrega dados auxiliares para projetos visíveis (apenas os filtrados)
+  useEffect(() => {
+    if (!loading && filtered.length > 0) {
+      // Carrega em background apenas para os primeiros 20 projetos visíveis
+      filtered.slice(0, 20).forEach(p => loadProjectAuxData(p.id));
+    }
+  }, [filtered, loading]);
 
   return (
     <div className="h-full overflow-auto bg-background flex flex-col">
