@@ -216,8 +216,7 @@ function GestaoRIGroup({ items, expanded, isActive, currentPath, onClick }) {
 // ─────────────────────────────────────────────
 function SidebarContent({
   expanded,
-  pinned,
-  onTogglePin,
+  onToggleSidebar,
   user,
   appSettings,
   navigationItems,
@@ -267,14 +266,21 @@ function SidebarContent({
             </span>
           )}
         </Link>
-        {expanded && onTogglePin && (
-          <button
-            onClick={onTogglePin}
-            title={pinned ? "Desafixar sidebar" : "Fixar sidebar aberta"}
-            className="p-1.5 rounded-md hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
-          >
-            {pinned ? <PinOff className="w-4 h-4" /> : <Pin className="w-4 h-4" />}
-          </button>
+        {onToggleSidebar && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                onClick={onToggleSidebar}
+                title={expanded ? "Retrair sidebar" : "Expandir sidebar"}
+                className="p-1.5 rounded-md hover:bg-accent text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {expanded ? <ChevronLeft className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="right">
+              {expanded ? "Retrair" : "Expandir"}
+            </TooltipContent>
+          </Tooltip>
         )}
       </div>
 
@@ -414,34 +420,19 @@ function LayoutContent({ children, currentPageName }) {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Sidebar state: "collapsed" | "pinned"
-  const [sidebarPinned, setSidebarPinned] = React.useState(() => {
-    try { return localStorage.getItem("orion_sidebar_pinned") === "true"; } catch { return false; }
+  // Sidebar state: expanded by toggle click only
+  const [sidebarExpanded, setSidebarExpanded] = React.useState(() => {
+    try { return localStorage.getItem("orion_sidebar_expanded") !== "false"; } catch { return true; }
   });
-  const [hovered, setHovered] = React.useState(false);
   const [mobileOpen, setMobileOpen] = React.useState(false);
-  const collapseTimeoutRef = React.useRef(null);
 
-  const handleSidebarMouseEnter = () => {
-    if (collapseTimeoutRef.current) clearTimeout(collapseTimeoutRef.current);
-    setHovered(true);
+  const toggleSidebar = () => {
+    const next = !sidebarExpanded;
+    setSidebarExpanded(next);
+    try { localStorage.setItem("orion_sidebar_expanded", String(next)); } catch {}
   };
 
-  const handleSidebarMouseLeave = () => {
-    if (!sidebarPinned) {
-      collapseTimeoutRef.current = setTimeout(() => {
-        setHovered(false);
-      }, 280);
-    }
-  };
-
-  const expanded = sidebarPinned || hovered;
-
-  const togglePin = () => {
-    const next = !sidebarPinned;
-    setSidebarPinned(next);
-    try { localStorage.setItem("orion_sidebar_pinned", String(next)); } catch {}
-  };
+  const expanded = sidebarExpanded;
 
   // Data state
   const [user, setUser] = React.useState(null);
@@ -684,8 +675,7 @@ function LayoutContent({ children, currentPageName }) {
     onOpenNotifications: () => setShowNotifications(true),
     onShowProfile: () => setShowProfileModal(true),
     onLogout: () => User.logout(),
-    pinned: sidebarPinned,
-    onTogglePin: togglePin,
+    onToggleSidebar: toggleSidebar,
   };
 
   return (
@@ -711,10 +701,7 @@ function LayoutContent({ children, currentPageName }) {
             style={{
               width: expanded ? 260 : 64,
               transition: `width ${appSettings?.sidebar_animation_ms ?? 1050}ms cubic-bezier(0.22, 1, 0.36, 1)`,
-              boxShadow: expanded && !sidebarPinned ? "2px 0 8px rgba(0, 0, 0, 0.08)" : "none",
             }}
-            onMouseEnter={handleSidebarMouseEnter}
-            onMouseLeave={handleSidebarMouseLeave}
           >
             <SidebarContent {...sidebarProps} expanded={expanded} onNavClick={undefined} />
           </aside>
@@ -725,7 +712,7 @@ function LayoutContent({ children, currentPageName }) {
               <SidebarContent
                 {...sidebarProps}
                 expanded={true}
-                onTogglePin={undefined}
+                onToggleSidebar={undefined}
                 onNavClick={() => setMobileOpen(false)}
               />
             </SheetContent>
