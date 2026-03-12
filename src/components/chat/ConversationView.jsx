@@ -234,6 +234,8 @@ export default function ConversationView({
   const prevConversationIdRef = useRef(null);
   const scrollHeightBeforeLoadRef = useRef(0);   // âncora para load more
   const shouldAnchorScrollRef = useRef(false);    // flag: restaurar posição após load more
+  const scrollStabilizerRef = useRef(null); // timer para estabilização do scroll inicial
+  const isInitialRenderRef = useRef(false); // flag: está na fase de renderização inicial da conversa
 
   const BOTTOM_THRESHOLD = 60; // px from bottom = "at bottom"
 
@@ -276,6 +278,9 @@ export default function ConversationView({
 
   // Detectar interação do usuário com scroll
   const handleScroll = useCallback((e) => {
+    // Durante renderização inicial, não atualizar flags para evitar interferência
+    if (isInitialRenderRef.current) return;
+
     const target = e.target;
     const atBottom = target.scrollHeight - target.scrollTop - target.clientHeight < BOTTOM_THRESHOLD;
     isAtBottomRef.current = atBottom;
@@ -306,14 +311,42 @@ export default function ConversationView({
       setShowScrollButton(false);
       lastActionRef.current = "initial_load";
       prevMessagesLengthRef.current = messages.length;
+      isInitialRenderRef.current = true;
 
-      // Scroll to bottom once, after DOM renders (two rAF for safety)
+      // Cancelar qualquer tentativa anterior de estabilização
+      if (scrollStabilizerRef.current) {
+        clearTimeout(scrollStabilizerRef.current);
+        scrollStabilizerRef.current = null;
+      }
+
+      // Scroll inicial robusto com retry para garantir posicionamento no final
+      // mesmo com imagens/anexos que alteram altura após render
       if (!initialScrollDoneRef.current[convId]) {
-        requestAnimationFrame(() => {
+        const attemptScroll = (attempt = 0) => {
           requestAnimationFrame(() => {
             scrollToBottomInstant();
-            initialScrollDoneRef.current[convId] = true;
+            
+            // Retry controlado: mais 2 tentativas com delay crescente para lidar com imagens
+            if (attempt < 2) {
+              scrollStabilizerRef.current = setTimeout(() => {
+                // Só continua tentando se ainda estamos na mesma conversa
+                if (prevConversationIdRef.current === convId) {
+                  attemptScroll(attempt + 1);
+                }
+              }, attempt === 0 ? 150 : 400);
+            } else {
+              // Após tentativas, marcar como concluído e desativar flag de renderização inicial
+              initialScrollDoneRef.current[convId] = true;
+              isInitialRenderRef.current = false;
+            }
           });
+        };
+        attemptScroll();
+      } else {
+        // Conversa já visitada antes — scroll único
+        requestAnimationFrame(() => {
+          scrollToBottomInstant();
+          isInitialRenderRef.current = false;
         });
       }
       return;
@@ -324,6 +357,12 @@ export default function ConversationView({
     const prevLength = prevMessagesLengthRef.current;
     const messagesAdded = currentLength > prevLength;
     prevMessagesLengthRef.current = currentLength;
+
+    // Durante renderização inicial, ignora lógica de atualização incremental
+    // para evitar conflito com o scroll estabilizador
+    if (isInitialRenderRef.current) {
+      return;
+    }
 
     // Restore scroll anchor after load more (messages prepended at top)
     if (shouldAnchorScrollRef.current && messagesAdded) {
@@ -362,6 +401,18 @@ export default function ConversationView({
       setNewMessagesCount(n => n + (currentLength - prevLength));
     }
   }, [messages, conversation?.id, scrollToBottomInstant]);
+
+  // Cleanup ao desmontar
+  useEffect(() => {
+    return () => {
+      if (scrollStabilizerRef.current) {
+        clearTimeout(scrollStabilizerRef.current);
+      }
+      if (userInteractingTimerRef.current) {
+        clearTimeout(userInteractingTimerRef.current);
+      }
+    };
+  }, []);
 
   // Atalho Ctrl+F para abrir busca
   useEffect(() => {
