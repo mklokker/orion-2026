@@ -37,6 +37,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Sheet, SheetContent, SheetHeader } from "@/components/ui/sheet";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { User } from "@/entities/User";
 import { Notification as NotificationEntity } from "@/entities/Notification";
 import { Task } from "@/entities/Task";
@@ -150,10 +151,15 @@ function NavItem({ item, isActive, expanded, onClick }) {
 // ─────────────────────────────────────────────
 function GestaoRIGroup({ items, expanded, isActive, currentPath, onClick }) {
   const [open, setOpen] = React.useState(isActive);
+  const [popoverOpen, setPopoverOpen] = React.useState(false);
 
   const trigger = (
     <button
-      onClick={() => expanded && setOpen(o => !o)}
+      onClick={() => {
+        if (expanded) {
+          setOpen(o => !o);
+        }
+      }}
       aria-label="Gestão RI"
       className={`
         relative flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 w-full
@@ -179,26 +185,67 @@ function GestaoRIGroup({ items, expanded, isActive, currentPath, onClick }) {
     </button>
   );
 
-  return (
-    <div>
-      {!expanded ? (
-        <Tooltip>
-          <TooltipTrigger asChild>{trigger}</TooltipTrigger>
-          <TooltipContent side="right">Gestão RI</TooltipContent>
-        </Tooltip>
-      ) : trigger}
+  // Modo expandido: trigger inline normal com tooltip
+  if (expanded) {
+    return (
+      <div>
+        {trigger}
+        {open && (
+          <div className="ml-4 mt-1 space-y-0.5 border-l border-border pl-3">
+            {items.map(sub => (
+              <Link
+                key={sub.title}
+                to={sub.url}
+                onClick={onClick}
+                className={`flex items-center gap-2 px-2 py-2 rounded-lg text-sm transition-colors duration-150 ${
+                  currentPath === sub.url
+                    ? "bg-accent text-primary font-semibold"
+                    : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                }`}
+              >
+                <sub.icon className="w-4 h-4 shrink-0" />
+                {sub.title}
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
 
-      {expanded && open && (
-        <div className="ml-4 mt-1 space-y-0.5 border-l border-border pl-3">
+  // Modo recolhido: popover lateral com subitens
+  return (
+    <Popover open={popoverOpen} onOpenChange={setPopoverOpen}>
+      <PopoverTrigger asChild>
+        <div>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              {trigger}
+            </TooltipTrigger>
+            <TooltipContent side="right">Gestão RI</TooltipContent>
+          </Tooltip>
+        </div>
+      </PopoverTrigger>
+      <PopoverContent 
+        side="right" 
+        align="start" 
+        className="w-56 p-2"
+        sideOffset={8}
+      >
+        <div className="space-y-0.5">
+          <p className="text-xs font-semibold text-muted-foreground px-2 py-1.5">Gestão RI</p>
           {items.map(sub => (
             <Link
               key={sub.title}
               to={sub.url}
-              onClick={onClick}
-              className={`flex items-center gap-2 px-2 py-2 rounded-lg text-sm transition-colors duration-150 ${
+              onClick={() => {
+                setPopoverOpen(false);
+                onClick?.();
+              }}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors duration-150 ${
                 currentPath === sub.url
-                  ? "bg-accent text-primary font-semibold"
-                  : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                  ? "bg-primary text-primary-foreground font-semibold"
+                  : "text-foreground hover:bg-accent hover:text-accent-foreground"
               }`}
             >
               <sub.icon className="w-4 h-4 shrink-0" />
@@ -206,8 +253,8 @@ function GestaoRIGroup({ items, expanded, isActive, currentPath, onClick }) {
             </Link>
           ))}
         </div>
-      )}
-    </div>
+      </PopoverContent>
+    </Popover>
   );
 }
 
