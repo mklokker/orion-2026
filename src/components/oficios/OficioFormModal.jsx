@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/components/ui/use-toast";
 import { differenceInDays, parseISO } from "date-fns";
+import { Upload, X, FileText } from "lucide-react";
 
 export default function OficioFormModal({ open, onClose, oficio, onSuccess }) {
   const [formData, setFormData] = useState({
@@ -33,6 +34,8 @@ export default function OficioFormModal({ open, onClose, oficio, onSuccess }) {
     observacoes: "",
   });
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -59,6 +62,7 @@ export default function OficioFormModal({ open, onClose, oficio, onSuccess }) {
         observacoes: "",
       });
     }
+    setSelectedFile(null);
   }, [oficio, open]);
 
   const calculateStatus = () => {
@@ -80,6 +84,36 @@ export default function OficioFormModal({ open, onClose, oficio, onSuccess }) {
       }
     }
     return null;
+  };
+
+  const handleFileSelect = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const result = await base44.integrations.Core.UploadFile({ file });
+      setFormData({ ...formData, arquivo_url: result.file_url });
+      setSelectedFile(file);
+      toast({
+        title: "Sucesso",
+        description: "Arquivo enviado com sucesso.",
+      });
+    } catch (error) {
+      console.error("Erro ao fazer upload:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível enviar o arquivo.",
+        variant: "destructive",
+      });
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleRemoveFile = () => {
+    setFormData({ ...formData, arquivo_url: "" });
+    setSelectedFile(null);
   };
 
   const handleSubmit = async (e) => {
@@ -209,14 +243,51 @@ export default function OficioFormModal({ open, onClose, oficio, onSuccess }) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="arquivo_url">Link do Arquivo</Label>
-            <Input
-              id="arquivo_url"
-              type="url"
-              value={formData.arquivo_url}
-              onChange={(e) => setFormData({ ...formData, arquivo_url: e.target.value })}
-              placeholder="https://..."
-            />
+            <Label htmlFor="arquivo">Arquivo</Label>
+            {formData.arquivo_url ? (
+              <div className="flex items-center gap-2 p-3 border border-border rounded-lg bg-muted/30">
+                <FileText className="w-5 h-5 text-primary shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">
+                    {selectedFile?.name || "Arquivo anexado"}
+                  </p>
+                  <a
+                    href={formData.arquivo_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-primary hover:underline"
+                  >
+                    Ver arquivo
+                  </a>
+                </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleRemoveFile}
+                  className="shrink-0"
+                >
+                  <X className="w-4 h-4" />
+                </Button>
+              </div>
+            ) : (
+              <div className="relative">
+                <input
+                  id="arquivo"
+                  type="file"
+                  onChange={handleFileSelect}
+                  disabled={uploading}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                />
+                <div className="flex items-center justify-center gap-2 p-4 border-2 border-dashed border-border rounded-lg hover:bg-muted/50 transition-colors cursor-pointer">
+                  <Upload className="w-5 h-5 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">
+                    {uploading ? "Enviando..." : "Clique para anexar arquivo"}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">
