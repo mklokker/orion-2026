@@ -36,7 +36,7 @@ import {
   Filter,
   X,
 } from "lucide-react";
-import { format, differenceInDays, parseISO } from "date-fns";
+import { format, differenceInDays, parseISO, isValid } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import OficioFormModal from "../components/oficios/OficioFormModal";
 import OficioViewModal from "../components/oficios/OficioViewModal";
@@ -437,10 +437,10 @@ export default function Oficios() {
                           </TableCell>
                           <TableCell className="max-w-xs truncate">{oficio.assunto}</TableCell>
                           <TableCell>
-                            {oficio.data_envio_malote ? format(parseISO(oficio.data_envio_malote), "dd/MM/yyyy") : "-"}
+                            {oficio.data_envio_malote && isValid(parseISO(oficio.data_envio_malote)) ? format(parseISO(oficio.data_envio_malote), "dd/MM/yyyy") : "-"}
                           </TableCell>
                           <TableCell>
-                            {oficio.data_retorno_malote ? format(parseISO(oficio.data_retorno_malote), "dd/MM/yyyy") : "-"}
+                            {oficio.data_retorno_malote && isValid(parseISO(oficio.data_retorno_malote)) ? format(parseISO(oficio.data_retorno_malote), "dd/MM/yyyy") : "-"}
                           </TableCell>
                           <TableCell>
                             {oficio.tempo_resposta_dias != null ? `${oficio.tempo_resposta_dias}d` : "-"}
@@ -506,13 +506,13 @@ export default function Oficios() {
                           <div>
                             <span className="text-muted-foreground">Envio:</span>
                             <p className="font-medium">
-                              {oficio.data_envio_malote ? format(parseISO(oficio.data_envio_malote), "dd/MM/yyyy") : "-"}
+                              {oficio.data_envio_malote && isValid(parseISO(oficio.data_envio_malote)) ? format(parseISO(oficio.data_envio_malote), "dd/MM/yyyy") : "-"}
                             </p>
                           </div>
                           <div>
                             <span className="text-muted-foreground">Retorno:</span>
                             <p className="font-medium">
-                              {oficio.data_retorno_malote ? format(parseISO(oficio.data_retorno_malote), "dd/MM/yyyy") : "-"}
+                              {oficio.data_retorno_malote && isValid(parseISO(oficio.data_retorno_malote)) ? format(parseISO(oficio.data_retorno_malote), "dd/MM/yyyy") : "-"}
                             </p>
                           </div>
                           {oficio.tempo_resposta_dias != null && (

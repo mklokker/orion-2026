@@ -8,7 +8,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ExternalLink, AlertTriangle } from "lucide-react";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, isValid } from "date-fns";
 
 const statusColors = {
   "Rascunho": "bg-gray-100 text-gray-800 border-gray-300",
@@ -61,19 +61,19 @@ export default function OficioViewModal({ open, onClose, oficio }) {
             <div>
               <label className="text-sm font-medium text-muted-foreground">Data Envio Malote</label>
               <p className="text-base">
-                {oficio.data_envio_malote ? format(parseISO(oficio.data_envio_malote), "dd/MM/yyyy") : "-"}
+                {oficio.data_envio_malote && isValid(parseISO(oficio.data_envio_malote)) ? format(parseISO(oficio.data_envio_malote), "dd/MM/yyyy") : "-"}
               </p>
             </div>
             <div>
               <label className="text-sm font-medium text-muted-foreground">Data Retorno Malote</label>
               <p className="text-base">
-                {oficio.data_retorno_malote ? format(parseISO(oficio.data_retorno_malote), "dd/MM/yyyy") : "-"}
+                {oficio.data_retorno_malote && isValid(parseISO(oficio.data_retorno_malote)) ? format(parseISO(oficio.data_retorno_malote), "dd/MM/yyyy") : "-"}
               </p>
             </div>
             <div>
               <label className="text-sm font-medium text-muted-foreground">Data Envio à Kátia</label>
               <p className="text-base">
-                {oficio.data_envio_katia ? format(parseISO(oficio.data_envio_katia), "dd/MM/yyyy") : "-"}
+                {oficio.data_envio_katia && isValid(parseISO(oficio.data_envio_katia)) ? format(parseISO(oficio.data_envio_katia), "dd/MM/yyyy") : "-"}
               </p>
             </div>
           </div>
@@ -117,11 +117,11 @@ export default function OficioViewModal({ open, onClose, oficio }) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4 border-t text-xs text-muted-foreground">
             <div>
               <span className="font-medium">Criado em:</span>{" "}
-              {oficio.created_date ? format(parseISO(oficio.created_date), "dd/MM/yyyy HH:mm") : "-"}
+              {oficio.created_date && isValid(parseISO(oficio.created_date)) ? format(parseISO(oficio.created_date), "dd/MM/yyyy HH:mm") : "-"}
             </div>
             <div>
               <span className="font-medium">Atualizado em:</span>{" "}
-              {oficio.updated_date ? format(parseISO(oficio.updated_date), "dd/MM/yyyy HH:mm") : "-"}
+              {oficio.updated_date && isValid(parseISO(oficio.updated_date)) ? format(parseISO(oficio.updated_date), "dd/MM/yyyy HH:mm") : "-"}
             </div>
           </div>
         </div>
