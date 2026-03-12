@@ -319,34 +319,32 @@ export default function ConversationView({
         scrollStabilizerRef.current = null;
       }
 
-      // Scroll inicial robusto com retry para garantir posicionamento no final
-      // mesmo com imagens/anexos que alteram altura após render
+      // Scroll inicial: aguardar todas as fases do navegador antes de posicionar
+      // Usa múltiplos requestAnimationFrame para garantir que layout + pintura finalizaram
       if (!initialScrollDoneRef.current[convId]) {
-        const attemptScroll = (attempt = 0) => {
+        requestAnimationFrame(() => {
           requestAnimationFrame(() => {
+            // Primeira pintura completa — agora sim fazer scroll
             scrollToBottomInstant();
             
-            // Retry controlado: mais 2 tentativas com delay crescente para lidar com imagens
-            if (attempt < 2) {
-              scrollStabilizerRef.current = setTimeout(() => {
-                // Só continua tentando se ainda estamos na mesma conversa
-                if (prevConversationIdRef.current === convId) {
-                  attemptScroll(attempt + 1);
-                }
-              }, attempt === 0 ? 150 : 400);
-            } else {
-              // Após tentativas, marcar como concluído e desativar flag de renderização inicial
-              initialScrollDoneRef.current[convId] = true;
-              isInitialRenderRef.current = false;
-            }
+            // Pequeno buffer final para imagens que carregam assincronamente
+            // mas sem salto visual (ajuste único e discreto após um delay longo)
+            scrollStabilizerRef.current = setTimeout(() => {
+              if (prevConversationIdRef.current === convId) {
+                scrollToBottomInstant();
+                initialScrollDoneRef.current[convId] = true;
+                isInitialRenderRef.current = false;
+              }
+            }, 300);
           });
-        };
-        attemptScroll();
+        });
       } else {
-        // Conversa já visitada antes — scroll único
+        // Conversa já visitada antes — scroll único após pintura
         requestAnimationFrame(() => {
-          scrollToBottomInstant();
-          isInitialRenderRef.current = false;
+          requestAnimationFrame(() => {
+            scrollToBottomInstant();
+            isInitialRenderRef.current = false;
+          });
         });
       }
       return;
