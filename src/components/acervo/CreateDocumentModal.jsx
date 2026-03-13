@@ -42,11 +42,11 @@ export default function CreateDocumentModal({ open, onClose, categories, onCreat
   const handleFileChange = (e) => {
     const selectedFile = e.target.files[0];
     if (selectedFile) {
-      // Limite de 10MB
-      if (selectedFile.size > 10 * 1024 * 1024) {
+      // Limite de 50MB
+      if (selectedFile.size > 50 * 1024 * 1024) {
         toast({
           title: "Arquivo muito grande",
-          description: "O arquivo deve ter no máximo 10MB.",
+          description: "O arquivo deve ter no máximo 50MB.",
           variant: "destructive"
         });
         return;
@@ -269,7 +269,7 @@ export default function CreateDocumentModal({ open, onClose, categories, onCreat
                         Clique para selecionar ou arraste o arquivo
                       </p>
                       <p className="text-xs text-gray-500">
-                        PDF, Word, Excel, Imagens (máx. 10MB)
+                        PDF, Word, Excel, Imagens (máx. 50MB)
                       </p>
                     </div>
                   )}
