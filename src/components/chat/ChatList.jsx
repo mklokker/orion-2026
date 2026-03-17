@@ -152,7 +152,24 @@ export default function ChatList({
 
   const filteredConversations = conversations.filter(conv => {
     const display = getConversationDisplay(conv);
-    const matchesSearch = display.name.toLowerCase().includes(search.toLowerCase());
+    const lowerSearch = search.toLowerCase();
+
+    // Sem busca ativa: mostrar tudo
+    if (!search.trim() || search.trim().length < 2) {
+      const matchesUnread = unreadFilter === "all" || (unreadCounts[conv.id] > 0) || isManualUnread(conv.id);
+      return matchesUnread;
+    }
+
+    // Verificar se o nome da conversa/usuário bate (case insensitive)
+    const nameMatch = display.name.toLowerCase().includes(lowerSearch);
+
+    // Verificar se a última mensagem bate (rápido, sem chamada extra)
+    const lastMsgMatch = conv.last_message?.toLowerCase().includes(lowerSearch);
+
+    // Verificar se há match de mensagens do backend (se já carregou)
+    const messageMatch = messageMatchIds !== null && messageMatchIds.includes(conv.id);
+
+    const matchesSearch = nameMatch || lastMsgMatch || messageMatch;
     const matchesUnread = unreadFilter === "all" || (unreadCounts[conv.id] > 0) || isManualUnread(conv.id);
     return matchesSearch && matchesUnread;
   });
