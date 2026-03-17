@@ -353,6 +353,11 @@ export default function ChatList({
                           <p className={`text-sm truncate ${unread > 0 ? "text-foreground font-medium" : "text-muted-foreground"}`}>
                             {isTyping ? (
                               <span className="text-green-600 italic">digitando...</span>
+                            ) : messageMatchIds?.includes(conv.id) && !display.name.toLowerCase().includes(search.toLowerCase()) ? (
+                              <span className="text-primary/80 italic text-xs flex items-center gap-1">
+                                <MessageSquare className="w-3 h-3 shrink-0" />
+                                Mensagem encontrada no histórico
+                              </span>
                             ) : (
                               conv.last_message || "Nenhuma mensagem"
                             )}
