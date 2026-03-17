@@ -222,14 +222,34 @@ export default function ChatList({
           </div>
         </div>
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          {isSearching ? (
+            <Loader2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary animate-spin" />
+          ) : (
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          )}
           <Input
-            placeholder="Buscar conversas..."
+            placeholder="Buscar conversas, usuários e mensagens..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9 bg-muted/50 rounded-xl h-10"
           />
+          {search.length > 0 && (
+            <button
+              onClick={() => setSearch("")}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-xs"
+            >
+              ✕
+            </button>
+          )}
         </div>
+        {search.trim().length >= 2 && (
+          <p className="text-[11px] text-muted-foreground mt-1 flex items-center gap-1">
+            <MessageSquare className="w-3 h-3" />
+            {isSearching
+              ? "Buscando em mensagens..."
+              : `${filteredConversations.length} resultado(s) — nome, última msg e histórico`}
+          </p>
+        )}
         {/* Filtros */}
         <div className="flex gap-1.5 mt-2">
           <button
