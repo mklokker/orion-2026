@@ -1,10 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Search, Plus, Users, Check, CheckCheck, Settings, Pin, PinOff, Globe, RefreshCw, FileText, ListChecks, Eye, EyeOff, MoreVertical, Megaphone } from "lucide-react";
+import { Search, Plus, Users, Check, CheckCheck, Settings, Pin, PinOff, Globe, RefreshCw, FileText, ListChecks, Eye, EyeOff, MoreVertical, Megaphone, Loader2, MessageSquare } from "lucide-react";
+import { searchMessagesGlobal } from "@/functions/searchMessagesGlobal";
 import { useUnreadStatus } from "./useUnreadStatus";
 import { ConversationContextMenu } from "./ConversationContextMenu";
 import {
