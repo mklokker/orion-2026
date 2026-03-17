@@ -62,6 +62,9 @@ export default function ChatList({
   const [search, setSearch] = React.useState("");
   const [unreadFilter, setUnreadFilter] = React.useState("all"); // "all" | "unread"
   const [showBatchApproval, setShowBatchApproval] = React.useState(false);
+  const [messageMatchIds, setMessageMatchIds] = React.useState(null); // null = sem busca ativa
+  const [isSearching, setIsSearching] = React.useState(false);
+  const searchDebounceRef = useRef(null);
   const { toast } = useToast();
   const isAdmin = currentUser?.role === "admin";
   const { isManualUnread, toggleUnreadStatus } = useUnreadStatus(currentUser?.email);
