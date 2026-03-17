@@ -69,6 +69,33 @@ export default function ChatList({
   const isAdmin = currentUser?.role === "admin";
   const { isManualUnread, toggleUnreadStatus } = useUnreadStatus(currentUser?.email);
   
+  // Busca global de mensagens com debounce
+  useEffect(() => {
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+
+    if (search.trim().length < 2) {
+      setMessageMatchIds(null);
+      setIsSearching(false);
+      return;
+    }
+
+    setIsSearching(true);
+    searchDebounceRef.current = setTimeout(async () => {
+      try {
+        const res = await searchMessagesGlobal({ query: search.trim() });
+        setMessageMatchIds(res?.data?.conversation_ids || []);
+      } catch (err) {
+        setMessageMatchIds([]);
+      } finally {
+        setIsSearching(false);
+      }
+    }, 600);
+
+    return () => {
+      if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+    };
+  }, [search]);
+
   const MAX_PINNED = 5;
   
   // Contar conversas fixadas pelo usuário atual
