@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Search, Plus, Users, Check, CheckCheck, Settings, Pin, PinOff, Globe, RefreshCw, FileText, ListChecks, Eye, EyeOff, MoreVertical, Megaphone, Loader2, MessageSquare } from "lucide-react";
-import { searchMessagesGlobal } from "@/functions/searchMessagesGlobal";
+import { Search, Plus, Users, Check, CheckCheck, Settings, Pin, PinOff, Globe, RefreshCw, FileText, ListChecks, Eye, EyeOff, MoreVertical, Megaphone } from "lucide-react";
 import { useUnreadStatus } from "./useUnreadStatus";
 import { ConversationContextMenu } from "./ConversationContextMenu";
 import {
@@ -62,40 +61,10 @@ export default function ChatList({
   const [search, setSearch] = React.useState("");
   const [unreadFilter, setUnreadFilter] = React.useState("all"); // "all" | "unread"
   const [showBatchApproval, setShowBatchApproval] = React.useState(false);
-  const [messageMatchIds, setMessageMatchIds] = React.useState(null); // null = sem busca ativa
-  const [isSearching, setIsSearching] = React.useState(false);
-  const searchDebounceRef = useRef(null);
   const { toast } = useToast();
   const isAdmin = currentUser?.role === "admin";
   const { isManualUnread, toggleUnreadStatus } = useUnreadStatus(currentUser?.email);
   
-  // Busca global de mensagens com debounce
-  useEffect(() => {
-    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
-
-    if (search.trim().length < 2) {
-      setMessageMatchIds(null);
-      setIsSearching(false);
-      return;
-    }
-
-    setIsSearching(true);
-    searchDebounceRef.current = setTimeout(async () => {
-      try {
-        const res = await searchMessagesGlobal({ query: search.trim() });
-        setMessageMatchIds(res?.data?.conversation_ids || []);
-      } catch (err) {
-        setMessageMatchIds([]);
-      } finally {
-        setIsSearching(false);
-      }
-    }, 600);
-
-    return () => {
-      if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
-    };
-  }, [search]);
-
   const MAX_PINNED = 5;
   
   // Contar conversas fixadas pelo usuário atual
@@ -152,24 +121,7 @@ export default function ChatList({
 
   const filteredConversations = conversations.filter(conv => {
     const display = getConversationDisplay(conv);
-    const lowerSearch = search.toLowerCase();
-
-    // Sem busca ativa: mostrar tudo
-    if (!search.trim() || search.trim().length < 2) {
-      const matchesUnread = unreadFilter === "all" || (unreadCounts[conv.id] > 0) || isManualUnread(conv.id);
-      return matchesUnread;
-    }
-
-    // Verificar se o nome da conversa/usuário bate (case insensitive)
-    const nameMatch = display.name.toLowerCase().includes(lowerSearch);
-
-    // Verificar se a última mensagem bate (rápido, sem chamada extra)
-    const lastMsgMatch = conv.last_message?.toLowerCase().includes(lowerSearch);
-
-    // Verificar se há match de mensagens do backend (se já carregou)
-    const messageMatch = messageMatchIds !== null && messageMatchIds.includes(conv.id);
-
-    const matchesSearch = nameMatch || lastMsgMatch || messageMatch;
+    const matchesSearch = display.name.toLowerCase().includes(search.toLowerCase());
     const matchesUnread = unreadFilter === "all" || (unreadCounts[conv.id] > 0) || isManualUnread(conv.id);
     return matchesSearch && matchesUnread;
   });
@@ -222,34 +174,14 @@ export default function ChatList({
           </div>
         </div>
         <div className="relative">
-          {isSearching ? (
-            <Loader2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary animate-spin" />
-          ) : (
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          )}
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar conversas, usuários e mensagens..."
+            placeholder="Buscar conversas..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="pl-9 bg-muted/50 rounded-xl h-10"
           />
-          {search.length > 0 && (
-            <button
-              onClick={() => setSearch("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-xs"
-            >
-              ✕
-            </button>
-          )}
         </div>
-        {search.trim().length >= 2 && (
-          <p className="text-[11px] text-muted-foreground mt-1 flex items-center gap-1">
-            <MessageSquare className="w-3 h-3" />
-            {isSearching
-              ? "Buscando em mensagens..."
-              : `${filteredConversations.length} resultado(s) — nome, última msg e histórico`}
-          </p>
-        )}
         {/* Filtros */}
         <div className="flex gap-1.5 mt-2">
           <button
@@ -353,11 +285,6 @@ export default function ChatList({
                           <p className={`text-sm truncate ${unread > 0 ? "text-foreground font-medium" : "text-muted-foreground"}`}>
                             {isTyping ? (
                               <span className="text-green-600 italic">digitando...</span>
-                            ) : messageMatchIds?.includes(conv.id) && !display.name.toLowerCase().includes(search.toLowerCase()) ? (
-                              <span className="text-primary/80 italic text-xs flex items-center gap-1">
-                                <MessageSquare className="w-3 h-3 shrink-0" />
-                                Mensagem encontrada no histórico
-                              </span>
                             ) : (
                               conv.last_message || "Nenhuma mensagem"
                             )}
